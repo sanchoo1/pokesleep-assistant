@@ -44,3 +44,4 @@ export function calculatePotCapacity(params: PotCapacityParams): PotCapacityResu
     totalCapacity,
   };
 }
+

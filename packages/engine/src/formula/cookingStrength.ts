@@ -118,3 +118,4 @@ export function calculateCookingStrength(params: CookingStrengthParams): Cooking
     finalStrength,
   };
 }
+

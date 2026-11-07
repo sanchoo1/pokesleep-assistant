@@ -94,3 +94,4 @@ export function calculateSkillRate(params: SkillRateParams): SkillRateResult {
     effectiveRate,
   };
 }
+

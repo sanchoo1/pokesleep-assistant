@@ -377,3 +377,4 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
     totalDailyEnergy,
   };
 }
+

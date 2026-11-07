@@ -235,3 +235,4 @@ describe('Formula: Skill & Ingredient Proc Rates', () => {
     expect(res.effectiveRate).toBe(res.rateWithPity);
   });
 });
+

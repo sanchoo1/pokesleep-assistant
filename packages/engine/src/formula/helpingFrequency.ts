@@ -121,3 +121,4 @@ export function calculateHelpingFrequency(params: HelpingFrequencyParams): Helpi
     combinedMultiplier,
   };
 }
+

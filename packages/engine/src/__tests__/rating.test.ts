@@ -46,3 +46,4 @@ describe('Rating: Rate My Pokémon Evaluator', () => {
     expect(result.worstCombination.subskillNames.length).toBeGreaterThan(0);
   });
 });
+

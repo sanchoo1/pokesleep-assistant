@@ -305,3 +305,4 @@ export function ratePokemon(params: RatingParams): RatingResult {
     worstCombination,
   };
 }
+

@@ -56,3 +56,4 @@ describe('Production: L1 Single-Pokemon Daily Calculator', () => {
     expect(prod.dailySkillProcs).toBeGreaterThan(3.0); // 3+ heals per day
   });
 });
+

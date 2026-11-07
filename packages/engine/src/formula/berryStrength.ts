@@ -55,3 +55,4 @@ export function calculateBerryStrength(params: BerryStrengthParams): BerryStreng
     finalStrength,
   };
 }
+
