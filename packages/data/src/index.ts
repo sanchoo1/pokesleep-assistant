@@ -19,6 +19,7 @@ import jaPackRaw from './generated/locales/ja.json';
 import enPackRaw from './generated/locales/en.json';
 
 export * from './types';
+export type SupportedLocale = Locale;
 
 export const GAME_DATA = gameDataRaw as unknown as GameData;
 
