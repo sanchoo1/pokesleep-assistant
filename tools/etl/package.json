@@ -1,0 +1,15 @@
+{
+  "name": "@pokesleep/etl",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build-data": "node run.mjs"
+  },
+  "dependencies": {
+    "yaml": "^2.7.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "folders": [
+    {
+      "name": "pokesleep-assistant (Root)",
+      "path": "."
+    },
+    {
+      "name": "packages/data",
+      "path": "packages/data"
+    },
+    {
+      "name": "packages/engine",
+      "path": "packages/engine"
+    },
+    {
+      "name": "apps/web",
+      "path": "apps/web"
+    },
+    {
+      "name": "services/py-backend",
+      "path": "services/py-backend"
+    }
+  ],
+  "settings": {
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    "python.analysis.extraPaths": [
+      "${workspaceFolder}/services/py-backend"
+    ],
+    "typescript.tsdk": "node_modules/typescript/lib"
+  }
+}
+

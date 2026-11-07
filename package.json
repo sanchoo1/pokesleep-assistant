@@ -1,0 +1,20 @@
+{
+  "name": "pokesleep-assistant",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A high-performance Pokémon Sleep companion and calculation toolkit",
+  "packageManager": "pnpm@12.17.0",
+  "scripts": {
+    "data:etl": "pnpm --filter \"@pokesleep/etl\" run build-data",
+    "build": "pnpm --filter \"./packages/*\" --filter \"./apps/*\" run build",
+    "test": "vitest run",
+    "lint": "pnpm --filter \"./packages/*\" --filter \"./apps/*\" run lint",
+    "py:install": "uv pip install -r services/py-backend/requirements.txt",
+    "py:dev": "uv run --directory services/py-backend uvicorn main:app --reload --port 8000"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.0"
+  }
+}

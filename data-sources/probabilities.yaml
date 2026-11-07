@@ -1,0 +1,60 @@
+# Pokémon Sleep 抽卡与个体随机分布概率配置
+# 数据源自 RaenonX 研究团队与 Mathcord 社区大样本统计（详见 ATTRIBUTION.md）
+
+version: "1.0.0"
+
+subskills:
+  # 副技能稀有度基础分布（先抽稀有度，再在该稀有度候选池中等概率不放回抽取）
+  rarity_distribution:
+    gold: 0.14
+    silver: 0.33
+    white: 0.53
+
+  # 保底机制
+  pity:
+    # 前 4 个副技能均为白、第 5 个若再抽中白，则自动转为金副技能
+    fifth_white_to_gold: true
+    # 亲密度等级保底金副技能档位
+    friendship_level_thresholds:
+      - min_level: 10
+        guaranteed_gold_slots: 1
+      - min_level: 40
+        guaranteed_gold_slots: 2
+      - min_level: 100
+        guaranteed_gold_slots: 3
+
+ingredients:
+  # 食材槽位解锁等级
+  unlock_levels:
+    slot_0: 1
+    slot_30: 30
+    slot_60: 60
+
+  # 3 种食材物种的组合分布概率（样本数 1,153）
+  combo_3_ingredients:
+    AAA: 0.1111111111
+    AAB: 0.1111111111
+    AAC: 0.1111111111
+    ABA: 0.2222222222
+    ABB: 0.2222222222
+    ABC: 0.2222222222
+
+  # 2 种食材物种的组合分布概率
+  combo_2_ingredients:
+    AAA: 0.1111111111
+    AAB: 0.2222222222
+    ABA: 0.2222222222
+    ABB: 0.4444444444
+
+  # 1 种食材物种（单一食材）
+  combo_1_ingredient:
+    AAA: 1.0
+
+natures:
+  # 25 种性格在野生个体抽取中呈均匀分布
+  distribution: "uniform"
+  single_probability: 0.04
+
+attribution:
+  description: "Probabilities derived from RaenonX community research (sample size >40,000) and Mathcord RP analysis."
+  source_url: "https://pks.raenonx.cc/"

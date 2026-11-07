@@ -1,0 +1,847 @@
+# Pokémon Sleep 专属多语言词典（自有版权手工整理）
+# 覆盖游戏内简体中文 (zh-CN)、繁体中文 (zh-TW)、日语 (ja)、英语 (en)
+# 以及 OCR 与搜索常见别名 (aliases)
+
+version: "1.0.0"
+
+terms:
+  specialty:
+    berry:
+      zh-CN: "树果"
+      zh-TW: "樹果"
+      ja: "きのみ"
+      en: "Berries"
+      aliases: ["树果型", "樹果型"]
+    ingredient:
+      zh-CN: "食材"
+      zh-TW: "食材"
+      ja: "食材"
+      en: "Ingredients"
+      aliases: ["食材型"]
+    skill:
+      zh-CN: "技能"
+      zh-TW: "主技能"
+      ja: "スキル"
+      en: "Skills"
+      aliases: ["技能型", "主技能型"]
+    all:
+      zh-CN: "全能"
+      zh-TW: "全能"
+      ja: "オール"
+      en: "All"
+      aliases: ["全能型"]
+
+  recipe_types:
+    curry:
+      zh-CN: "咖喱/浓汤"
+      zh-TW: "咖哩/濃湯"
+      ja: "カレー・シチュー"
+      en: "Curries/Stews"
+      aliases: ["咖喱", "咖哩", "浓汤", "濃湯"]
+    salad:
+      zh-CN: "沙拉"
+      zh-TW: "沙拉"
+      ja: "サラダ"
+      en: "Salads"
+      aliases: ["色拉"]
+    dessert:
+      zh-CN: "甜点/饮料"
+      zh-TW: "甜點/飲料"
+      ja: "デザート・ドリンク"
+      en: "Desserts/Drinks"
+      aliases: ["甜点", "甜點", "饮料", "飲料"]
+
+subskills:
+  "Berry Finding S":
+    zh-CN: "树果数量S"
+    zh-TW: "樹果數量S"
+    ja: "きのみの数S"
+    en: "Berry Finding S"
+    rarity: "gold"
+    aliases: ["BFS", "树果S", "樹果S", "树果数量增加S"]
+  "Helping Bonus":
+    zh-CN: "帮手奖励"
+    zh-TW: "幫手獎勵"
+    ja: "おてつだいボーナス"
+    en: "Helping Bonus"
+    rarity: "gold"
+    aliases: ["HB", "帮奖", "幫獎", "帮助奖励"]
+  "Energy Recovery Bonus":
+    zh-CN: "活力回复奖励"
+    zh-TW: "活力回復獎勵"
+    ja: "げんき回復ボーナス"
+    en: "Energy Recovery Bonus"
+    rarity: "gold"
+    aliases: ["ERB", "活力奖励", "精力回复奖励"]
+  "Sleep EXP Bonus":
+    zh-CN: "睡眠经验值奖励"
+    zh-TW: "睡眠EXP獎勵"
+    ja: "睡眠EXPボーナス"
+    en: "Sleep EXP Bonus"
+    rarity: "gold"
+    aliases: ["SEB", "睡经", "睡眠经验"]
+  "Research EXP Bonus":
+    zh-CN: "研究经验值奖励"
+    zh-TW: "研究EXP獎勵"
+    ja: "リサーチEXPボーナス"
+    en: "Research EXP Bonus"
+    rarity: "gold"
+    aliases: ["REB", "研经", "研究经验"]
+  "Dream Shard Bonus":
+    zh-CN: "梦之碎片奖励"
+    zh-TW: "夢之碎片獎勵"
+    ja: "ゆめのかけらボーナス"
+    en: "Dream Shard Bonus"
+    rarity: "gold"
+    aliases: ["DSB", "碎片奖励", "梦碎奖励"]
+  "Skill Level Up M":
+    zh-CN: "技能等级提升M"
+    zh-TW: "主技能等級提升M"
+    ja: "スキルレベルアップM"
+    en: "Skill Level Up M"
+    rarity: "gold"
+    aliases: ["技升M", "技能等级M", "技能+2"]
+  "Helping Speed M":
+    zh-CN: "帮手速度M"
+    zh-TW: "幫手速度M"
+    ja: "おてつだいスピードM"
+    en: "Helping Speed M"
+    rarity: "silver"
+    aliases: ["帮速M", "幫速M", "帮助速度M"]
+  "Helping Speed S":
+    zh-CN: "帮手速度S"
+    zh-TW: "幫手速度S"
+    ja: "おてつだいスピードS"
+    en: "Helping Speed S"
+    rarity: "white"
+    aliases: ["帮速S", "幫速S", "帮助速度S"]
+  "Ingredient Finder M":
+    zh-CN: "食材发现率M"
+    zh-TW: "食材機率M"
+    ja: "食材確率アップM"
+    en: "Ingredient Finder M"
+    rarity: "silver"
+    aliases: ["食材概率M", "食率M", "食材M"]
+  "Ingredient Finder S":
+    zh-CN: "食材发现率S"
+    zh-TW: "食材機率S"
+    ja: "食材確率アップS"
+    en: "Ingredient Finder S"
+    rarity: "white"
+    aliases: ["食材概率S", "食率S", "食材S"]
+  "Inventory Up L":
+    zh-CN: "持有上限L"
+    zh-TW: "最大持有上限L"
+    ja: "最大所持数アップL"
+    en: "Inventory Up L"
+    rarity: "silver"
+    aliases: ["包包L", "背包L", "持有L", "最大所持数L"]
+  "Inventory Up M":
+    zh-CN: "持有上限M"
+    zh-TW: "最大持有上限M"
+    ja: "最大所持数アップM"
+    en: "Inventory Up M"
+    rarity: "silver"
+    aliases: ["包包M", "背包M", "持有M", "最大所持数M"]
+  "Inventory Up S":
+    zh-CN: "持有上限S"
+    zh-TW: "最大持有上限S"
+    ja: "最大所持数アップS"
+    en: "Inventory Up S"
+    rarity: "white"
+    aliases: ["包包S", "背包S", "持有S", "最大所持数S"]
+  "Skill Level Up S":
+    zh-CN: "技能等级提升S"
+    zh-TW: "主技能等級提升S"
+    ja: "スキルレベルアップS"
+    en: "Skill Level Up S"
+    rarity: "silver"
+    aliases: ["技升S", "技能等级S", "技能+1"]
+  "Skill Trigger M":
+    zh-CN: "技能概率提升M"
+    zh-TW: "主技能發動機率M"
+    ja: "スキル確率アップM"
+    en: "Skill Trigger M"
+    rarity: "silver"
+    aliases: ["技率M", "技能概率M", "主技能机率M", "技能触发M"]
+  "Skill Trigger S":
+    zh-CN: "技能概率提升S"
+    zh-TW: "主技能發動機率S"
+    ja: "スキル確率アップS"
+    en: "Skill Trigger S"
+    rarity: "white"
+    aliases: ["技率S", "技能概率S", "主技能机率S", "技能触发S"]
+
+ingredients:
+  Apple:
+    zh-CN: "特选苹果"
+    zh-TW: "特選蘋果"
+    ja: "とくせんリンゴ"
+    en: "Fancy Apple"
+    aliases: ["苹果", "蘋果", "Fancy Apple"]
+  Milk:
+    zh-CN: "哞哞鲜奶"
+    zh-TW: "哞哞鮮奶"
+    ja: "モーモーミルク"
+    en: "Moomoo Milk"
+    aliases: ["牛奶", "鲜奶", "鮮奶", "Moomoo Milk"]
+  Soybean:
+    zh-CN: "萌绿大豆"
+    zh-TW: "萌綠大豆"
+    ja: "ワカクサ大豆"
+    en: "Greengrass Soybeans"
+    aliases: ["大豆", "黄豆", "Soybeans"]
+  Honey:
+    zh-CN: "甜甜蜜"
+    zh-TW: "甜甜蜜"
+    ja: "あまいミツ"
+    en: "Honey"
+    aliases: ["蜂蜜", "蜜", "Honey"]
+  Sausage:
+    zh-CN: "豆制肉"
+    zh-TW: "豆製肉"
+    ja: "マメミート"
+    en: "Bean Sausage"
+    aliases: ["豆制香肠", "豆製香腸", "肉", "香肠", "Sausage"]
+  Ginger:
+    zh-CN: "暖暖姜"
+    zh-TW: "暖暖薑"
+    ja: "ぽかぽかジンジャー"
+    en: "Warming Ginger"
+    aliases: ["生姜", "姜", "薑", "Ginger"]
+  Tomato:
+    zh-CN: "安眠番茄"
+    zh-TW: "安眠番茄"
+    ja: "あんみんトマト"
+    en: "Snoozy Tomato"
+    aliases: ["番茄", "西红柿", "助眠番茄", "Tomato"]
+  Egg:
+    zh-CN: "特选蛋"
+    zh-TW: "特選蛋"
+    ja: "とくせんエッグ"
+    en: "Fancy Egg"
+    aliases: ["蛋", "鸡蛋", "潤澤白蛋", "Egg"]
+  Oil:
+    zh-CN: "纯粹油"
+    zh-TW: "純粹油"
+    ja: "ピュアなオイル"
+    en: "Pure Oil"
+    aliases: ["油", "纯正油", "純正油", "Pure Oil"]
+  Potato:
+    zh-CN: "窝心土豆"
+    zh-TW: "窩心洋芋"
+    ja: "ほっこりポテト"
+    en: "Soft Potato"
+    aliases: ["土豆", "洋芋", "马铃薯", "馬鈴薯", "熟透土豆", "Potato"]
+  Herb:
+    zh-CN: "激辣香草"
+    zh-TW: "激辣香草"
+    ja: "げきからハーブ"
+    en: "Fiery Herb"
+    aliases: ["香草", "辣草", "Fiery Herb"]
+  Corn:
+    zh-CN: "萌绿玉米"
+    zh-TW: "萌綠玉米"
+    ja: "ワカクサコーン"
+    en: "Greengrass Corn"
+    aliases: ["玉米", "Greengrass Corn"]
+  Cacao:
+    zh-CN: "放松可可"
+    zh-TW: "放鬆可可"
+    ja: "リラックスカカオ"
+    en: "Soothing Cacao"
+    aliases: ["可可", "巧克", "Cacao"]
+  Coffee:
+    zh-CN: "醒神咖啡豆"
+    zh-TW: "醒神咖啡豆"
+    ja: "めざましコーヒー"
+    en: "Rousing Coffee"
+    aliases: ["咖啡", "咖啡豆", "Coffee"]
+  Avocado:
+    zh-CN: "诱人牛油果"
+    zh-TW: "誘人酪梨"
+    ja: "つややかアボカド"
+    en: "Glossy Avocado"
+    aliases: ["牛油果", "酪梨", "鳄梨", "Avocado"]
+  Mushroom:
+    zh-CN: "鲜味蘑菇"
+    zh-TW: "鮮味蘑菇"
+    ja: "あじわいキノコ"
+    en: "Tasty Mushroom"
+    aliases: ["蘑菇", "香菇", "Mushroom"]
+  Leek:
+    zh-CN: "粗枝大葱"
+    zh-TW: "粗枝大蔥"
+    ja: "ふといながねぎ"
+    en: "Large Leek"
+    aliases: ["大葱", "大蔥", "葱", "蔥", "Leek"]
+  Pumpkin:
+    zh-CN: "饱满南瓜"
+    zh-TW: "飽滿南瓜"
+    ja: "まるまるカボチャ"
+    en: "Plump Pumpkin"
+    aliases: ["南瓜", "Pumpkin"]
+  Tail:
+    zh-CN: "美味尾巴"
+    zh-TW: "美味尾巴"
+    ja: "おいしいシッポ"
+    en: "Slowpoke Tail"
+    aliases: ["尾巴", "呆呆兽尾巴", "呆呆獸尾巴", "Tail"]
+
+islands:
+  greengrass:
+    zh-CN: "萌绿之岛"
+    zh-TW: "萌綠之島"
+    ja: "ワカクサ本島"
+    en: "Greengrass Isle"
+    aliases: ["绿岛", "一岛", "一島"]
+  cyan:
+    zh-CN: "青绿沙滩"
+    zh-TW: "青綠沙灘"
+    ja: "シアンの砂浜"
+    en: "Cyan Beach"
+    aliases: ["沙滩", "海滩", "二岛", "二島"]
+  taupe:
+    zh-CN: "灰褐洞窟"
+    zh-TW: "灰褐洞窟"
+    ja: "トープ洞窟"
+    en: "Taupe Hollow"
+    aliases: ["洞窟", "三岛", "三島"]
+  snowdrop:
+    zh-CN: "白纽雪原"
+    zh-TW: "白紐雪原"
+    ja: "ウノハナ雪原"
+    en: "Snowdrop Tundra"
+    aliases: ["雪原", "四岛", "四島"]
+  lapis:
+    zh-CN: "拉碧斯拉丝湖畔"
+    zh-TW: "拉碧斯拉絲湖畔"
+    ja: "ラピスラズリ湖畔"
+    en: "Lapis Lakeside"
+    aliases: ["湖畔", "五岛", "五島"]
+  powerplant:
+    zh-CN: "黄金旧发电厂"
+    zh-TW: "黃金舊發電廠"
+    ja: "ゴールド旧発電所"
+    en: "Old Gold Power Plant"
+    aliases: ["发电厂", "電廠", "六岛", "六島"]
+  amber:
+    zh-CN: "琥珀峡谷"
+    zh-TW: "琥珀峽谷"
+    ja: "アンバー渓谷"
+    en: "Amber Canyon"
+    aliases: ["峡谷", "峽谷", "七岛", "七島"]
+
+mainskills:
+  "Charge Strength S":
+    zh-CN: "能量填充S"
+    zh-TW: "能量填充S"
+    ja: "エナジーチャージS"
+    en: "Charge Strength S"
+    aliases: ["充能S"]
+  "Charge Strength M":
+    zh-CN: "能量填充M"
+    zh-TW: "能量填充M"
+    ja: "エナジーチャージM"
+    en: "Charge Strength M"
+    aliases: ["充能M"]
+  "Charge Energy S":
+    zh-CN: "活力填充S"
+    zh-TW: "活力填充S"
+    ja: "げんきチャージS"
+    en: "Charge Energy S"
+    aliases: ["回体S", "回体自奶"]
+  "Energy For Everyone S":
+    zh-CN: "活力疗愈S"
+    zh-TW: "活力療癒S"
+    ja: "げんきオールS"
+    en: "Energy For Everyone S"
+    aliases: ["E4E", "群奶", "全体回血S"]
+  "Energizing Cheer S":
+    zh-CN: "活力加油S"
+    zh-TW: "活力加油S"
+    ja: "げんきエールS"
+    en: "Energizing Cheer S"
+    aliases: ["单奶", "随机奶"]
+  "Ingredient Magnet S":
+    zh-CN: "食材获取S"
+    zh-TW: "食材獲取S"
+    ja: "食材ゲットS"
+    en: "Ingredient Magnet S"
+    aliases: ["磁铁S", "吸食材"]
+  "Cooking Power-Up S":
+    zh-CN: "料理强化S"
+    zh-TW: "料理強化S"
+    ja: "料理パワーアップS"
+    en: "Cooking Power-Up S"
+    aliases: ["扩锅S", "擴鍋S", "大锅"]
+  "Dream Shard Magnet S":
+    zh-CN: "梦之碎片获取S"
+    zh-TW: "夢之碎片獲取S"
+    ja: "ゆめのかけらゲットS"
+    en: "Dream Shard Magnet S"
+    aliases: ["碎片获取", "梦碎S"]
+  "Extra Helpful S":
+    zh-CN: "帮手支援S"
+    zh-TW: "幫手支援S"
+    ja: "おてつだいサポートS"
+    en: "Extra Helpful S"
+    aliases: ["帮手支援", "帮倒忙"]
+  "Helper Boost":
+    zh-CN: "帮手鼓舞"
+    zh-TW: "幫手鼓舞"
+    ja: "おてつだいブースト"
+    en: "Helper Boost"
+    aliases: ["神兽技能", "全体帮忙"]
+  "Metronome":
+    zh-CN: "挥指"
+    zh-TW: "揮指"
+    ja: "ゆびをふる"
+    en: "Metronome"
+    aliases: ["摇手指"]
+  "Tasty Chance S":
+    zh-CN: "美味机会S"
+    zh-TW: "美味機會S"
+    ja: "おいしさアップS"
+    en: "Tasty Chance S"
+    aliases: ["暴击S", "大成功S"]
+  "Cooking Assist S":
+    zh-CN: "料理协助S"
+    zh-TW: "料理協助S"
+    ja: "りょうりサポートS"
+    en: "Cooking Assist S"
+    aliases: ["协助S"]
+  "Cooking Advance S":
+    zh-CN: "料理推进S"
+    zh-TW: "料理推進S"
+    ja: "りょうり時短"
+    en: "Cooking Advance S"
+    aliases: ["料理加速", "做饭加速"]
+  "Berry Burst":
+    zh-CN: "树果连击"
+    zh-TW: "樹果連擊"
+    ja: "きのみバースト"
+    en: "Berry Burst"
+    aliases: ["树果爆发", "樹果爆發"]
+  "Berry Zone":
+    zh-CN: "树果领域"
+    zh-TW: "樹果領域"
+    ja: "きのみフィールド"
+    en: "Berry Zone"
+    aliases: ["树果场地"]
+  "Ingredient Draw S":
+    zh-CN: "食材抽选S"
+    zh-TW: "食材抽選S"
+    ja: "食材セレクトS"
+    en: "Ingredient Draw S"
+    aliases: ["抽食材"]
+  "Skill Copy":
+    zh-CN: "技能复制"
+    zh-TW: "技能複製"
+    ja: "スキルコピー"
+    en: "Skill Copy"
+    aliases: ["变身", "抄技能"]
+  "Versatile":
+    zh-CN: "写生全能"
+    zh-TW: "寫生全能"
+    ja: "スケッチ"
+    en: "Versatile"
+    aliases: ["写生"]
+
+recipes:
+  # Curries
+  FANCY_APPLE_CURRY:
+    zh-CN: "特选苹果咖喱"
+    zh-TW: "特選蘋果咖哩"
+    ja: "とくせんリンゴカレー"
+    en: "Fancy Apple Curry"
+  SIMPLE_CHOWDER:
+    zh-CN: "单纯白酱浓汤"
+    zh-TW: "單純白醬濃湯"
+    ja: "じゅんすいホワイトシチュー"
+    en: "Simple Chowder"
+  MILD_HONEY_CURRY:
+    zh-CN: "宝宝甜蜜咖喱"
+    zh-TW: "寶寶甜蜜咖哩"
+    ja: "ほっこりハニーカレー"
+    en: "Mild Honey Curry"
+  BEANBURGER_CURRY:
+    zh-CN: "豆肉排咖喱"
+    zh-TW: "豆製肉排咖哩"
+    ja: "マメバーグカレー"
+    en: "Beanburger Curry"
+  HEARTY_CHEESEBURGER_CURRY:
+    zh-CN: "饱腹芝士肉排咖喱"
+    zh-TW: "吃飽飽起司肉排咖哩"
+    ja: "まんぷくチーズバーグカレー"
+    en: "Hearty Cheeseburger Curry"
+  DROUGHT_KATSU_CURRY:
+    zh-CN: "“日照”炸排咖喱"
+    zh-TW: "“日照”炸豬排咖哩"
+    ja: "「ひでり」カツカレー"
+    en: "\"Drought\" Katsu Curry"
+  SOLAR_POWER_TOMATO_CURRY:
+    zh-CN: "“太阳能量”番茄咖喱"
+    zh-TW: "“太陽能量”番茄咖哩"
+    ja: "「サンパワー」トマトカレー"
+    en: "\"Solar Power\" Tomato Curry"
+  MELTY_OMELETTE_CURRY:
+    zh-CN: "熔岩蛋包饭咖喱"
+    zh-TW: "融化蛋包飯咖哩"
+    ja: "とろけるオムレツカレー"
+    en: "Melty Omelette Curry"
+  SOFT_POTATO_CHOWDER:
+    zh-CN: "暖心土豆浓汤"
+    zh-TW: "窩心洋芋濃湯"
+    ja: "ほっこりポテトチャウダー"
+    en: "Soft Potato Chowder"
+  BULK_UP_BEAN_CURRY:
+    zh-CN: "“健美”豆子咖喱"
+    zh-TW: "“健美”豆豆咖哩"
+    ja: "「ビルドアップ」マメカレー"
+    en: "\"Bulk Up\" Bean Curry"
+  SPORE_MUSHROOM_CURRY:
+    zh-CN: "“蘑菇孢子”咖喱"
+    zh-TW: "“蘑菇孢子”咖哩"
+    ja: "「キノコのほうし」カレー"
+    en: "\"Spore\" Mushroom Curry"
+  EGG_BOMB_CURRY:
+    zh-CN: "“炸蛋”咖喱"
+    zh-TW: "“炸蛋”咖哩"
+    ja: "「タマゴばくだん」カレー"
+    en: "\"Egg Bomb\" Curry"
+  LIMBER_CORN_STEW:
+    zh-CN: "“柔软”玉米炖菜"
+    zh-TW: "“柔軟”玉米濃湯"
+    ja: "「じゅうなん」コーンシチュー"
+    en: "\"Limber\" Corn Stew"
+  DIZZY_PUNCH_SPICY_CURRY:
+    zh-CN: "“晃晃斑”辣味咖喱"
+    zh-TW: "“迷魂拳”辣味咖哩"
+    ja: "「ピヨピヨパンチ」激辛カレー"
+    en: "\"Dizzy Punch\" Spicy Curry"
+  SPICY_LEEK_CURRY:
+    zh-CN: "葱劲十足辣味咖喱"
+    zh-TW: "辣味蔥勁十足咖哩"
+    ja: "からくちネギもりカレー"
+    en: "Spicy Leek Curry"
+  NINJA_CURRY:
+    zh-CN: "忍者咖喱"
+    zh-TW: "忍者咖哩"
+    ja: "ニンジャカレー"
+    en: "Ninja Curry"
+  GRILLED_TAIL_CURRY:
+    zh-CN: "炙烤尾肉咖喱"
+    zh-TW: "炙燒尾肉咖哩"
+    ja: "あぶりテールカレー"
+    en: "Grilled Tail Curry"
+  DREAM_EATER_BUTTER_CURRY:
+    zh-CN: "“食梦”黄油咖喱"
+    zh-TW: "“食夢”奶油咖哩"
+    ja: "「ゆめくい」バターカレー"
+    en: "\"Dream Eater\" Butter Curry"
+  INFERNO_CORN_KEEMA_CURRY:
+    zh-CN: "“炼狱”玉米碎肉咖喱"
+    zh-TW: "“煉獄”玉米絞肉咖哩"
+    ja: "「れんごく」コーンキーマカレー"
+    en: "\"Inferno\" Corn Keema Curry"
+  HIDDEN_POWER_PERK_UP_STEW:
+    zh-CN: "“觉醒力量”提神炖菜"
+    zh-TW: "“覺醒力量”提神濃湯"
+    ja: "「めざめるパワー」シチュー"
+    en: "\"Hidden Power\" Perk-Up Stew"
+  CUT_SUKIYAKI_CURRY:
+    zh-CN: "“居合斩”寿喜烧咖喱"
+    zh-TW: "“居合斬”壽喜燒咖哩"
+    ja: "「いあいぎり」すき焼きカレー"
+    en: "\"Cut\" Sukiyaki Curry"
+  ROLE_PLAY_PUMPKABOO_STEW:
+    zh-CN: "“扮演”南瓜精炖菜"
+    zh-TW: "“扮演”南瓜精濃湯"
+    ja: "「なりきり」バケッチャシチュー"
+    en: "\"Role Play\" Pumpkaboo Stew"
+  OVERGROW_AVOCADO_GRATIN:
+    zh-CN: "“茂盛”牛油果焗菜"
+    zh-TW: "“茂盛”酪梨焗烤"
+    ja: "「しんりょく」アボカドグラタン"
+    en: "\"Overgrow\" Avocado Gratin"
+  GREENGRASS_CURRY_BUN:
+    zh-CN: "萌绿咖喱包"
+    zh-TW: "萌綠咖哩包"
+    ja: "ワカクサカレーパン"
+    en: "Greengrass Curry Bun"
+  BOUNCE_CURRY_UDON:
+    zh-CN: "“弹跳”咖喱乌冬面"
+    zh-TW: "“彈跳”咖哩烏龍麵"
+    ja: "「とびはねる」カレーうどん"
+    en: "\"Bounce\" Curry Udon"
+
+  # Salads
+  FANCY_APPLE_SALAD:
+    zh-CN: "特选苹果沙拉"
+    zh-TW: "特選蘋果沙拉"
+    ja: "とくせんリンゴサラダ"
+    en: "Fancy Apple Salad"
+  BEAN_HAM_SALAD:
+    zh-CN: "豆火腿沙拉"
+    zh-TW: "豆製火腿沙拉"
+    ja: "マメハムサラダ"
+    en: "Bean Ham Salad"
+  SNOOZY_TOMATO_SALAD:
+    zh-CN: "安眠番茄沙拉"
+    zh-TW: "助眠番茄沙拉"
+    ja: "あんみんトマトサラダ"
+    en: "Snoozy Tomato Salad"
+  SNOW_CLOAK_CAESAR_SALAD:
+    zh-CN: "“雪隐”凯撒沙拉"
+    zh-TW: "“雪隱”凱撒沙拉"
+    ja: "「ゆきがくれ」シーザーサラダ"
+    en: "\"Snow Cloak\" Caesar Salad"
+  WATER_VEIL_TOFU_SALAD:
+    zh-CN: "“水幕”豆腐沙拉"
+    zh-TW: "“水幕”豆腐沙拉"
+    ja: "「みずのベール」トーフサラダ"
+    en: "\"Water Veil\" Tofu Salad"
+  HEAT_WAVE_TOFU_SALAD:
+    zh-CN: "“热风”豆腐沙拉"
+    zh-TW: "“熱風”豆腐沙拉"
+    ja: "「ねっぷう」トーフサラダ"
+    en: "\"Heat Wave\" Tofu Salad"
+  FURY_ATTACK_CORN_SALAD:
+    zh-CN: "“疯狂乱抓”玉米沙拉"
+    zh-TW: "“亂擊”玉米沙拉"
+    ja: "「みだれづき」コーンサラダ"
+    en: "\"Fury Attack\" Corn Salad"
+  DAZZLING_APPLE_CHEESE_SALAD:
+    zh-CN: "“耀眼”苹果芝士沙拉"
+    zh-TW: "“耀眼”蘋果起司沙拉"
+    ja: "「びびっと」リンゴチーズサラダ"
+    en: "\"Dazzling\" Apple Cheese Salad"
+  MOOMOO_CAPRESE_SALAD:
+    zh-CN: "哞哞卡布里沙拉"
+    zh-TW: "哞哞卡布里沙拉"
+    ja: "モーモーカプレーゼ"
+    en: "Moomoo Caprese Salad"
+  IMMUNITY_LEEK_SALAD:
+    zh-CN: "“免疫”大葱沙拉"
+    zh-TW: "“免疫”大蔥沙拉"
+    ja: "「めんえき」ネギサラダ"
+    en: "\"Immunity\" Leek Salad"
+  SUPERPOWER_EXTREME_SALAD:
+    zh-CN: "“蛮力”极境沙拉"
+    zh-TW: "“蠻力”極限沙拉"
+    ja: "「ばかぢから」極上サラダ"
+    en: "\"Superpower\" Extreme Salad"
+  CONTRARY_CHOCOLATE_MEAT_SALAD:
+    zh-CN: "“唱反调”肉酱巧克力沙拉"
+    zh-TW: "“唱反調”巧肉沙拉"
+    ja: "「あまのじゃく」チョコミートサラダ"
+    en: "\"Contrary\" Chocolate Meat Salad"
+  GLUTTONY_POTATO_SALAD:
+    zh-CN: "“贪吃鬼”土豆沙拉"
+    zh-TW: "“貪吃”洋芋沙拉"
+    ja: "「くいしんぼう」ポテトサラダ"
+    en: "\"Gluttony\" Potato Salad"
+  OVERHEAT_GINGER_SALAD:
+    zh-CN: "“过热”生姜沙拉"
+    zh-TW: "“過熱”薑沙拉"
+    ja: "「オーバーヒート」ジンジャーサラダ"
+    en: "\"Overheat\" Ginger Salad"
+  SPORE_MUSHROOM_SALAD:
+    zh-CN: "“蘑菇孢子”沙拉"
+    zh-TW: "“蘑菇孢子”沙拉"
+    ja: "「キノコのほうし」サラダ"
+    en: "\"Spore\" Mushroom Salad"
+  CALM_MIND_FRUIT_SALAD:
+    zh-CN: "“冥想”水果沙拉"
+    zh-TW: "“冥想”甜果沙拉"
+    ja: "「めいそう」フルーツサラダ"
+    en: "\"Calm Mind\" Fruit Salad"
+  SLOWPOKE_TAIL_PEPPER_SALAD:
+    zh-CN: "呆呆兽尾巴胡椒沙拉"
+    zh-TW: "飽滿尾巴胡椒沙拉"
+    ja: "おいしいシッポのペッパーサラダ"
+    en: "Slowpoke Tail Pepper Salad"
+  CROSS_CHOP_SALAD:
+    zh-CN: "“十字劈”沙拉"
+    zh-TW: "“十字劈”沙拉"
+    ja: "「クロスチョップ」サラダ"
+    en: "\"Cross Chop\" Salad"
+  GREENGRASS_SALAD:
+    zh-CN: "萌绿沙拉"
+    zh-TW: "萌綠沙拉"
+    ja: "ワカクササラダ"
+    en: "Greengrass Salad"
+  NINJA_SALAD:
+    zh-CN: "忍者沙拉"
+    zh-TW: "忍者沙拉"
+    ja: "ニンジャサラダ"
+    en: "Ninja Salad"
+  PETAL_BLIZZARD_LAYERED_SALAD:
+    zh-CN: "“落英缤纷”多层沙拉"
+    zh-TW: "“落英繽紛”層疊沙拉"
+    ja: "「はなふぶき」ミルフィーユサラダ"
+    en: "\"Petal Blizzard\" Layered Salad"
+  APPLE_ACID_YOGURT_DRESSED_SALAD:
+    zh-CN: "“苹果酸”酸奶拌沙拉"
+    zh-TW: "“蘋果酸”優格涼拌沙拉"
+    ja: "「りんごさん」ヨーグルトあえサラダ"
+    en: "\"Apple Acid\" Yogurt-Dressed Salad"
+  DEFIANT_COFFEE_DRESSED_SALAD:
+    zh-CN: "“好胜”咖啡拌沙拉"
+    zh-TW: "“不服輸”咖啡涼拌沙拉"
+    ja: "「まけんき」コーヒーあえサラダ"
+    en: "\"Defiant\" Coffee-Dressed Salad"
+  LUSCIOUS_AVOCADO_SALAD:
+    zh-CN: "浓郁牛油果沙拉"
+    zh-TW: "濃郁酪梨沙拉"
+    ja: "とろ～りアボカドサラダ"
+    en: "Luscious Avocado Salad"
+  BULLDOZE_GUACAMOLE_AND_CHIPS:
+    zh-CN: "“重踏”牛油果酱脆片"
+    zh-TW: "“重踏”酪梨沙拉佐脆片"
+    ja: "「じならし」ワカモレチップス"
+    en: "\"Bulldoze\" Guacamole and Chips"
+  SCALD_CHUNKY_SALAD:
+    zh-CN: "“热水”饱腹块状沙拉"
+    zh-TW: "“熱水”豐富塊狀沙拉"
+    ja: "「ねっとう」ゴロゴロサラダ"
+    en: "\"Scald\" Chunky Salad"
+
+  # Desserts
+  WARM_MOOMOO_MILK:
+    zh-CN: "暖暖哞哞鲜奶"
+    zh-TW: "溫暖哞哞鮮奶"
+    ja: "あたたかいモーモーミルク"
+    en: "Warm Moomoo Milk"
+  FANCY_APPLE_JUICE:
+    zh-CN: "特选苹果汁"
+    zh-TW: "特選蘋果汁"
+    ja: "とくせんリンゴジュース"
+    en: "Fancy Apple Juice"
+  CRAFT_SODA_POP:
+    zh-CN: "劲爽汽水"
+    zh-TW: "經典汽水"
+    ja: "クラフトサイダー"
+    en: "Craft Soda Pop"
+    aliases: ["经典汽水", "汽水"]
+  LUCKY_CHANT_APPLE_PIE:
+    zh-CN: "“幸运咒语”苹果派"
+    zh-TW: "“幸運咒語”蘋果派"
+    ja: "「おまじない」リンゴパイ"
+    en: "\"Lucky Chant\" Apple Pie"
+  FLUFFY_SWEET_POTATOES:
+    zh-CN: "绵软地瓜烤点心"
+    zh-TW: "蓬鬆地瓜點心"
+    ja: "ほくほくスイートポテト"
+    en: "\"Fluffy\" Sweet Potatoes"
+  EMBER_GINGER_TEA:
+    zh-CN: "“火花”生姜茶"
+    zh-TW: "“火花”薑茶"
+    ja: "「ひのこ」ジンジャーティー"
+    en: "\"Ember\" Ginger Tea"
+  CLOUD_NINE_SOY_CAKE:
+    zh-CN: "“无关天气”大豆蛋糕"
+    zh-TW: "“無關天氣”大豆蛋糕"
+    ja: "「ノーてんき」大豆ケーキ"
+    en: "\"Cloud Nine\" Soy Cake"
+  STALWART_VEGETABLE_JUICE:
+    zh-CN: "“坚毅”蔬菜汁"
+    zh-TW: "“堅毅”蔬菜汁"
+    ja: "「すじがねいり」やさいジュース"
+    en: "\"Stalwart\" Vegetable Juice"
+  BIG_MALASADA:
+    zh-CN: "大马拉萨达"
+    zh-TW: "大馬拉薩達"
+    ja: "ビッグマラサダ"
+    en: "Big Malasada"
+  HUSTLE_PROTEIN_SMOOTHIE:
+    zh-CN: "“活力”蛋白思慕雪"
+    zh-TW: "“活力”高蛋白冰沙"
+    ja: "「はりきり」プロテンスムージー"
+    en: "\"Hustle\" Protein Smoothie"
+  HUGE_POWER_SOY_DONUTS:
+    zh-CN: "“大力士”大豆甜甜圈"
+    zh-TW: "“大力士”大豆甜甜圈"
+    ja: "「ちからもち」ソイドーナツ"
+    en: "\"Huge Power\" Soy Donuts"
+  SWEET_SCENT_CHOCOLATE_CAKE:
+    zh-CN: "“甜甜香气”巧克力蛋糕"
+    zh-TW: "“甜甜香氣”巧克力蛋糕"
+    ja: "「あまいかおり」チョコケーキ"
+    en: "\"Sweet Scent\" Chocolate Cake"
+  PETAL_DANCE_CHOCOLATE_TART:
+    zh-CN: "“花瓣舞”巧克力挞"
+    zh-TW: "“花瓣舞”巧克力塔"
+    ja: "「はなびらのまい」チョコタルト"
+    en: "\"Petal Dance\" Chocolate Tart"
+  LOVELY_KISS_SMOOTHIE:
+    zh-CN: "“天使之吻”思慕雪"
+    zh-TW: "“惡魔之吻”冰沙"
+    ja: "「あくまのキッス」スムージー"
+    en: "\"Lovely Kiss\" Smoothie"
+  STEADFAST_GINGER_COOKIES:
+    zh-CN: "“不屈之心”生姜曲奇"
+    zh-TW: "“不屈之心”薑餅"
+    ja: "「ふくつのこころ」ジンジャークッキー"
+    en: "\"Steadfast\" Ginger Cookies"
+  NEROLIS_RESTORATIVE_TEA:
+    zh-CN: "奈里罗的滋补茶"
+    zh-TW: "奈里羅的活力舒緩茶"
+    ja: "ネロリの修復茶"
+    en: "Neroli's Restorative Tea"
+  EXPLOSION_POPCORN:
+    zh-CN: "“大爆炸”爆米花"
+    zh-TW: "“大爆炸”爆米花"
+    ja: "「だいばくはつ」ポップコーン"
+    en: "\"Explosion\" Popcorn"
+  EARLY_BIRD_COFFEE_JELLY:
+    zh-CN: "“早起”咖啡果冻"
+    zh-TW: "“早起”咖啡凍"
+    ja: "「はやおき」コーヒーゼリー"
+    en: "\"Early Bird\" Coffee Jelly"
+  MOLD_BREAKER_CORN_TIRAMISU:
+    zh-CN: "“破格”玉米提拉米苏"
+    zh-TW: "“破格”玉米提拉米蘇"
+    ja: "「かたやぶり」コーンティラミス"
+    en: "\"Mold Breaker\" Corn Tiramisu"
+  JIGGLYPUFFS_FRUITY_FLAN:
+    zh-CN: "胖丁的水果布丁"
+    zh-TW: "胖丁的水果布丁"
+    ja: "プリンのフルーツプリン"
+    en: "Jigglypuff's Fruity Flan"
+  TEATIME_CORN_SCONES:
+    zh-CN: "“茶会”玉米司康"
+    zh-TW: "“午茶”玉米司康"
+    ja: "「おちゃかい」コーンスコーン"
+    en: "\"Teatime\" Corn Scones"
+  FLOWER_GIFT_MACARONS:
+    zh-CN: "“花之礼”马卡龙"
+    zh-TW: "“花之禮”馬卡龍"
+    ja: "「フラワーギフト」マカロン"
+    en: "\"Flower Gift\" Macarons"
+  ZING_ZAP_SPICED_COLA:
+    zh-CN: "“麻麻刺刺”风味可乐"
+    zh-TW: "“麻麻刺刺”特調可樂"
+    ja: "「びりびりちくちく」コーラ"
+    en: "\"Zing Zap\" Spiced Cola"
+  CLODSIRE_ECLAIR:
+    zh-CN: "土王闪电泡芙"
+    zh-TW: "土王閃電泡芙"
+    ja: "ドオーのエクレア"
+    en: "Clodsire Éclair"
+  HONEY_GATHER_CHOCOLATE_WAFFLES:
+    zh-CN: "“采蜜”巧克力华夫饼"
+    zh-TW: "“採蜜”巧克力鬆餅"
+    ja: "「みつあつめ」チョコワッフル"
+    en: "\"Honey Gather\" Chocolate Waffles"
+  SCARY_FACE_PANCAKES:
+    zh-CN: "“可怕面孔”松饼"
+    zh-TW: "“鬼臉”厚鬆餅"
+    ja: "「こわいかお」パンケーキ"
+    en: "\"Scary Face\" Pancakes"
+  LEAF_TORNADO_SMOOTHIE:
+    zh-CN: "“青草搅拌器”思慕雪"
+    zh-TW: "“龍捲風”青草冰沙"
+    ja: "「グラスミキサー」スムージー"
+    en: "\"Leaf Tornado\" Smoothie"

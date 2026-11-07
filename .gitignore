@@ -1,0 +1,30 @@
+# Git ignore for pokesleep-assistant
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Virtual Environments
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Build outputs
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+
+# Caches & Local data
+.cache/
+.DS_Store
+*.log
+.env
+.env.local
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+

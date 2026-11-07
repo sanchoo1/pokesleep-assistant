@@ -1,0 +1,1108 @@
+{
+  "lang": "ja",
+  "terms": {
+    "specialty": {
+      "berry": "きのみ",
+      "ingredient": "食材",
+      "skill": "スキル",
+      "all": "オール"
+    },
+    "recipe_types": {
+      "curry": "カレー・シチュー",
+      "salad": "サラダ",
+      "dessert": "デザート・ドリンク"
+    }
+  },
+  "pokemon": {
+    "DARKRAI": "ダークライ",
+    "MEW": "ミュウ",
+    "ALTARIA": "チルタリス",
+    "ARBOK": "アーボック",
+    "BAGON": "タツベイ",
+    "BANETTE": "ジュペッタ",
+    "BAYLEEF": "ベイリーフ",
+    "BLAZIKEN": "バシャーモ",
+    "BUTTERFREE": "バタフリー",
+    "CATERPIE": "キャタピー",
+    "CHIKORITA": "チコリータ",
+    "CLEFABLE": "ピクシー",
+    "CLEFAIRY": "ピッピ",
+    "CLEFFA": "ピィ",
+    "COMBUSKEN": "ワカシャモ",
+    "CROCONAW": "アリゲイツ",
+    "CUBONE": "カラカラ",
+    "CYNDAQUIL": "ヒノアラシ",
+    "DODRIO": "ドードリオ",
+    "DODUO": "ドードー",
+    "EEVEE_HOLIDAY": "イーブイ (ホリデー)",
+    "EKANS": "アーボ",
+    "EMPOLEON": "エンペルト",
+    "FERALIGATR": "オーダイル",
+    "HOUNDOOM": "ヘルガー",
+    "HOUNDOUR": "デルビル",
+    "MANKEY": "マンキー",
+    "MAROWAK": "ガラガラ",
+    "MARSHTOMP": "ヌマクロー",
+    "MEGANIUM": "メガニウム",
+    "METAPOD": "トランセル",
+    "MUDKIP": "ミズゴロウ",
+    "MUNNA": "ムンナ",
+    "MUSHARNA": "ムシャーナ",
+    "NATU": "ネイティ",
+    "NINETALES": "キュウコン",
+    "NINETALES_ALOLAN": "キュウコン (アローラのすがた)",
+    "ONIX": "イワーク",
+    "PICHU": "ピチュー",
+    "PIKACHU": "ピカチュウ",
+    "PIKACHU_CAPTAIN": "ピカチュウ (キャプテン)",
+    "PIKACHU_HALLOWEEN": "ピカチュウ (ハロウィン)",
+    "PIPLUP": "ポッチャマ",
+    "PRIMEAPE": "オコリザル",
+    "PRINPLUP": "ポッタイシ",
+    "QUILAVA": "マグマラシ",
+    "RAICHU": "ライチュウ",
+    "RATICATE": "ラッタ",
+    "RATTATA": "コラッタ",
+    "SALAMENCE": "ボーマンダ",
+    "SEALEO": "トドグラー",
+    "SHELGON": "コモルー",
+    "SHUPPET": "カゲボウズ",
+    "SLAKING": "ケッキング",
+    "SLAKOTH": "ナマケロ",
+    "SNEASEL": "ニューラ",
+    "SPHEAL": "タマザラシ",
+    "STEELIX": "ハガネール",
+    "SWABLU": "チルット",
+    "SWAMPERT": "ラグラージ",
+    "TINKATINK": "カヌチャン",
+    "TINKATON": "デカヌチャン",
+    "TINKATUFF": "ナカヌチャン",
+    "TORCHIC": "アチャモ",
+    "TOTODILE": "ワニノコ",
+    "TYPHLOSION": "バクフーン",
+    "TYRANTRUM": "ガチゴラス",
+    "TYRUNT": "チゴラス",
+    "VIGOROTH": "ヤルキモノ",
+    "VULPIX": "ロコン",
+    "VULPIX_ALOLAN": "ロコン (アローラのすがた)",
+    "WALREIN": "トドゼルガ",
+    "WEAVILE": "マニューラ",
+    "XATU": "ネイティオ",
+    "ABOMASNOW": "ユキノオー",
+    "ABSOL": "アブソル",
+    "AGGRON": "ボスゴドラ",
+    "AMOONGUSS": "モロバレル",
+    "ARON": "ココドラ",
+    "BELLSPROUT": "マダツボミ",
+    "BEWEAR": "キテルグマ",
+    "BLASTOISE": "カメックス",
+    "BLISSEY": "ハピナス",
+    "BULBASAUR": "フシギダネ",
+    "CETITAN": "ハルクジラ",
+    "CETODDLE": "アルクジラ",
+    "CHANSEY": "ラッキー",
+    "CHARIZARD": "リザードン",
+    "CHARJABUG": "デンヂムシ",
+    "CHARMANDER": "ヒトカゲ",
+    "CHARMELEON": "リザード",
+    "CLODSIRE": "ドオー",
+    "COMFEY": "キュワワー",
+    "CRAMORANT": "ウッウ",
+    "CROAGUNK": "グレッグル",
+    "CROCALOR": "アチゲータ",
+    "CUTIEFLY": "アブリー",
+    "DELIBIRD": "デリバード",
+    "DIGLETT": "ディグダ",
+    "DITTO": "メタモン",
+    "DRAGONAIR": "ハクリュー",
+    "DRAGONITE": "カイリュー",
+    "DRAMPA": "ジジーロン",
+    "DRATINI": "ミニリュウ",
+    "DUGTRIO": "ダグトリオ",
+    "FARFETCHD": "カモネギ",
+    "FLORAGATO": "ニャローテ",
+    "FLYGON": "フライゴン",
+    "FOONGUS": "タマゲタケ",
+    "FUECOCO": "ホゲータ",
+    "GASTLY": "ゴース",
+    "GENGAR": "ゲンガー",
+    "GEODUDE": "イシツブテ",
+    "GOLEM": "ゴローニャ",
+    "GOURGEIST_JUMBO": "パンプジン (とくだいサイズ)",
+    "GOURGEIST_LARGE": "パンプジン (おおきいサイズ)",
+    "GOURGEIST_MEDIUM": "パンプジン (ふつうのサイズ)",
+    "GOURGEIST_SMALL": "パンプジン (ちいさいサイズ)",
+    "GRAVELER": "ゴローン",
+    "GRUBBIN": "アゴジムシ",
+    "HAPPINY": "ピンプク",
+    "HAUNTER": "ゴースト",
+    "IVYSAUR": "フシギソウ",
+    "KANGASKHAN": "ガルーラ",
+    "LAIRON": "コドラ",
+    "LARVITAR": "ヨーギラス",
+    "LUXIO": "ルクシオ",
+    "LUXRAY": "レントラー",
+    "MAWILE": "クチート",
+    "MEOWSCARADA": "マスカーニャ",
+    "MIME_JR": "マネネ",
+    "MR_MIME": "バリヤード",
+    "PINSIR": "カイロス",
+    "PUMPKABOO_JUMBO": "バケッチャ (とくだいサイズ)",
+    "PUMPKABOO_LARGE": "バケッチャ (おおきいサイズ)",
+    "PUMPKABOO_MEDIUM": "バケッチャ (ふつうのサイズ)",
+    "PUMPKABOO_SMALL": "バケッチャ (ちいさいサイズ)",
+    "PUPITAR": "サナギラス",
+    "QUAGSIRE": "ヌオー",
+    "QUAQUAVAL": "ウェーニバル",
+    "QUAXLY": "クワッス",
+    "QUAXWELL": "ウェルカモ",
+    "RIBOMBEE": "アブリボン",
+    "SHINX": "コリンク",
+    "SKELEDIRGE": "ラウドボーン",
+    "SNOVER": "ユキカブリ",
+    "SPIRITOMB": "ミカルゲ",
+    "SPRIGATITO": "ニャオハ",
+    "SQUIRTLE": "ゼニガメ",
+    "STUFFUL": "ヌイコグマ",
+    "TOXICROAK": "ドクロッグ",
+    "TRAPINCH": "ナックラー",
+    "TYRANITAR": "バンギラス",
+    "VENUSAUR": "フシギバナ",
+    "VIBRAVA": "ビブラーバ",
+    "VICTREEBEL": "ウツボット",
+    "VIKAVOLT": "クワガノン",
+    "WARTORTLE": "カメール",
+    "WEEPINBELL": "ウツドン",
+    "WOOPER": "ウパー",
+    "WOOPER_PALDEAN": "ウパー (パルデアのすがた)",
+    "AMPHAROS": "デンリュウ",
+    "ARCANINE": "ウインディ",
+    "BONSLY": "ウソハチ",
+    "BRAVIARY": "ウォーグル",
+    "CHIMCHAR": "ヒコザル",
+    "CRESSELIA": "クレセリア",
+    "CRUSTLE": "イワパレス",
+    "DEDENNE": "デデンネ",
+    "DRIFBLIM": "フワライド",
+    "DRIFLOON": "フワンテ",
+    "DWEBBLE": "イシズマイ",
+    "EEVEE": "イーブイ",
+    "EEVEE_HALLOWEEN": "イーブイ (ハロウィン)",
+    "ENTEI": "エンテイ",
+    "ESPEON": "エーフィ",
+    "FLAAFFY": "モココ",
+    "FLAREON": "ブースター",
+    "GALLADE": "エルレイド",
+    "GARDEVOIR": "サーナイト",
+    "GLACEON": "グレイシア",
+    "GOLDUCK": "ゴルダック",
+    "GROTLE": "ハヤシガメ",
+    "GROVYLE": "ジュプトル",
+    "GROWLITHE": "ガーディ",
+    "GULPIN": "ゴクリン",
+    "HAWLUCHA": "ルチャブル",
+    "HERACROSS": "ヘラクロス",
+    "HONCHKROW": "ドンカラス",
+    "IGGLYBUFF": "ププリン",
+    "INFERNAPE": "ゴウカザル",
+    "JIGGLYPUFF": "プリン",
+    "JOLTEON": "サンダース",
+    "KIRLIA": "キルリア",
+    "LATIAS": "ラティアス",
+    "LATIOS": "ラティオス",
+    "LEAFEON": "リーフィア",
+    "LUCARIO": "ルカリオ",
+    "MAGNEMITE": "コイル",
+    "MAGNETON": "レアコイル",
+    "MAGNEZONE": "ジバコイル",
+    "MAREEP": "メリープ",
+    "MEOWTH": "ニャース",
+    "MEWTWO": "ミュウツー",
+    "MIMIKYU": "ミミッキュ",
+    "MINUN": "マイナン",
+    "MISDREAVUS": "ムウマ",
+    "MISMAGIUS": "ムウマージ",
+    "MONFERNO": "モウカザル",
+    "MURKROW": "ヤミカラス",
+    "NOIBAT": "オンバット",
+    "NOIVERN": "オンバーン",
+    "PAWMI": "パモ",
+    "PAWMO": "パモット",
+    "PAWMOT": "パーモット",
+    "PERSIAN": "ペルシアン",
+    "PIKACHU_HOLIDAY": "ピカチュウ (ホリデー)",
+    "PLUSLE": "プラスル",
+    "PSYDUCK": "コダック",
+    "RAIKOU": "ライコウ",
+    "RALTS": "ラルトス",
+    "RIOLU": "リオル",
+    "RUFFLET": "ワシボン",
+    "SABLEYE": "ヤミラミ",
+    "SANDSHREW": "サンド",
+    "SANDSLASH": "サンドパン",
+    "SCEPTILE": "ジュカイン",
+    "SHUCKLE": "ツボツボ",
+    "SLOWBRO": "ヤドラン",
+    "SLOWKING": "ヤドキング",
+    "SLOWPOKE": "ヤドン",
+    "SPHEAL_HOLIDAY": "タマザラシ (ホリデー)",
+    "SUDOWOODO": "ウソッキー",
+    "SUICUNE": "スイクン",
+    "SWALOT": "マルノーム",
+    "SYLVEON": "ニンフィア",
+    "TOGEDEMARU": "トゲデマル",
+    "TOGEKISS": "トゲキッス",
+    "TOGEPI": "トゲピー",
+    "TOGETIC": "トゲチック",
+    "TORTERRA": "ドダイトス",
+    "TOXEL": "エレズン",
+    "TOXTRICITY_AMPED": "ストリンダー (ハイなすがた)",
+    "TOXTRICITY_LOW_KEY": "ストリンダー (ローなすがた)",
+    "TREECKO": "キモリ",
+    "TURTWIG": "ナエトル",
+    "UMBREON": "ブラッキー",
+    "VAPOREON": "シャワーズ",
+    "WIGGLYTUFF": "プクリン",
+    "WOBBUFFET": "ソーナンス",
+    "WYNAUT": "ソーナノ"
+  },
+  "berries": {
+    "PAMTRE": "シーヤのみ",
+    "LUM": "ラムのみ",
+    "GREPA": "ウブのみ",
+    "BLUK": "ブリーのみ",
+    "PECHA": "モモンのみ",
+    "MAGO": "マゴのみ",
+    "LEPPA": "ヒメリのみ",
+    "CHERI": "クラボのみ",
+    "PERSIM": "キーのみ",
+    "FIGY": "フィラのみ",
+    "DURIN": "ドリのみ",
+    "SITRUS": "オボンのみ",
+    "ORAN": "オレンのみ",
+    "WIKI": "ウイのみ",
+    "CHESTO": "カゴのみ",
+    "RAWST": "チーゴのみ",
+    "BELUE": "ベリブのみ",
+    "YACHE": "ヤチェのみ"
+  },
+  "ingredients": {
+    "Apple": "とくせんリンゴ",
+    "Milk": "モーモーミルク",
+    "Soybean": "ワカクサ大豆",
+    "Honey": "あまいミツ",
+    "Sausage": "マメミート",
+    "Ginger": "ぽかぽかジンジャー",
+    "Tomato": "あんみんトマト",
+    "Egg": "とくせんエッグ",
+    "Oil": "ピュアなオイル",
+    "Potato": "ほっこりポテト",
+    "Herb": "げきからハーブ",
+    "Corn": "ワカクサコーン",
+    "Cacao": "リラックスカカオ",
+    "Coffee": "めざましコーヒー",
+    "Avocado": "つややかアボカド",
+    "Mushroom": "あじわいキノコ",
+    "Leek": "ふといながねぎ",
+    "Pumpkin": "まるまるカボチャ",
+    "Tail": "おいしいシッポ"
+  },
+  "recipes": {
+    "FANCY_APPLE_CURRY": "とくせんリンゴカレー",
+    "SIMPLE_CHOWDER": "じゅんすいホワイトシチュー",
+    "MILD_HONEY_CURRY": "ほっこりハニーカレー",
+    "BEANBURGER_CURRY": "マメバーグカレー",
+    "HEARTY_CHEESEBURGER_CURRY": "まんぷくチーズバーグカレー",
+    "DROUGHT_KATSU_CURRY": "「ひでり」カツカレー",
+    "SOLAR_POWER_TOMATO_CURRY": "「サンパワー」トマトカレー",
+    "MELTY_OMELETTE_CURRY": "とろけるオムレツカレー",
+    "SOFT_POTATO_CHOWDER": "ほっこりポテトチャウダー",
+    "BULK_UP_BEAN_CURRY": "「ビルドアップ」マメカレー",
+    "SPORE_MUSHROOM_CURRY": "「キノコのほうし」カレー",
+    "EGG_BOMB_CURRY": "「タマゴばくだん」カレー",
+    "LIMBER_CORN_STEW": "「じゅうなん」コーンシチュー",
+    "DIZZY_PUNCH_SPICY_CURRY": "「ピヨピヨパンチ」激辛カレー",
+    "SPICY_LEEK_CURRY": "からくちネギもりカレー",
+    "NINJA_CURRY": "ニンジャカレー",
+    "GRILLED_TAIL_CURRY": "あぶりテールカレー",
+    "DREAM_EATER_BUTTER_CURRY": "「ゆめくい」バターカレー",
+    "INFERNO_CORN_KEEMA_CURRY": "「れんごく」コーンキーマカレー",
+    "HIDDEN_POWER_PERK_UP_STEW": "「めざめるパワー」シチュー",
+    "CUT_SUKIYAKI_CURRY": "「いあいぎり」すき焼きカレー",
+    "ROLE_PLAY_PUMPKABOO_STEW": "「なりきり」バケッチャシチュー",
+    "OVERGROW_AVOCADO_GRATIN": "「しんりょく」アボカドグラタン",
+    "GREENGRASS_CURRY_BUN": "ワカクサカレーパン",
+    "BOUNCE_CURRY_UDON": "「とびはねる」カレーうどん",
+    "FANCY_APPLE_SALAD": "とくせんリンゴサラダ",
+    "BEAN_HAM_SALAD": "マメハムサラダ",
+    "SNOOZY_TOMATO_SALAD": "あんみんトマトサラダ",
+    "SNOW_CLOAK_CAESAR_SALAD": "「ゆきがくれ」シーザーサラダ",
+    "WATER_VEIL_TOFU_SALAD": "「みずのベール」トーフサラダ",
+    "HEAT_WAVE_TOFU_SALAD": "「ねっぷう」トーフサラダ",
+    "FURY_ATTACK_CORN_SALAD": "「みだれづき」コーンサラダ",
+    "DAZZLING_APPLE_CHEESE_SALAD": "「びびっと」リンゴチーズサラダ",
+    "MOOMOO_CAPRESE_SALAD": "モーモーカプレーゼ",
+    "IMMUNITY_LEEK_SALAD": "「めんえき」ネギサラダ",
+    "SUPERPOWER_EXTREME_SALAD": "「ばかぢから」極上サラダ",
+    "CONTRARY_CHOCOLATE_MEAT_SALAD": "「あまのじゃく」チョコミートサラダ",
+    "GLUTTONY_POTATO_SALAD": "「くいしんぼう」ポテトサラダ",
+    "OVERHEAT_GINGER_SALAD": "「オーバーヒート」ジンジャーサラダ",
+    "SPORE_MUSHROOM_SALAD": "「キノコのほうし」サラダ",
+    "CALM_MIND_FRUIT_SALAD": "「めいそう」フルーツサラダ",
+    "SLOWPOKE_TAIL_PEPPER_SALAD": "おいしいシッポのペッパーサラダ",
+    "CROSS_CHOP_SALAD": "「クロスチョップ」サラダ",
+    "GREENGRASS_SALAD": "ワカクササラダ",
+    "NINJA_SALAD": "ニンジャサラダ",
+    "PETAL_BLIZZARD_LAYERED_SALAD": "「はなふぶき」ミルフィーユサラダ",
+    "APPLE_ACID_YOGURT_DRESSED_SALAD": "「りんごさん」ヨーグルトあえサラダ",
+    "DEFIANT_COFFEE_DRESSED_SALAD": "「まけんき」コーヒーあえサラダ",
+    "LUSCIOUS_AVOCADO_SALAD": "とろ～りアボカドサラダ",
+    "BULLDOZE_GUACAMOLE_AND_CHIPS": "「じならし」ワカモレチップス",
+    "SCALD_CHUNKY_SALAD": "「ねっとう」ゴロゴロサラダ",
+    "WARM_MOOMOO_MILK": "あたたかいモーモーミルク",
+    "FANCY_APPLE_JUICE": "とくせんリンゴジュース",
+    "CRAFT_SODA_POP": "クラフトサイダー",
+    "LUCKY_CHANT_APPLE_PIE": "「おまじない」リンゴパイ",
+    "FLUFFY_SWEET_POTATOES": "ほくほくスイートポテト",
+    "EMBER_GINGER_TEA": "「ひのこ」ジンジャーティー",
+    "CLOUD_NINE_SOY_CAKE": "「ノーてんき」大豆ケーキ",
+    "STALWART_VEGETABLE_JUICE": "「すじがねいり」やさいジュース",
+    "BIG_MALASADA": "ビッグマラサダ",
+    "HUSTLE_PROTEIN_SMOOTHIE": "「はりきり」プロテンスムージー",
+    "HUGE_POWER_SOY_DONUTS": "「ちからもち」ソイドーナツ",
+    "SWEET_SCENT_CHOCOLATE_CAKE": "「あまいかおり」チョコケーキ",
+    "PETAL_DANCE_CHOCOLATE_TART": "「はなびらのまい」チョコタルト",
+    "LOVELY_KISS_SMOOTHIE": "「あくまのキッス」スムージー",
+    "STEADFAST_GINGER_COOKIES": "「ふくつのこころ」ジンジャークッキー",
+    "NEROLIS_RESTORATIVE_TEA": "ネロリの修復茶",
+    "EXPLOSION_POPCORN": "「だいばくはつ」ポップコーン",
+    "EARLY_BIRD_COFFEE_JELLY": "「はやおき」コーヒーゼリー",
+    "MOLD_BREAKER_CORN_TIRAMISU": "「かたやぶり」コーンティラミス",
+    "JIGGLYPUFFS_FRUITY_FLAN": "プリンのフルーツプリン",
+    "TEATIME_CORN_SCONES": "「おちゃかい」コーンスコーン",
+    "FLOWER_GIFT_MACARONS": "「フラワーギフト」マカロン",
+    "ZING_ZAP_SPICED_COLA": "「びりびりちくちく」コーラ",
+    "CLODSIRE_ECLAIR": "ドオーのエクレア",
+    "HONEY_GATHER_CHOCOLATE_WAFFLES": "「みつあつめ」チョコワッフル",
+    "SCARY_FACE_PANCAKES": "「こわいかお」パンケーキ",
+    "LEAF_TORNADO_SMOOTHIE": "「グラスミキサー」スムージー"
+  },
+  "natures": {
+    "Lonely": "さみしがり",
+    "Adamant": "いじっぱり",
+    "Naughty": "やんちゃ",
+    "Brave": "ゆうかん",
+    "Bold": "ずぶとい",
+    "Impish": "わんぱく",
+    "Lax": "のうてんき",
+    "Relaxed": "のんき",
+    "Modest": "ひかえめ",
+    "Mild": "おっとり",
+    "Rash": "うっかりや",
+    "Quiet": "れいせい",
+    "Calm": "おだやか",
+    "Gentle": "おとなしい",
+    "Careful": "しんちょう",
+    "Sassy": "なまいき",
+    "Timid": "おくびょう",
+    "Hasty": "せっかち",
+    "Jolly": "ようき",
+    "Naive": "むじゃき",
+    "Bashful": "てれや",
+    "Hardy": "がんばりや",
+    "Docile": "すなお",
+    "Quirky": "きまぐれ",
+    "Serious": "まじめ"
+  },
+  "subskills": {
+    "Berry Finding S": "きのみの数S",
+    "Dream Shard Bonus": "ゆめのかけらボーナス",
+    "Energy Recovery Bonus": "げんき回復ボーナス",
+    "Helping Bonus": "おてつだいボーナス",
+    "Helping Speed S": "おてつだいスピードS",
+    "Helping Speed M": "おてつだいスピードM",
+    "Ingredient Finder S": "食材確率アップS",
+    "Ingredient Finder M": "食材確率アップM",
+    "Inventory Up S": "最大所持数アップS",
+    "Inventory Up M": "最大所持数アップM",
+    "Inventory Up L": "最大所持数アップL",
+    "Research EXP Bonus": "リサーチEXPボーナス",
+    "Skill Level Up M": "スキルレベルアップM",
+    "Skill Level Up S": "スキルレベルアップS",
+    "Skill Trigger M": "スキル確率アップM",
+    "Skill Trigger S": "スキル確率アップS",
+    "Sleep EXP Bonus": "睡眠EXPボーナス"
+  },
+  "islands": {
+    "greengrass": "ワカクサ本島",
+    "cyan": "シアンの砂浜",
+    "taupe": "トープ洞窟",
+    "snowdrop": "ウノハナ雪原",
+    "lapis": "ラピスラズリ湖畔",
+    "powerplant": "ゴールド旧発電所",
+    "amber": "アンバー渓谷"
+  },
+  "mainskills": {
+    "Charge Strength S": "エナジーチャージS",
+    "Charge Strength M": "エナジーチャージM",
+    "Charge Energy S": "げんきチャージS",
+    "Energy For Everyone S": "げんきオールS",
+    "Energizing Cheer S": "げんきエールS",
+    "Ingredient Magnet S": "食材ゲットS",
+    "Cooking Power-Up S": "料理パワーアップS",
+    "Dream Shard Magnet S": "ゆめのかけらゲットS",
+    "Extra Helpful S": "おてつだいサポートS",
+    "Helper Boost": "おてつだいブースト",
+    "Metronome": "ゆびをふる",
+    "Tasty Chance S": "おいしさアップS",
+    "Cooking Assist S": "りょうりサポートS",
+    "Cooking Advance S": "りょうり時短",
+    "Berry Burst": "きのみバースト",
+    "Berry Zone": "きのみフィールド",
+    "Ingredient Draw S": "食材セレクトS",
+    "Skill Copy": "スキルコピー",
+    "Versatile": "スケッチ"
+  },
+  "aliases": {
+    "苹果": {
+      "type": "ingredient",
+      "key": "Apple"
+    },
+    "蘋果": {
+      "type": "ingredient",
+      "key": "Apple"
+    },
+    "fancy apple": {
+      "type": "ingredient",
+      "key": "Apple"
+    },
+    "牛奶": {
+      "type": "ingredient",
+      "key": "Milk"
+    },
+    "鲜奶": {
+      "type": "ingredient",
+      "key": "Milk"
+    },
+    "鮮奶": {
+      "type": "ingredient",
+      "key": "Milk"
+    },
+    "moomoo milk": {
+      "type": "ingredient",
+      "key": "Milk"
+    },
+    "大豆": {
+      "type": "ingredient",
+      "key": "Soybean"
+    },
+    "黄豆": {
+      "type": "ingredient",
+      "key": "Soybean"
+    },
+    "soybeans": {
+      "type": "ingredient",
+      "key": "Soybean"
+    },
+    "蜂蜜": {
+      "type": "ingredient",
+      "key": "Honey"
+    },
+    "蜜": {
+      "type": "ingredient",
+      "key": "Honey"
+    },
+    "honey": {
+      "type": "ingredient",
+      "key": "Honey"
+    },
+    "豆制香肠": {
+      "type": "ingredient",
+      "key": "Sausage"
+    },
+    "豆製香腸": {
+      "type": "ingredient",
+      "key": "Sausage"
+    },
+    "肉": {
+      "type": "ingredient",
+      "key": "Sausage"
+    },
+    "香肠": {
+      "type": "ingredient",
+      "key": "Sausage"
+    },
+    "sausage": {
+      "type": "ingredient",
+      "key": "Sausage"
+    },
+    "生姜": {
+      "type": "ingredient",
+      "key": "Ginger"
+    },
+    "姜": {
+      "type": "ingredient",
+      "key": "Ginger"
+    },
+    "薑": {
+      "type": "ingredient",
+      "key": "Ginger"
+    },
+    "ginger": {
+      "type": "ingredient",
+      "key": "Ginger"
+    },
+    "番茄": {
+      "type": "ingredient",
+      "key": "Tomato"
+    },
+    "西红柿": {
+      "type": "ingredient",
+      "key": "Tomato"
+    },
+    "助眠番茄": {
+      "type": "ingredient",
+      "key": "Tomato"
+    },
+    "tomato": {
+      "type": "ingredient",
+      "key": "Tomato"
+    },
+    "蛋": {
+      "type": "ingredient",
+      "key": "Egg"
+    },
+    "鸡蛋": {
+      "type": "ingredient",
+      "key": "Egg"
+    },
+    "潤澤白蛋": {
+      "type": "ingredient",
+      "key": "Egg"
+    },
+    "egg": {
+      "type": "ingredient",
+      "key": "Egg"
+    },
+    "油": {
+      "type": "ingredient",
+      "key": "Oil"
+    },
+    "纯正油": {
+      "type": "ingredient",
+      "key": "Oil"
+    },
+    "純正油": {
+      "type": "ingredient",
+      "key": "Oil"
+    },
+    "pure oil": {
+      "type": "ingredient",
+      "key": "Oil"
+    },
+    "土豆": {
+      "type": "ingredient",
+      "key": "Potato"
+    },
+    "洋芋": {
+      "type": "ingredient",
+      "key": "Potato"
+    },
+    "马铃薯": {
+      "type": "ingredient",
+      "key": "Potato"
+    },
+    "馬鈴薯": {
+      "type": "ingredient",
+      "key": "Potato"
+    },
+    "熟透土豆": {
+      "type": "ingredient",
+      "key": "Potato"
+    },
+    "potato": {
+      "type": "ingredient",
+      "key": "Potato"
+    },
+    "香草": {
+      "type": "ingredient",
+      "key": "Herb"
+    },
+    "辣草": {
+      "type": "ingredient",
+      "key": "Herb"
+    },
+    "fiery herb": {
+      "type": "ingredient",
+      "key": "Herb"
+    },
+    "玉米": {
+      "type": "ingredient",
+      "key": "Corn"
+    },
+    "greengrass corn": {
+      "type": "ingredient",
+      "key": "Corn"
+    },
+    "可可": {
+      "type": "ingredient",
+      "key": "Cacao"
+    },
+    "巧克": {
+      "type": "ingredient",
+      "key": "Cacao"
+    },
+    "cacao": {
+      "type": "ingredient",
+      "key": "Cacao"
+    },
+    "咖啡": {
+      "type": "ingredient",
+      "key": "Coffee"
+    },
+    "咖啡豆": {
+      "type": "ingredient",
+      "key": "Coffee"
+    },
+    "coffee": {
+      "type": "ingredient",
+      "key": "Coffee"
+    },
+    "牛油果": {
+      "type": "ingredient",
+      "key": "Avocado"
+    },
+    "酪梨": {
+      "type": "ingredient",
+      "key": "Avocado"
+    },
+    "鳄梨": {
+      "type": "ingredient",
+      "key": "Avocado"
+    },
+    "avocado": {
+      "type": "ingredient",
+      "key": "Avocado"
+    },
+    "蘑菇": {
+      "type": "ingredient",
+      "key": "Mushroom"
+    },
+    "香菇": {
+      "type": "ingredient",
+      "key": "Mushroom"
+    },
+    "mushroom": {
+      "type": "ingredient",
+      "key": "Mushroom"
+    },
+    "大葱": {
+      "type": "ingredient",
+      "key": "Leek"
+    },
+    "大蔥": {
+      "type": "ingredient",
+      "key": "Leek"
+    },
+    "葱": {
+      "type": "ingredient",
+      "key": "Leek"
+    },
+    "蔥": {
+      "type": "ingredient",
+      "key": "Leek"
+    },
+    "leek": {
+      "type": "ingredient",
+      "key": "Leek"
+    },
+    "南瓜": {
+      "type": "ingredient",
+      "key": "Pumpkin"
+    },
+    "pumpkin": {
+      "type": "ingredient",
+      "key": "Pumpkin"
+    },
+    "尾巴": {
+      "type": "ingredient",
+      "key": "Tail"
+    },
+    "呆呆兽尾巴": {
+      "type": "ingredient",
+      "key": "Tail"
+    },
+    "呆呆獸尾巴": {
+      "type": "ingredient",
+      "key": "Tail"
+    },
+    "tail": {
+      "type": "ingredient",
+      "key": "Tail"
+    },
+    "bfs": {
+      "type": "subskill",
+      "key": "Berry Finding S"
+    },
+    "树果s": {
+      "type": "subskill",
+      "key": "Berry Finding S"
+    },
+    "樹果s": {
+      "type": "subskill",
+      "key": "Berry Finding S"
+    },
+    "树果数量增加s": {
+      "type": "subskill",
+      "key": "Berry Finding S"
+    },
+    "dsb": {
+      "type": "subskill",
+      "key": "Dream Shard Bonus"
+    },
+    "碎片奖励": {
+      "type": "subskill",
+      "key": "Dream Shard Bonus"
+    },
+    "梦碎奖励": {
+      "type": "subskill",
+      "key": "Dream Shard Bonus"
+    },
+    "erb": {
+      "type": "subskill",
+      "key": "Energy Recovery Bonus"
+    },
+    "活力奖励": {
+      "type": "subskill",
+      "key": "Energy Recovery Bonus"
+    },
+    "精力回复奖励": {
+      "type": "subskill",
+      "key": "Energy Recovery Bonus"
+    },
+    "hb": {
+      "type": "subskill",
+      "key": "Helping Bonus"
+    },
+    "帮奖": {
+      "type": "subskill",
+      "key": "Helping Bonus"
+    },
+    "幫獎": {
+      "type": "subskill",
+      "key": "Helping Bonus"
+    },
+    "帮助奖励": {
+      "type": "subskill",
+      "key": "Helping Bonus"
+    },
+    "帮速s": {
+      "type": "subskill",
+      "key": "Helping Speed S"
+    },
+    "幫速s": {
+      "type": "subskill",
+      "key": "Helping Speed S"
+    },
+    "帮助速度s": {
+      "type": "subskill",
+      "key": "Helping Speed S"
+    },
+    "帮速m": {
+      "type": "subskill",
+      "key": "Helping Speed M"
+    },
+    "幫速m": {
+      "type": "subskill",
+      "key": "Helping Speed M"
+    },
+    "帮助速度m": {
+      "type": "subskill",
+      "key": "Helping Speed M"
+    },
+    "食材概率s": {
+      "type": "subskill",
+      "key": "Ingredient Finder S"
+    },
+    "食率s": {
+      "type": "subskill",
+      "key": "Ingredient Finder S"
+    },
+    "食材s": {
+      "type": "subskill",
+      "key": "Ingredient Finder S"
+    },
+    "食材概率m": {
+      "type": "subskill",
+      "key": "Ingredient Finder M"
+    },
+    "食率m": {
+      "type": "subskill",
+      "key": "Ingredient Finder M"
+    },
+    "食材m": {
+      "type": "subskill",
+      "key": "Ingredient Finder M"
+    },
+    "包包s": {
+      "type": "subskill",
+      "key": "Inventory Up S"
+    },
+    "背包s": {
+      "type": "subskill",
+      "key": "Inventory Up S"
+    },
+    "持有s": {
+      "type": "subskill",
+      "key": "Inventory Up S"
+    },
+    "最大所持数s": {
+      "type": "subskill",
+      "key": "Inventory Up S"
+    },
+    "包包m": {
+      "type": "subskill",
+      "key": "Inventory Up M"
+    },
+    "背包m": {
+      "type": "subskill",
+      "key": "Inventory Up M"
+    },
+    "持有m": {
+      "type": "subskill",
+      "key": "Inventory Up M"
+    },
+    "最大所持数m": {
+      "type": "subskill",
+      "key": "Inventory Up M"
+    },
+    "包包l": {
+      "type": "subskill",
+      "key": "Inventory Up L"
+    },
+    "背包l": {
+      "type": "subskill",
+      "key": "Inventory Up L"
+    },
+    "持有l": {
+      "type": "subskill",
+      "key": "Inventory Up L"
+    },
+    "最大所持数l": {
+      "type": "subskill",
+      "key": "Inventory Up L"
+    },
+    "reb": {
+      "type": "subskill",
+      "key": "Research EXP Bonus"
+    },
+    "研经": {
+      "type": "subskill",
+      "key": "Research EXP Bonus"
+    },
+    "研究经验": {
+      "type": "subskill",
+      "key": "Research EXP Bonus"
+    },
+    "技升m": {
+      "type": "subskill",
+      "key": "Skill Level Up M"
+    },
+    "技能等级m": {
+      "type": "subskill",
+      "key": "Skill Level Up M"
+    },
+    "技能+2": {
+      "type": "subskill",
+      "key": "Skill Level Up M"
+    },
+    "技升s": {
+      "type": "subskill",
+      "key": "Skill Level Up S"
+    },
+    "技能等级s": {
+      "type": "subskill",
+      "key": "Skill Level Up S"
+    },
+    "技能+1": {
+      "type": "subskill",
+      "key": "Skill Level Up S"
+    },
+    "技率m": {
+      "type": "subskill",
+      "key": "Skill Trigger M"
+    },
+    "技能概率m": {
+      "type": "subskill",
+      "key": "Skill Trigger M"
+    },
+    "主技能机率m": {
+      "type": "subskill",
+      "key": "Skill Trigger M"
+    },
+    "技能触发m": {
+      "type": "subskill",
+      "key": "Skill Trigger M"
+    },
+    "技率s": {
+      "type": "subskill",
+      "key": "Skill Trigger S"
+    },
+    "技能概率s": {
+      "type": "subskill",
+      "key": "Skill Trigger S"
+    },
+    "主技能机率s": {
+      "type": "subskill",
+      "key": "Skill Trigger S"
+    },
+    "技能触发s": {
+      "type": "subskill",
+      "key": "Skill Trigger S"
+    },
+    "seb": {
+      "type": "subskill",
+      "key": "Sleep EXP Bonus"
+    },
+    "睡经": {
+      "type": "subskill",
+      "key": "Sleep EXP Bonus"
+    },
+    "睡眠经验": {
+      "type": "subskill",
+      "key": "Sleep EXP Bonus"
+    },
+    "充能s": {
+      "type": "mainskill",
+      "key": "Charge Strength S"
+    },
+    "充能m": {
+      "type": "mainskill",
+      "key": "Charge Strength M"
+    },
+    "回体s": {
+      "type": "mainskill",
+      "key": "Charge Energy S"
+    },
+    "回体自奶": {
+      "type": "mainskill",
+      "key": "Charge Energy S"
+    },
+    "e4e": {
+      "type": "mainskill",
+      "key": "Energy For Everyone S"
+    },
+    "群奶": {
+      "type": "mainskill",
+      "key": "Energy For Everyone S"
+    },
+    "全体回血s": {
+      "type": "mainskill",
+      "key": "Energy For Everyone S"
+    },
+    "单奶": {
+      "type": "mainskill",
+      "key": "Energizing Cheer S"
+    },
+    "随机奶": {
+      "type": "mainskill",
+      "key": "Energizing Cheer S"
+    },
+    "磁铁s": {
+      "type": "mainskill",
+      "key": "Ingredient Magnet S"
+    },
+    "吸食材": {
+      "type": "mainskill",
+      "key": "Ingredient Magnet S"
+    },
+    "扩锅s": {
+      "type": "mainskill",
+      "key": "Cooking Power-Up S"
+    },
+    "擴鍋s": {
+      "type": "mainskill",
+      "key": "Cooking Power-Up S"
+    },
+    "大锅": {
+      "type": "mainskill",
+      "key": "Cooking Power-Up S"
+    },
+    "碎片获取": {
+      "type": "mainskill",
+      "key": "Dream Shard Magnet S"
+    },
+    "梦碎s": {
+      "type": "mainskill",
+      "key": "Dream Shard Magnet S"
+    },
+    "帮手支援": {
+      "type": "mainskill",
+      "key": "Extra Helpful S"
+    },
+    "帮倒忙": {
+      "type": "mainskill",
+      "key": "Extra Helpful S"
+    },
+    "神兽技能": {
+      "type": "mainskill",
+      "key": "Helper Boost"
+    },
+    "全体帮忙": {
+      "type": "mainskill",
+      "key": "Helper Boost"
+    },
+    "摇手指": {
+      "type": "mainskill",
+      "key": "Metronome"
+    },
+    "暴击s": {
+      "type": "mainskill",
+      "key": "Tasty Chance S"
+    },
+    "大成功s": {
+      "type": "mainskill",
+      "key": "Tasty Chance S"
+    },
+    "协助s": {
+      "type": "mainskill",
+      "key": "Cooking Assist S"
+    },
+    "料理加速": {
+      "type": "mainskill",
+      "key": "Cooking Advance S"
+    },
+    "做饭加速": {
+      "type": "mainskill",
+      "key": "Cooking Advance S"
+    },
+    "树果爆发": {
+      "type": "mainskill",
+      "key": "Berry Burst"
+    },
+    "樹果爆發": {
+      "type": "mainskill",
+      "key": "Berry Burst"
+    },
+    "树果场地": {
+      "type": "mainskill",
+      "key": "Berry Zone"
+    },
+    "抽食材": {
+      "type": "mainskill",
+      "key": "Ingredient Draw S"
+    },
+    "变身": {
+      "type": "mainskill",
+      "key": "Skill Copy"
+    },
+    "抄技能": {
+      "type": "mainskill",
+      "key": "Skill Copy"
+    },
+    "写生": {
+      "type": "mainskill",
+      "key": "Versatile"
+    }
+  }
+}

@@ -1,0 +1,1108 @@
+{
+  "lang": "en",
+  "terms": {
+    "specialty": {
+      "berry": "Berries",
+      "ingredient": "Ingredients",
+      "skill": "Skills",
+      "all": "All"
+    },
+    "recipe_types": {
+      "curry": "Curries/Stews",
+      "salad": "Salads",
+      "dessert": "Desserts/Drinks"
+    }
+  },
+  "pokemon": {
+    "DARKRAI": "Darkrai",
+    "MEW": "Mew",
+    "ALTARIA": "Altaria",
+    "ARBOK": "Arbok",
+    "BAGON": "Bagon",
+    "BANETTE": "Banette",
+    "BAYLEEF": "Bayleef",
+    "BLAZIKEN": "Blaziken",
+    "BUTTERFREE": "Butterfree",
+    "CATERPIE": "Caterpie",
+    "CHIKORITA": "Chikorita",
+    "CLEFABLE": "Clefable",
+    "CLEFAIRY": "Clefairy",
+    "CLEFFA": "Cleffa",
+    "COMBUSKEN": "Combusken",
+    "CROCONAW": "Croconaw",
+    "CUBONE": "Cubone",
+    "CYNDAQUIL": "Cyndaquil",
+    "DODRIO": "Dodrio",
+    "DODUO": "Doduo",
+    "EEVEE_HOLIDAY": "Eevee (Holiday)",
+    "EKANS": "Ekans",
+    "EMPOLEON": "Empoleon",
+    "FERALIGATR": "Feraligatr",
+    "HOUNDOOM": "Houndoom",
+    "HOUNDOUR": "Houndour",
+    "MANKEY": "Mankey",
+    "MAROWAK": "Marowak",
+    "MARSHTOMP": "Marshtomp",
+    "MEGANIUM": "Meganium",
+    "METAPOD": "Metapod",
+    "MUDKIP": "Mudkip",
+    "MUNNA": "Munna",
+    "MUSHARNA": "Musharna",
+    "NATU": "Natu",
+    "NINETALES": "Ninetales",
+    "NINETALES_ALOLAN": "Ninetales (Alolan Form)",
+    "ONIX": "Onix",
+    "PICHU": "Pichu",
+    "PIKACHU": "Pikachu",
+    "PIKACHU_CAPTAIN": "Pikachu (Captain)",
+    "PIKACHU_HALLOWEEN": "Pikachu (Halloween)",
+    "PIPLUP": "Piplup",
+    "PRIMEAPE": "Primeape",
+    "PRINPLUP": "Prinplup",
+    "QUILAVA": "Quilava",
+    "RAICHU": "Raichu",
+    "RATICATE": "Raticate",
+    "RATTATA": "Rattata",
+    "SALAMENCE": "Salamence",
+    "SEALEO": "Sealeo",
+    "SHELGON": "Shelgon",
+    "SHUPPET": "Shuppet",
+    "SLAKING": "Slaking",
+    "SLAKOTH": "Slakoth",
+    "SNEASEL": "Sneasel",
+    "SPHEAL": "Spheal",
+    "STEELIX": "Steelix",
+    "SWABLU": "Swablu",
+    "SWAMPERT": "Swampert",
+    "TINKATINK": "Tinkatink",
+    "TINKATON": "Tinkaton",
+    "TINKATUFF": "Tinkatuff",
+    "TORCHIC": "Torchic",
+    "TOTODILE": "Totodile",
+    "TYPHLOSION": "Typhlosion",
+    "TYRANTRUM": "Tyrantrum",
+    "TYRUNT": "Tyrunt",
+    "VIGOROTH": "Vigoroth",
+    "VULPIX": "Vulpix",
+    "VULPIX_ALOLAN": "Vulpix (Alolan Form)",
+    "WALREIN": "Walrein",
+    "WEAVILE": "Weavile",
+    "XATU": "Xatu",
+    "ABOMASNOW": "Abomasnow",
+    "ABSOL": "Absol",
+    "AGGRON": "Aggron",
+    "AMOONGUSS": "Amoonguss",
+    "ARON": "Aron",
+    "BELLSPROUT": "Bellsprout",
+    "BEWEAR": "Bewear",
+    "BLASTOISE": "Blastoise",
+    "BLISSEY": "Blissey",
+    "BULBASAUR": "Bulbasaur",
+    "CETITAN": "Cetitan",
+    "CETODDLE": "Cetoddle",
+    "CHANSEY": "Chansey",
+    "CHARIZARD": "Charizard",
+    "CHARJABUG": "Charjabug",
+    "CHARMANDER": "Charmander",
+    "CHARMELEON": "Charmeleon",
+    "CLODSIRE": "Clodsire",
+    "COMFEY": "Comfey",
+    "CRAMORANT": "Cramorant",
+    "CROAGUNK": "Croagunk",
+    "CROCALOR": "Crocalor",
+    "CUTIEFLY": "Cutiefly",
+    "DELIBIRD": "Delibird",
+    "DIGLETT": "Diglett",
+    "DITTO": "Ditto",
+    "DRAGONAIR": "Dragonair",
+    "DRAGONITE": "Dragonite",
+    "DRAMPA": "Drampa",
+    "DRATINI": "Dratini",
+    "DUGTRIO": "Dugtrio",
+    "FARFETCHD": "Farfetch’d",
+    "FLORAGATO": "Floragato",
+    "FLYGON": "Flygon",
+    "FOONGUS": "Foongus",
+    "FUECOCO": "Fuecoco",
+    "GASTLY": "Gastly",
+    "GENGAR": "Gengar",
+    "GEODUDE": "Geodude",
+    "GOLEM": "Golem",
+    "GOURGEIST_JUMBO": "Gourgeist (Jumbo Variety)",
+    "GOURGEIST_LARGE": "Gourgeist (Large Variety)",
+    "GOURGEIST_MEDIUM": "Gourgeist (Medium Variety)",
+    "GOURGEIST_SMALL": "Gourgeist (Small Variety)",
+    "GRAVELER": "Graveler",
+    "GRUBBIN": "Grubbin",
+    "HAPPINY": "Happiny",
+    "HAUNTER": "Haunter",
+    "IVYSAUR": "Ivysaur",
+    "KANGASKHAN": "Kangaskhan",
+    "LAIRON": "Lairon",
+    "LARVITAR": "Larvitar",
+    "LUXIO": "Luxio",
+    "LUXRAY": "Luxray",
+    "MAWILE": "Mawile",
+    "MEOWSCARADA": "Meowscarada",
+    "MIME_JR": "Mime Jr.",
+    "MR_MIME": "Mr. Mime",
+    "PINSIR": "Pinsir",
+    "PUMPKABOO_JUMBO": "Pumpkaboo (Jumbo Variety)",
+    "PUMPKABOO_LARGE": "Pumpkaboo (Large Variety)",
+    "PUMPKABOO_MEDIUM": "Pumpkaboo (Medium Variety)",
+    "PUMPKABOO_SMALL": "Pumpkaboo (Small Variety)",
+    "PUPITAR": "Pupitar",
+    "QUAGSIRE": "Quagsire",
+    "QUAQUAVAL": "Quaquaval",
+    "QUAXLY": "Quaxly",
+    "QUAXWELL": "Quaxwell",
+    "RIBOMBEE": "Ribombee",
+    "SHINX": "Shinx",
+    "SKELEDIRGE": "Skeledirge",
+    "SNOVER": "Snover",
+    "SPIRITOMB": "Spiritomb",
+    "SPRIGATITO": "Sprigatito",
+    "SQUIRTLE": "Squirtle",
+    "STUFFUL": "Stufful",
+    "TOXICROAK": "Toxicroak",
+    "TRAPINCH": "Trapinch",
+    "TYRANITAR": "Tyranitar",
+    "VENUSAUR": "Venusaur",
+    "VIBRAVA": "Vibrava",
+    "VICTREEBEL": "Victreebel",
+    "VIKAVOLT": "Vikavolt",
+    "WARTORTLE": "Wartortle",
+    "WEEPINBELL": "Weepinbell",
+    "WOOPER": "Wooper",
+    "WOOPER_PALDEAN": "Wooper (Paldean Form)",
+    "AMPHAROS": "Ampharos",
+    "ARCANINE": "Arcanine",
+    "BONSLY": "Bonsly",
+    "BRAVIARY": "Braviary",
+    "CHIMCHAR": "Chimchar",
+    "CRESSELIA": "Cresselia",
+    "CRUSTLE": "Crustle",
+    "DEDENNE": "Dedenne",
+    "DRIFBLIM": "Drifblim",
+    "DRIFLOON": "Drifloon",
+    "DWEBBLE": "Dwebble",
+    "EEVEE": "Eevee",
+    "EEVEE_HALLOWEEN": "Eevee (Halloween)",
+    "ENTEI": "Entei",
+    "ESPEON": "Espeon",
+    "FLAAFFY": "Flaaffy",
+    "FLAREON": "Flareon",
+    "GALLADE": "Gallade",
+    "GARDEVOIR": "Gardevoir",
+    "GLACEON": "Glaceon",
+    "GOLDUCK": "Golduck",
+    "GROTLE": "Grotle",
+    "GROVYLE": "Grovyle",
+    "GROWLITHE": "Growlithe",
+    "GULPIN": "Gulpin",
+    "HAWLUCHA": "Hawlucha",
+    "HERACROSS": "Heracross",
+    "HONCHKROW": "Honchkrow",
+    "IGGLYBUFF": "Igglybuff",
+    "INFERNAPE": "Infernape",
+    "JIGGLYPUFF": "Jigglypuff",
+    "JOLTEON": "Jolteon",
+    "KIRLIA": "Kirlia",
+    "LATIAS": "Latias",
+    "LATIOS": "Latios",
+    "LEAFEON": "Leafeon",
+    "LUCARIO": "Lucario",
+    "MAGNEMITE": "Magnemite",
+    "MAGNETON": "Magneton",
+    "MAGNEZONE": "Magnezone",
+    "MAREEP": "Mareep",
+    "MEOWTH": "Meowth",
+    "MEWTWO": "Mewtwo",
+    "MIMIKYU": "Mimikyu",
+    "MINUN": "Minun",
+    "MISDREAVUS": "Misdreavus",
+    "MISMAGIUS": "Mismagius",
+    "MONFERNO": "Monferno",
+    "MURKROW": "Murkrow",
+    "NOIBAT": "Noibat",
+    "NOIVERN": "Noivern",
+    "PAWMI": "Pawmi",
+    "PAWMO": "Pawmo",
+    "PAWMOT": "Pawmot",
+    "PERSIAN": "Persian",
+    "PIKACHU_HOLIDAY": "Pikachu (Holiday)",
+    "PLUSLE": "Plusle",
+    "PSYDUCK": "Psyduck",
+    "RAIKOU": "Raikou",
+    "RALTS": "Ralts",
+    "RIOLU": "Riolu",
+    "RUFFLET": "Rufflet",
+    "SABLEYE": "Sableye",
+    "SANDSHREW": "Sandshrew",
+    "SANDSLASH": "Sandslash",
+    "SCEPTILE": "Sceptile",
+    "SHUCKLE": "Shuckle",
+    "SLOWBRO": "Slowbro",
+    "SLOWKING": "Slowking",
+    "SLOWPOKE": "Slowpoke",
+    "SPHEAL_HOLIDAY": "Spheal (Holiday)",
+    "SUDOWOODO": "Sudowoodo",
+    "SUICUNE": "Suicune",
+    "SWALOT": "Swalot",
+    "SYLVEON": "Sylveon",
+    "TOGEDEMARU": "Togedemaru",
+    "TOGEKISS": "Togekiss",
+    "TOGEPI": "Togepi",
+    "TOGETIC": "Togetic",
+    "TORTERRA": "Torterra",
+    "TOXEL": "Toxel",
+    "TOXTRICITY_AMPED": "Toxtricity (Amped Form)",
+    "TOXTRICITY_LOW_KEY": "Toxtricity (Low Key Form)",
+    "TREECKO": "Treecko",
+    "TURTWIG": "Turtwig",
+    "UMBREON": "Umbreon",
+    "VAPOREON": "Vaporeon",
+    "WIGGLYTUFF": "Wigglytuff",
+    "WOBBUFFET": "Wobbuffet",
+    "WYNAUT": "Wynaut"
+  },
+  "berries": {
+    "PAMTRE": "Pamtre Berry",
+    "LUM": "Lum Berry",
+    "GREPA": "Grepa Berry",
+    "BLUK": "Bluk Berry",
+    "PECHA": "Pecha Berry",
+    "MAGO": "Mago Berry",
+    "LEPPA": "Leppa Berry",
+    "CHERI": "Cheri Berry",
+    "PERSIM": "Persim Berry",
+    "FIGY": "Figy Berry",
+    "DURIN": "Durin Berry",
+    "SITRUS": "Sitrus Berry",
+    "ORAN": "Oran Berry",
+    "WIKI": "Wiki Berry",
+    "CHESTO": "Chesto Berry",
+    "RAWST": "Rawst Berry",
+    "BELUE": "Belue Berry",
+    "YACHE": "Yache Berry"
+  },
+  "ingredients": {
+    "Apple": "Fancy Apple",
+    "Milk": "Moomoo Milk",
+    "Soybean": "Greengrass Soybeans",
+    "Honey": "Honey",
+    "Sausage": "Bean Sausage",
+    "Ginger": "Warming Ginger",
+    "Tomato": "Snoozy Tomato",
+    "Egg": "Fancy Egg",
+    "Oil": "Pure Oil",
+    "Potato": "Soft Potato",
+    "Herb": "Fiery Herb",
+    "Corn": "Greengrass Corn",
+    "Cacao": "Soothing Cacao",
+    "Coffee": "Rousing Coffee",
+    "Avocado": "Glossy Avocado",
+    "Mushroom": "Tasty Mushroom",
+    "Leek": "Large Leek",
+    "Pumpkin": "Plump Pumpkin",
+    "Tail": "Slowpoke Tail"
+  },
+  "recipes": {
+    "FANCY_APPLE_CURRY": "Fancy Apple Curry",
+    "SIMPLE_CHOWDER": "Simple Chowder",
+    "MILD_HONEY_CURRY": "Mild Honey Curry",
+    "BEANBURGER_CURRY": "Beanburger Curry",
+    "HEARTY_CHEESEBURGER_CURRY": "Hearty Cheeseburger Curry",
+    "DROUGHT_KATSU_CURRY": "\"Drought\" Katsu Curry",
+    "SOLAR_POWER_TOMATO_CURRY": "\"Solar Power\" Tomato Curry",
+    "MELTY_OMELETTE_CURRY": "Melty Omelette Curry",
+    "SOFT_POTATO_CHOWDER": "Soft Potato Chowder",
+    "BULK_UP_BEAN_CURRY": "\"Bulk Up\" Bean Curry",
+    "SPORE_MUSHROOM_CURRY": "\"Spore\" Mushroom Curry",
+    "EGG_BOMB_CURRY": "\"Egg Bomb\" Curry",
+    "LIMBER_CORN_STEW": "\"Limber\" Corn Stew",
+    "DIZZY_PUNCH_SPICY_CURRY": "\"Dizzy Punch\" Spicy Curry",
+    "SPICY_LEEK_CURRY": "Spicy Leek Curry",
+    "NINJA_CURRY": "Ninja Curry",
+    "GRILLED_TAIL_CURRY": "Grilled Tail Curry",
+    "DREAM_EATER_BUTTER_CURRY": "\"Dream Eater\" Butter Curry",
+    "INFERNO_CORN_KEEMA_CURRY": "\"Inferno\" Corn Keema Curry",
+    "HIDDEN_POWER_PERK_UP_STEW": "\"Hidden Power\" Perk-Up Stew",
+    "CUT_SUKIYAKI_CURRY": "\"Cut\" Sukiyaki Curry",
+    "ROLE_PLAY_PUMPKABOO_STEW": "\"Role Play\" Pumpkaboo Stew",
+    "OVERGROW_AVOCADO_GRATIN": "\"Overgrow\" Avocado Gratin",
+    "GREENGRASS_CURRY_BUN": "Greengrass Curry Bun",
+    "BOUNCE_CURRY_UDON": "\"Bounce\" Curry Udon",
+    "FANCY_APPLE_SALAD": "Fancy Apple Salad",
+    "BEAN_HAM_SALAD": "Bean Ham Salad",
+    "SNOOZY_TOMATO_SALAD": "Snoozy Tomato Salad",
+    "SNOW_CLOAK_CAESAR_SALAD": "\"Snow Cloak\" Caesar Salad",
+    "WATER_VEIL_TOFU_SALAD": "\"Water Veil\" Tofu Salad",
+    "HEAT_WAVE_TOFU_SALAD": "\"Heat Wave\" Tofu Salad",
+    "FURY_ATTACK_CORN_SALAD": "\"Fury Attack\" Corn Salad",
+    "DAZZLING_APPLE_CHEESE_SALAD": "\"Dazzling\" Apple Cheese Salad",
+    "MOOMOO_CAPRESE_SALAD": "Moomoo Caprese Salad",
+    "IMMUNITY_LEEK_SALAD": "\"Immunity\" Leek Salad",
+    "SUPERPOWER_EXTREME_SALAD": "\"Superpower\" Extreme Salad",
+    "CONTRARY_CHOCOLATE_MEAT_SALAD": "\"Contrary\" Chocolate Meat Salad",
+    "GLUTTONY_POTATO_SALAD": "\"Gluttony\" Potato Salad",
+    "OVERHEAT_GINGER_SALAD": "\"Overheat\" Ginger Salad",
+    "SPORE_MUSHROOM_SALAD": "\"Spore\" Mushroom Salad",
+    "CALM_MIND_FRUIT_SALAD": "\"Calm Mind\" Fruit Salad",
+    "SLOWPOKE_TAIL_PEPPER_SALAD": "Slowpoke Tail Pepper Salad",
+    "CROSS_CHOP_SALAD": "\"Cross Chop\" Salad",
+    "GREENGRASS_SALAD": "Greengrass Salad",
+    "NINJA_SALAD": "Ninja Salad",
+    "PETAL_BLIZZARD_LAYERED_SALAD": "\"Petal Blizzard\" Layered Salad",
+    "APPLE_ACID_YOGURT_DRESSED_SALAD": "\"Apple Acid\" Yogurt-Dressed Salad",
+    "DEFIANT_COFFEE_DRESSED_SALAD": "\"Defiant\" Coffee-Dressed Salad",
+    "LUSCIOUS_AVOCADO_SALAD": "Luscious Avocado Salad",
+    "BULLDOZE_GUACAMOLE_AND_CHIPS": "\"Bulldoze\" Guacamole and Chips",
+    "SCALD_CHUNKY_SALAD": "\"Scald\" Chunky Salad",
+    "WARM_MOOMOO_MILK": "Warm Moomoo Milk",
+    "FANCY_APPLE_JUICE": "Fancy Apple Juice",
+    "CRAFT_SODA_POP": "Craft Soda Pop",
+    "LUCKY_CHANT_APPLE_PIE": "\"Lucky Chant\" Apple Pie",
+    "FLUFFY_SWEET_POTATOES": "\"Fluffy\" Sweet Potatoes",
+    "EMBER_GINGER_TEA": "\"Ember\" Ginger Tea",
+    "CLOUD_NINE_SOY_CAKE": "\"Cloud Nine\" Soy Cake",
+    "STALWART_VEGETABLE_JUICE": "\"Stalwart\" Vegetable Juice",
+    "BIG_MALASADA": "Big Malasada",
+    "HUSTLE_PROTEIN_SMOOTHIE": "\"Hustle\" Protein Smoothie",
+    "HUGE_POWER_SOY_DONUTS": "\"Huge Power\" Soy Donuts",
+    "SWEET_SCENT_CHOCOLATE_CAKE": "\"Sweet Scent\" Chocolate Cake",
+    "PETAL_DANCE_CHOCOLATE_TART": "\"Petal Dance\" Chocolate Tart",
+    "LOVELY_KISS_SMOOTHIE": "\"Lovely Kiss\" Smoothie",
+    "STEADFAST_GINGER_COOKIES": "\"Steadfast\" Ginger Cookies",
+    "NEROLIS_RESTORATIVE_TEA": "Neroli's Restorative Tea",
+    "EXPLOSION_POPCORN": "\"Explosion\" Popcorn",
+    "EARLY_BIRD_COFFEE_JELLY": "\"Early Bird\" Coffee Jelly",
+    "MOLD_BREAKER_CORN_TIRAMISU": "\"Mold Breaker\" Corn Tiramisu",
+    "JIGGLYPUFFS_FRUITY_FLAN": "Jigglypuff's Fruity Flan",
+    "TEATIME_CORN_SCONES": "\"Teatime\" Corn Scones",
+    "FLOWER_GIFT_MACARONS": "\"Flower Gift\" Macarons",
+    "ZING_ZAP_SPICED_COLA": "\"Zing Zap\" Spiced Cola",
+    "CLODSIRE_ECLAIR": "Clodsire Éclair",
+    "HONEY_GATHER_CHOCOLATE_WAFFLES": "\"Honey Gather\" Chocolate Waffles",
+    "SCARY_FACE_PANCAKES": "\"Scary Face\" Pancakes",
+    "LEAF_TORNADO_SMOOTHIE": "\"Leaf Tornado\" Smoothie"
+  },
+  "natures": {
+    "Lonely": "Lonely",
+    "Adamant": "Adamant",
+    "Naughty": "Naughty",
+    "Brave": "Brave",
+    "Bold": "Bold",
+    "Impish": "Impish",
+    "Lax": "Lax",
+    "Relaxed": "Relaxed",
+    "Modest": "Modest",
+    "Mild": "Mild",
+    "Rash": "Rash",
+    "Quiet": "Quiet",
+    "Calm": "Calm",
+    "Gentle": "Gentle",
+    "Careful": "Careful",
+    "Sassy": "Sassy",
+    "Timid": "Timid",
+    "Hasty": "Hasty",
+    "Jolly": "Jolly",
+    "Naive": "Naive",
+    "Bashful": "Bashful",
+    "Hardy": "Hardy",
+    "Docile": "Docile",
+    "Quirky": "Quirky",
+    "Serious": "Serious"
+  },
+  "subskills": {
+    "Berry Finding S": "Berry Finding S",
+    "Dream Shard Bonus": "Dream Shard Bonus",
+    "Energy Recovery Bonus": "Energy Recovery Bonus",
+    "Helping Bonus": "Helping Bonus",
+    "Helping Speed S": "Helping Speed S",
+    "Helping Speed M": "Helping Speed M",
+    "Ingredient Finder S": "Ingredient Finder S",
+    "Ingredient Finder M": "Ingredient Finder M",
+    "Inventory Up S": "Inventory Up S",
+    "Inventory Up M": "Inventory Up M",
+    "Inventory Up L": "Inventory Up L",
+    "Research EXP Bonus": "Research EXP Bonus",
+    "Skill Level Up M": "Skill Level Up M",
+    "Skill Level Up S": "Skill Level Up S",
+    "Skill Trigger M": "Skill Trigger M",
+    "Skill Trigger S": "Skill Trigger S",
+    "Sleep EXP Bonus": "Sleep EXP Bonus"
+  },
+  "islands": {
+    "greengrass": "Greengrass Isle",
+    "cyan": "Cyan Beach",
+    "taupe": "Taupe Hollow",
+    "snowdrop": "Snowdrop Tundra",
+    "lapis": "Lapis Lakeside",
+    "powerplant": "Old Gold Power Plant",
+    "amber": "Amber Canyon"
+  },
+  "mainskills": {
+    "Charge Strength S": "Charge Strength S",
+    "Charge Strength M": "Charge Strength M",
+    "Charge Energy S": "Charge Energy S",
+    "Energy For Everyone S": "Energy For Everyone S",
+    "Energizing Cheer S": "Energizing Cheer S",
+    "Ingredient Magnet S": "Ingredient Magnet S",
+    "Cooking Power-Up S": "Cooking Power-Up S",
+    "Dream Shard Magnet S": "Dream Shard Magnet S",
+    "Extra Helpful S": "Extra Helpful S",
+    "Helper Boost": "Helper Boost",
+    "Metronome": "Metronome",
+    "Tasty Chance S": "Tasty Chance S",
+    "Cooking Assist S": "Cooking Assist S",
+    "Cooking Advance S": "Cooking Advance S",
+    "Berry Burst": "Berry Burst",
+    "Berry Zone": "Berry Zone",
+    "Ingredient Draw S": "Ingredient Draw S",
+    "Skill Copy": "Skill Copy",
+    "Versatile": "Versatile"
+  },
+  "aliases": {
+    "苹果": {
+      "type": "ingredient",
+      "key": "Apple"
+    },
+    "蘋果": {
+      "type": "ingredient",
+      "key": "Apple"
+    },
+    "fancy apple": {
+      "type": "ingredient",
+      "key": "Apple"
+    },
+    "牛奶": {
+      "type": "ingredient",
+      "key": "Milk"
+    },
+    "鲜奶": {
+      "type": "ingredient",
+      "key": "Milk"
+    },
+    "鮮奶": {
+      "type": "ingredient",
+      "key": "Milk"
+    },
+    "moomoo milk": {
+      "type": "ingredient",
+      "key": "Milk"
+    },
+    "大豆": {
+      "type": "ingredient",
+      "key": "Soybean"
+    },
+    "黄豆": {
+      "type": "ingredient",
+      "key": "Soybean"
+    },
+    "soybeans": {
+      "type": "ingredient",
+      "key": "Soybean"
+    },
+    "蜂蜜": {
+      "type": "ingredient",
+      "key": "Honey"
+    },
+    "蜜": {
+      "type": "ingredient",
+      "key": "Honey"
+    },
+    "honey": {
+      "type": "ingredient",
+      "key": "Honey"
+    },
+    "豆制香肠": {
+      "type": "ingredient",
+      "key": "Sausage"
+    },
+    "豆製香腸": {
+      "type": "ingredient",
+      "key": "Sausage"
+    },
+    "肉": {
+      "type": "ingredient",
+      "key": "Sausage"
+    },
+    "香肠": {
+      "type": "ingredient",
+      "key": "Sausage"
+    },
+    "sausage": {
+      "type": "ingredient",
+      "key": "Sausage"
+    },
+    "生姜": {
+      "type": "ingredient",
+      "key": "Ginger"
+    },
+    "姜": {
+      "type": "ingredient",
+      "key": "Ginger"
+    },
+    "薑": {
+      "type": "ingredient",
+      "key": "Ginger"
+    },
+    "ginger": {
+      "type": "ingredient",
+      "key": "Ginger"
+    },
+    "番茄": {
+      "type": "ingredient",
+      "key": "Tomato"
+    },
+    "西红柿": {
+      "type": "ingredient",
+      "key": "Tomato"
+    },
+    "助眠番茄": {
+      "type": "ingredient",
+      "key": "Tomato"
+    },
+    "tomato": {
+      "type": "ingredient",
+      "key": "Tomato"
+    },
+    "蛋": {
+      "type": "ingredient",
+      "key": "Egg"
+    },
+    "鸡蛋": {
+      "type": "ingredient",
+      "key": "Egg"
+    },
+    "潤澤白蛋": {
+      "type": "ingredient",
+      "key": "Egg"
+    },
+    "egg": {
+      "type": "ingredient",
+      "key": "Egg"
+    },
+    "油": {
+      "type": "ingredient",
+      "key": "Oil"
+    },
+    "纯正油": {
+      "type": "ingredient",
+      "key": "Oil"
+    },
+    "純正油": {
+      "type": "ingredient",
+      "key": "Oil"
+    },
+    "pure oil": {
+      "type": "ingredient",
+      "key": "Oil"
+    },
+    "土豆": {
+      "type": "ingredient",
+      "key": "Potato"
+    },
+    "洋芋": {
+      "type": "ingredient",
+      "key": "Potato"
+    },
+    "马铃薯": {
+      "type": "ingredient",
+      "key": "Potato"
+    },
+    "馬鈴薯": {
+      "type": "ingredient",
+      "key": "Potato"
+    },
+    "熟透土豆": {
+      "type": "ingredient",
+      "key": "Potato"
+    },
+    "potato": {
+      "type": "ingredient",
+      "key": "Potato"
+    },
+    "香草": {
+      "type": "ingredient",
+      "key": "Herb"
+    },
+    "辣草": {
+      "type": "ingredient",
+      "key": "Herb"
+    },
+    "fiery herb": {
+      "type": "ingredient",
+      "key": "Herb"
+    },
+    "玉米": {
+      "type": "ingredient",
+      "key": "Corn"
+    },
+    "greengrass corn": {
+      "type": "ingredient",
+      "key": "Corn"
+    },
+    "可可": {
+      "type": "ingredient",
+      "key": "Cacao"
+    },
+    "巧克": {
+      "type": "ingredient",
+      "key": "Cacao"
+    },
+    "cacao": {
+      "type": "ingredient",
+      "key": "Cacao"
+    },
+    "咖啡": {
+      "type": "ingredient",
+      "key": "Coffee"
+    },
+    "咖啡豆": {
+      "type": "ingredient",
+      "key": "Coffee"
+    },
+    "coffee": {
+      "type": "ingredient",
+      "key": "Coffee"
+    },
+    "牛油果": {
+      "type": "ingredient",
+      "key": "Avocado"
+    },
+    "酪梨": {
+      "type": "ingredient",
+      "key": "Avocado"
+    },
+    "鳄梨": {
+      "type": "ingredient",
+      "key": "Avocado"
+    },
+    "avocado": {
+      "type": "ingredient",
+      "key": "Avocado"
+    },
+    "蘑菇": {
+      "type": "ingredient",
+      "key": "Mushroom"
+    },
+    "香菇": {
+      "type": "ingredient",
+      "key": "Mushroom"
+    },
+    "mushroom": {
+      "type": "ingredient",
+      "key": "Mushroom"
+    },
+    "大葱": {
+      "type": "ingredient",
+      "key": "Leek"
+    },
+    "大蔥": {
+      "type": "ingredient",
+      "key": "Leek"
+    },
+    "葱": {
+      "type": "ingredient",
+      "key": "Leek"
+    },
+    "蔥": {
+      "type": "ingredient",
+      "key": "Leek"
+    },
+    "leek": {
+      "type": "ingredient",
+      "key": "Leek"
+    },
+    "南瓜": {
+      "type": "ingredient",
+      "key": "Pumpkin"
+    },
+    "pumpkin": {
+      "type": "ingredient",
+      "key": "Pumpkin"
+    },
+    "尾巴": {
+      "type": "ingredient",
+      "key": "Tail"
+    },
+    "呆呆兽尾巴": {
+      "type": "ingredient",
+      "key": "Tail"
+    },
+    "呆呆獸尾巴": {
+      "type": "ingredient",
+      "key": "Tail"
+    },
+    "tail": {
+      "type": "ingredient",
+      "key": "Tail"
+    },
+    "bfs": {
+      "type": "subskill",
+      "key": "Berry Finding S"
+    },
+    "树果s": {
+      "type": "subskill",
+      "key": "Berry Finding S"
+    },
+    "樹果s": {
+      "type": "subskill",
+      "key": "Berry Finding S"
+    },
+    "树果数量增加s": {
+      "type": "subskill",
+      "key": "Berry Finding S"
+    },
+    "dsb": {
+      "type": "subskill",
+      "key": "Dream Shard Bonus"
+    },
+    "碎片奖励": {
+      "type": "subskill",
+      "key": "Dream Shard Bonus"
+    },
+    "梦碎奖励": {
+      "type": "subskill",
+      "key": "Dream Shard Bonus"
+    },
+    "erb": {
+      "type": "subskill",
+      "key": "Energy Recovery Bonus"
+    },
+    "活力奖励": {
+      "type": "subskill",
+      "key": "Energy Recovery Bonus"
+    },
+    "精力回复奖励": {
+      "type": "subskill",
+      "key": "Energy Recovery Bonus"
+    },
+    "hb": {
+      "type": "subskill",
+      "key": "Helping Bonus"
+    },
+    "帮奖": {
+      "type": "subskill",
+      "key": "Helping Bonus"
+    },
+    "幫獎": {
+      "type": "subskill",
+      "key": "Helping Bonus"
+    },
+    "帮助奖励": {
+      "type": "subskill",
+      "key": "Helping Bonus"
+    },
+    "帮速s": {
+      "type": "subskill",
+      "key": "Helping Speed S"
+    },
+    "幫速s": {
+      "type": "subskill",
+      "key": "Helping Speed S"
+    },
+    "帮助速度s": {
+      "type": "subskill",
+      "key": "Helping Speed S"
+    },
+    "帮速m": {
+      "type": "subskill",
+      "key": "Helping Speed M"
+    },
+    "幫速m": {
+      "type": "subskill",
+      "key": "Helping Speed M"
+    },
+    "帮助速度m": {
+      "type": "subskill",
+      "key": "Helping Speed M"
+    },
+    "食材概率s": {
+      "type": "subskill",
+      "key": "Ingredient Finder S"
+    },
+    "食率s": {
+      "type": "subskill",
+      "key": "Ingredient Finder S"
+    },
+    "食材s": {
+      "type": "subskill",
+      "key": "Ingredient Finder S"
+    },
+    "食材概率m": {
+      "type": "subskill",
+      "key": "Ingredient Finder M"
+    },
+    "食率m": {
+      "type": "subskill",
+      "key": "Ingredient Finder M"
+    },
+    "食材m": {
+      "type": "subskill",
+      "key": "Ingredient Finder M"
+    },
+    "包包s": {
+      "type": "subskill",
+      "key": "Inventory Up S"
+    },
+    "背包s": {
+      "type": "subskill",
+      "key": "Inventory Up S"
+    },
+    "持有s": {
+      "type": "subskill",
+      "key": "Inventory Up S"
+    },
+    "最大所持数s": {
+      "type": "subskill",
+      "key": "Inventory Up S"
+    },
+    "包包m": {
+      "type": "subskill",
+      "key": "Inventory Up M"
+    },
+    "背包m": {
+      "type": "subskill",
+      "key": "Inventory Up M"
+    },
+    "持有m": {
+      "type": "subskill",
+      "key": "Inventory Up M"
+    },
+    "最大所持数m": {
+      "type": "subskill",
+      "key": "Inventory Up M"
+    },
+    "包包l": {
+      "type": "subskill",
+      "key": "Inventory Up L"
+    },
+    "背包l": {
+      "type": "subskill",
+      "key": "Inventory Up L"
+    },
+    "持有l": {
+      "type": "subskill",
+      "key": "Inventory Up L"
+    },
+    "最大所持数l": {
+      "type": "subskill",
+      "key": "Inventory Up L"
+    },
+    "reb": {
+      "type": "subskill",
+      "key": "Research EXP Bonus"
+    },
+    "研经": {
+      "type": "subskill",
+      "key": "Research EXP Bonus"
+    },
+    "研究经验": {
+      "type": "subskill",
+      "key": "Research EXP Bonus"
+    },
+    "技升m": {
+      "type": "subskill",
+      "key": "Skill Level Up M"
+    },
+    "技能等级m": {
+      "type": "subskill",
+      "key": "Skill Level Up M"
+    },
+    "技能+2": {
+      "type": "subskill",
+      "key": "Skill Level Up M"
+    },
+    "技升s": {
+      "type": "subskill",
+      "key": "Skill Level Up S"
+    },
+    "技能等级s": {
+      "type": "subskill",
+      "key": "Skill Level Up S"
+    },
+    "技能+1": {
+      "type": "subskill",
+      "key": "Skill Level Up S"
+    },
+    "技率m": {
+      "type": "subskill",
+      "key": "Skill Trigger M"
+    },
+    "技能概率m": {
+      "type": "subskill",
+      "key": "Skill Trigger M"
+    },
+    "主技能机率m": {
+      "type": "subskill",
+      "key": "Skill Trigger M"
+    },
+    "技能触发m": {
+      "type": "subskill",
+      "key": "Skill Trigger M"
+    },
+    "技率s": {
+      "type": "subskill",
+      "key": "Skill Trigger S"
+    },
+    "技能概率s": {
+      "type": "subskill",
+      "key": "Skill Trigger S"
+    },
+    "主技能机率s": {
+      "type": "subskill",
+      "key": "Skill Trigger S"
+    },
+    "技能触发s": {
+      "type": "subskill",
+      "key": "Skill Trigger S"
+    },
+    "seb": {
+      "type": "subskill",
+      "key": "Sleep EXP Bonus"
+    },
+    "睡经": {
+      "type": "subskill",
+      "key": "Sleep EXP Bonus"
+    },
+    "睡眠经验": {
+      "type": "subskill",
+      "key": "Sleep EXP Bonus"
+    },
+    "充能s": {
+      "type": "mainskill",
+      "key": "Charge Strength S"
+    },
+    "充能m": {
+      "type": "mainskill",
+      "key": "Charge Strength M"
+    },
+    "回体s": {
+      "type": "mainskill",
+      "key": "Charge Energy S"
+    },
+    "回体自奶": {
+      "type": "mainskill",
+      "key": "Charge Energy S"
+    },
+    "e4e": {
+      "type": "mainskill",
+      "key": "Energy For Everyone S"
+    },
+    "群奶": {
+      "type": "mainskill",
+      "key": "Energy For Everyone S"
+    },
+    "全体回血s": {
+      "type": "mainskill",
+      "key": "Energy For Everyone S"
+    },
+    "单奶": {
+      "type": "mainskill",
+      "key": "Energizing Cheer S"
+    },
+    "随机奶": {
+      "type": "mainskill",
+      "key": "Energizing Cheer S"
+    },
+    "磁铁s": {
+      "type": "mainskill",
+      "key": "Ingredient Magnet S"
+    },
+    "吸食材": {
+      "type": "mainskill",
+      "key": "Ingredient Magnet S"
+    },
+    "扩锅s": {
+      "type": "mainskill",
+      "key": "Cooking Power-Up S"
+    },
+    "擴鍋s": {
+      "type": "mainskill",
+      "key": "Cooking Power-Up S"
+    },
+    "大锅": {
+      "type": "mainskill",
+      "key": "Cooking Power-Up S"
+    },
+    "碎片获取": {
+      "type": "mainskill",
+      "key": "Dream Shard Magnet S"
+    },
+    "梦碎s": {
+      "type": "mainskill",
+      "key": "Dream Shard Magnet S"
+    },
+    "帮手支援": {
+      "type": "mainskill",
+      "key": "Extra Helpful S"
+    },
+    "帮倒忙": {
+      "type": "mainskill",
+      "key": "Extra Helpful S"
+    },
+    "神兽技能": {
+      "type": "mainskill",
+      "key": "Helper Boost"
+    },
+    "全体帮忙": {
+      "type": "mainskill",
+      "key": "Helper Boost"
+    },
+    "摇手指": {
+      "type": "mainskill",
+      "key": "Metronome"
+    },
+    "暴击s": {
+      "type": "mainskill",
+      "key": "Tasty Chance S"
+    },
+    "大成功s": {
+      "type": "mainskill",
+      "key": "Tasty Chance S"
+    },
+    "协助s": {
+      "type": "mainskill",
+      "key": "Cooking Assist S"
+    },
+    "料理加速": {
+      "type": "mainskill",
+      "key": "Cooking Advance S"
+    },
+    "做饭加速": {
+      "type": "mainskill",
+      "key": "Cooking Advance S"
+    },
+    "树果爆发": {
+      "type": "mainskill",
+      "key": "Berry Burst"
+    },
+    "樹果爆發": {
+      "type": "mainskill",
+      "key": "Berry Burst"
+    },
+    "树果场地": {
+      "type": "mainskill",
+      "key": "Berry Zone"
+    },
+    "抽食材": {
+      "type": "mainskill",
+      "key": "Ingredient Draw S"
+    },
+    "变身": {
+      "type": "mainskill",
+      "key": "Skill Copy"
+    },
+    "抄技能": {
+      "type": "mainskill",
+      "key": "Skill Copy"
+    },
+    "写生": {
+      "type": "mainskill",
+      "key": "Versatile"
+    }
+  }
+}
