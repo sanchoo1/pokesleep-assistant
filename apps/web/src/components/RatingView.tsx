@@ -857,23 +857,69 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                 </div>
 
                 {(() => {
+                  const det = focusedProd.skillActivationDetails;
+                  if (det.activations.length > 1) {
+                    return (
+                      <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                        <div className="text-2xs font-bold text-emerald-800">
+                          复合技能双轨产出 (Lv.{focusedProd.effectiveMainSkillLevel})
+                        </div>
+                        <div className="mt-1 space-y-1">
+                          {det.activations.map((act, i) => {
+                            const m = SKILL_UNIT_LABELS[act.unit] || { label: '', unitSuffix: '' };
+                            return (
+                              <div key={i} className="flex items-center justify-between text-xs">
+                                <span className="text-slate-600 font-medium">
+                                  {act.unit === 'ingredients'
+                                    ? '食材日产'
+                                    : act.unit === 'crit chance'
+                                      ? '大成功暴率'
+                                      : m.label}
+                                  :
+                                </span>
+                                <span className="font-extrabold text-emerald-700">
+                                  {act.unit === 'crit chance' ? '+' : ''}
+                                  {act.dailySelf.toFixed(1)} {m.unitSuffix}/天
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="text-2xs text-emerald-800 mt-2 pt-1.5 border-t border-emerald-200/80 flex items-center justify-between">
+                          <span>
+                            单次:{' '}
+                            {det.activations
+                              .map(
+                                (a) =>
+                                  `${a.unit === 'crit chance' ? '+' : ''}${a.perProcSelf}${SKILL_UNIT_LABELS[a.unit]?.unitSuffix || ''}`
+                              )
+                              .join(' + ')}
+                          </span>
+                          <span className="font-extrabold text-emerald-700">
+                            折算 {Math.round(focusedProd.dailySkillEnergy).toLocaleString()} 能量/天
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  }
+
                   const unitMeta =
-                    SKILL_UNIT_LABELS[focusedProd.skillActivationDetails.primaryUnit] || {
+                    SKILL_UNIT_LABELS[det.primaryUnit] || {
                       label: '技能每日总效果',
                       unitSuffix: '',
                     };
-                  const det = focusedProd.skillActivationDetails;
                   return (
                     <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200">
                       <div className="text-2xs font-semibold text-emerald-700">
                         {unitMeta.label} (Lv.{focusedProd.effectiveMainSkillLevel})
                       </div>
                       <div className="text-2xl font-black text-emerald-700 mt-1">
+                        {det.primaryUnit === 'crit chance' ? '+' : ''}
                         {det.dailyOutput.toFixed(1)}{' '}
                         <span className="text-xs font-semibold">{unitMeta.unitSuffix}/天</span>
                       </div>
                       <div className="text-2xs text-emerald-800 mt-1">
-                        单次触发: {det.perProcOutput} {unitMeta.unitSuffix} | 折算{' '}
+                        单次触发: {det.primaryUnit === 'crit chance' ? '+' : ''}{det.perProcOutput} {unitMeta.unitSuffix} | 折算{' '}
                         {Math.round(focusedProd.dailySkillEnergy).toLocaleString()} 能量/天
                       </div>
                     </div>
@@ -892,7 +938,9 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                       {species.name === 'SANDSHREW' || species.name === 'SANDSLASH'
                         ? '（从南瓜 / 玉米 / 土豆专属池抽选）'
                         : '（从全品类食材中随机获取）'}
-                      ，已全量计入食谱覆盖率分析！
+                      {focusedProd.skillActivationDetails.activations.some((a) => a.unit === 'crit chance')
+                        ? `，并叠加每日约 +${(focusedProd.skillActivationDetails.activations.find((a) => a.unit === 'crit chance')?.dailySelf ?? 0).toFixed(1)}% 料理大成功率！`
+                        : '，已全量计入食谱覆盖率分析！'}
                     </span>
                   </div>
                   <button
@@ -902,6 +950,36 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                   >
                     查看食谱自给率 →
                   </button>
+                </div>
+              )}
+
+              {/* Cooking Power-Up (Pot expansion) Contextual Callout */}
+              {focusedProd.skillActivationDetails.primaryUnit === 'pot size' && (
+                <div className="p-3.5 bg-blue-50/80 border border-blue-200 rounded-xl text-xs flex items-center justify-between gap-2 text-blue-900">
+                  <div className="flex items-center space-x-2">
+                    <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
+                    <span>
+                      <strong>料理扩锅机制</strong>：预计每日提供扩容约{' '}
+                      <strong>+{focusedProd.skillActivationDetails.dailyOutput.toFixed(1)} 格容量</strong>
+                      （单次 +{focusedProd.skillActivationDetails.perProcOutput} 格）。可突破平日 57 格上限烹饪 77/80 格高阶顶级食谱（如炼狱咖喱/早起布丁），每格按边际高阶食材+食谱加成等效折算每日约{' '}
+                      <strong>{Math.round(focusedProd.dailySkillEnergy).toLocaleString()} 能量</strong>。
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Tasty Chance (Extra Tasty / Crit chance) Contextual Callout */}
+              {focusedProd.skillActivationDetails.primaryUnit === 'crit chance' && (
+                <div className="p-3.5 bg-purple-50/80 border border-purple-200 rounded-xl text-xs flex items-center justify-between gap-2 text-purple-900">
+                  <div className="flex items-center space-x-2">
+                    <Sparkles className="w-4 h-4 text-purple-600 shrink-0" />
+                    <span>
+                      <strong>美味机会机制</strong>：预计每日累积增加约{' '}
+                      <strong>+{focusedProd.skillActivationDetails.dailyOutput.toFixed(1)}% 料理大成功概率</strong>
+                      （未暴击持续累加保底）。平日暴击 ×2、周日暴击 ×3，按队伍高级做饭基线折算每日等价约{' '}
+                      <strong>{Math.round(focusedProd.dailySkillEnergy).toLocaleString()} 能量</strong>。
+                    </span>
+                  </div>
                 </div>
               )}
 
@@ -949,11 +1027,31 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                             {p.dailySkillProcs.toFixed(2)} 次/天
                           </td>
                           <td className="py-2 px-3 text-emerald-700 font-semibold">
-                            {det.dailyOutput.toFixed(1)} {unitMeta.unitSuffix}
-                            {det.perProcTeamTotalOutput > 0 && (
-                              <span className="text-2xs text-slate-500 ml-1">
-                                (含队友 {det.dailyTeamTotalOutput.toFixed(1)})
-                              </span>
+                            {det.activations.length > 1 ? (
+                              <div className="space-y-0.5">
+                                {det.activations.map((act, i) => {
+                                  const am = SKILL_UNIT_LABELS[act.unit] || { unitSuffix: '' };
+                                  return (
+                                    <div key={i} className="text-2xs whitespace-nowrap">
+                                      <span className="font-bold">
+                                        {act.unit === 'crit chance' ? '+' : ''}
+                                        {act.dailySelf.toFixed(1)}
+                                      </span>{' '}
+                                      {am.unitSuffix}/天
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <>
+                                {det.primaryUnit === 'crit chance' ? '+' : ''}
+                                {det.dailyOutput.toFixed(1)} {unitMeta.unitSuffix}
+                                {det.perProcTeamTotalOutput > 0 && (
+                                  <span className="text-2xs text-slate-500 ml-1">
+                                    (含队友 {det.dailyTeamTotalOutput.toFixed(1)})
+                                  </span>
+                                )}
+                              </>
                             )}
                           </td>
                           <td className="py-2 px-3">
