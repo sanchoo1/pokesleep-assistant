@@ -15,6 +15,7 @@ import {
   calculateDailyProduction,
   analyzeIndividualRecipeCoverage,
   EvaluationMetric,
+  CookingScenarioContext,
 } from '@pokesleep/engine';
 import { BoxPokemon, normalizeBoxSubskills } from '../storage/db';
 import { getEntityName, getNatureModLabel, getPokemonTypeLabel, getUIText } from '../i18n';
@@ -29,6 +30,11 @@ import {
   Utensils,
   Flame,
   CheckCircle2,
+  Moon,
+  SlidersHorizontal,
+  Clock,
+  Package,
+  BedDouble,
 } from 'lucide-react';
 
 interface RatingViewProps {
@@ -36,6 +42,53 @@ interface RatingViewProps {
   locale: SupportedLocale;
   onClearInitial?: () => void;
 }
+
+const COOKING_SCENARIOS: Array<{
+  id: string;
+  name: string;
+  dishEnergyBaseline: number;
+  fillerEnergyPerSlot: number;
+  recipeMultiplier: number;
+  badge: string;
+  description: string;
+}> = [
+  {
+    id: 'standard',
+    name: '通用标准基线 (单餐 3.5万 / 扩锅每格+135)',
+    dishEnergyBaseline: 35000,
+    fillerEnergyPerSlot: 135,
+    recipeMultiplier: 1.0,
+    badge: '社区基准',
+    description: '单餐约 35,000 能量 / 填充格等效 +135 基础能量',
+  },
+  {
+    id: 'mid',
+    name: '日常中阶食谱 (单餐 2.2万 / 填充+144)',
+    dishEnergyBaseline: 22000,
+    fillerEnergyPerSlot: 115,
+    recipeMultiplier: 1.25,
+    badge: '中阶家常',
+    description: '单餐约 22,000 能量 / 填充格等效 +144 能量 (Lv.30 食谱加成)',
+  },
+  {
+    id: 'tier77',
+    name: '顶级 77/80格食谱 (单餐 5.5万 / 填充+207)',
+    dishEnergyBaseline: 55000,
+    fillerEnergyPerSlot: 140,
+    recipeMultiplier: 1.48,
+    badge: '炼狱/早起/忍者',
+    description: '单餐约 55,000 能量 / 填充格等效 +207 能量 (Lv.55+ 顶级食谱加成)',
+  },
+  {
+    id: 'mega_tail',
+    name: '极限尾巴扩锅核弹 (单餐 8.5万 / 尾巴+506)',
+    dishEnergyBaseline: 85000,
+    fillerEnergyPerSlot: 342,
+    recipeMultiplier: 1.48,
+    badge: '尾巴扩锅',
+    description: '单餐约 85,000 能量 / 填充慢速呆呆兽尾巴 +506 能量',
+  },
+];
 
 const SKILL_UNIT_LABELS: Record<MainskillUnit, { label: string; unitSuffix: string }> = {
   berries: { label: '技能树果产出', unitSuffix: '颗树果' },
@@ -89,10 +142,37 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
 
   // Inspected milestone stage in detail panel (auto-selected by specialty, clickable by user)
   const [focusedLevel, setFocusedLevel] = useState<number>(60);
-  const [activeDeepTab, setActiveDeepTab] = useState<'berry' | 'ingredient' | 'skill'>(
+  const [activeDeepTab, setActiveDeepTab] = useState<'berry' | 'ingredient' | 'skill' | 'overnight'>(
     species.specialty === 'all' ? 'skill' : species.specialty
   );
   const [recipeDishTab, setRecipeDishTab] = useState<RecipeType>('curry');
+
+  // Preview Lv.80 forward-looking computation option
+  const [previewLv80, setPreviewLv80] = useState<boolean>(false);
+
+  // Cooking strength scenario configuration for realistic pot expansion and crit chance
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string>('standard');
+  const [customDishEnergy, setCustomDishEnergy] = useState<number>(35000);
+  const [customFillerEnergy, setCustomFillerEnergy] = useState<number>(135);
+  const [sleepDurationHours, setSleepDurationHours] = useState<number>(8.5);
+
+  const activeCookingContext: CookingScenarioContext = useMemo(() => {
+    if (selectedScenarioId === 'custom') {
+      return {
+        scenarioName: '自定义单餐参数',
+        dishEnergyBaseline: customDishEnergy,
+        fillerEnergyPerSlot: customFillerEnergy,
+        recipeMultiplier: 1.0,
+      };
+    }
+    const found = COOKING_SCENARIOS.find((s) => s.id === selectedScenarioId) || COOKING_SCENARIOS[0];
+    return {
+      scenarioName: found.name,
+      dishEnergyBaseline: found.dishEnergyBaseline,
+      fillerEnergyPerSlot: found.fillerEnergyPerSlot,
+      recipeMultiplier: found.recipeMultiplier,
+    };
+  }, [selectedScenarioId, customDishEnergy, customFillerEnergy]);
 
   // Sync when navigating from BoxManager "Analyze" button
   useEffect(() => {
@@ -148,7 +228,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     ? species.skill.maxLevel || 6
     : mainSkillLevel;
 
-  // Automatic Multi-Stage Evaluation across [10, 25, 30, 50, 60, 70]
+  // Automatic Multi-Stage Evaluation across [10, 25, 30, 50, 60, 70] (and optional 80)
   const multiReport = useMemo(() => {
     try {
       return evaluatePokemonMilestones({
@@ -164,6 +244,9 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
         metric,
         isFavoredBerry,
         mapBonus,
+        previewLv80,
+        cookingContext: activeCookingContext,
+        sleepHours: sleepDurationHours,
       });
     } catch (e) {
       console.error(e);
@@ -178,6 +261,9 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     metric,
     isFavoredBerry,
     mapBonus,
+    previewLv80,
+    activeCookingContext,
+    sleepDurationHours,
   ]);
 
   const focusedStage = useMemo(() => {
@@ -546,19 +632,43 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                   </div>
                 </div>
 
-                {/* All 6 Progression Stages Matrix (Lv.10, 25, 30, 50, 60, 70) */}
+                {/* All Progression Stages Matrix (Lv.10, 25, 30, 50, 60, 70, +Lv.80 preview) */}
                 <div className="card p-4">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                     <div className="text-xs font-bold text-slate-800 flex items-center">
                       <Award className="w-4 h-4 mr-1.5 text-blue-600" />
                       全等级阶段自动评分表（点击任意等级切换下方专项详情）
                     </div>
-                    <span className="text-2xs text-slate-400">
-                      当前查看：Lv.{focusedLevel}
-                    </span>
+                    <div className="flex items-center space-x-2.5">
+                      <label className="inline-flex items-center space-x-1.5 cursor-pointer text-2xs font-bold px-2 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={previewLv80}
+                          onChange={(e) => {
+                            setPreviewLv80(e.target.checked);
+                            if (e.target.checked && focusedLevel === 70) {
+                              setFocusedLevel(80);
+                            } else if (!e.target.checked && focusedLevel === 80) {
+                              setFocusedLevel(70);
+                            }
+                          }}
+                          className="rounded text-indigo-600"
+                        />
+                        <span>🔮 开启 Lv.80 前瞻 (推演第 5 副技能)</span>
+                      </label>
+                      <span className="text-2xs text-slate-400">
+                        当前查看：Lv.{focusedLevel}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
+                  <div
+                    className={`grid gap-2.5 ${
+                      previewLv80
+                        ? 'grid-cols-2 sm:grid-cols-4 md:grid-cols-7'
+                        : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-6'
+                    }`}
+                  >
                     {multiReport.milestones.map((m) => {
                       const isSelected = m.level === focusedLevel;
                       const prod = m.rating.currentProduction;
@@ -633,6 +743,12 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                                     : Math.round(prod.dailyBerryEnergy).toLocaleString()}
                               </span>
                             </div>
+                            <div className="flex justify-between text-[10px] text-purple-700 pt-0.5 border-t border-slate-100">
+                              <span className="text-slate-400">满包/过夜</span>
+                              <span className="font-semibold">
+                                {prod.hoursToFullCarry.toFixed(1)}h | {(prod.overnightAnalysis.efficiencyRatio * 100).toFixed(0)}%
+                              </span>
+                            </div>
                           </div>
                         </button>
                       );
@@ -640,16 +756,26 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                   </div>
 
                   {subskills.level80 && (
-                    <div className="mt-3 px-3 py-2 rounded-lg bg-slate-100 text-2xs text-slate-600 flex items-center justify-between">
+                    <div
+                      className={`mt-3 px-3 py-2 rounded-lg text-2xs flex items-center justify-between transition-colors ${
+                        previewLv80
+                          ? 'bg-indigo-50 border border-indigo-200 text-indigo-800 font-medium'
+                          : 'bg-slate-100 text-slate-600'
+                      }`}
+                    >
                       <span>
-                        🔒 第 5 副技能槽 (<strong>Lv.80</strong>)：已记录为「
-                        {getEntityName(
-                          GAME_DATA.subskills.find(
-                            (s) => s.name.toLowerCase() === subskills.level80.toLowerCase()
-                          ),
-                          locale
-                        ) || subskills.level80}
-                        」，因当前版本游戏等级上限为 <strong>Lv.70</strong>，暂不计入当前版本评分。
+                        {previewLv80 ? '✨' : '🔒'} 第 5 副技能槽 (<strong>Lv.80</strong>)：已填入「
+                        <strong>
+                          {getEntityName(
+                            GAME_DATA.subskills.find(
+                              (s) => s.name.toLowerCase() === subskills.level80.toLowerCase()
+                            ),
+                            locale
+                          ) || subskills.level80}
+                        </strong>
+                        」{previewLv80
+                          ? ' — 🌟 前瞻推演已激活！已计入 Lv.80 最终巅峰评分与生产量。'
+                          : ' — 当前处于锁定状态，可点击右上角「开启 Lv.80 前瞻」推演未来养成极限。'}
                       </span>
                     </div>
                   )}
@@ -802,12 +928,81 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                   <span className="w-2 h-2 rounded-full bg-indigo-500" />
                 )}
               </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveDeepTab('overnight')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center space-x-1.5 cursor-pointer transition-colors ${
+                  activeDeepTab === 'overnight'
+                    ? 'bg-white text-purple-700 shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Moon className="w-3.5 h-3.5" />
+                <span>满包与过夜实战</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-purple-100 text-purple-800 font-semibold border border-purple-200">
+                  {focusedProd.hoursToFullCarry.toFixed(1)}h满包
+                </span>
+              </button>
             </div>
           </div>
 
           {/* ================= 1. SKILL SPECIALTY PANEL ================= */}
           {activeDeepTab === 'skill' && (
             <div className="space-y-5">
+              {/* Cooking Strength Scenario & Recipe Level Selector */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center space-x-2">
+                  <SlidersHorizontal className="w-4 h-4 text-indigo-600 shrink-0" />
+                  <div>
+                    <span className="font-bold text-slate-800">料理做饭强度场景配置（精准折算扩锅与暴击）：</span>
+                    <span className="text-slate-500 ml-1 hidden sm:inline">
+                      {activeCookingContext.scenarioName}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    value={selectedScenarioId}
+                    onChange={(e) => setSelectedScenarioId(e.target.value)}
+                    className="input-field text-xs py-1 px-2.5 bg-white font-medium"
+                  >
+                    {COOKING_SCENARIOS.map((sc) => (
+                      <option key={sc.id} value={sc.id}>
+                        {sc.name}
+                      </option>
+                    ))}
+                    <option value="custom">自定义单餐能量与填充单价...</option>
+                  </select>
+
+                  {selectedScenarioId === 'custom' && (
+                    <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-1">
+                        <span className="text-2xs text-slate-500">单餐能量:</span>
+                        <input
+                          type="number"
+                          step={5000}
+                          value={customDishEnergy}
+                          onChange={(e) => setCustomDishEnergy(Math.max(1000, Number(e.target.value)))}
+                          className="input-field text-xs py-0.5 w-20 bg-white"
+                        />
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <span className="text-2xs text-slate-500">填充格单价:</span>
+                        <input
+                          type="number"
+                          step={10}
+                          value={customFillerEnergy}
+                          onChange={(e) => setCustomFillerEnergy(Math.max(50, Number(e.target.value)))}
+                          className="input-field text-xs py-0.5 w-16 bg-white"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Skill Header & Trigger Breakdown */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="p-4 rounded-xl bg-indigo-50/70 border border-indigo-200 flex items-start space-x-3">
@@ -1484,6 +1679,298 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                       );
                     })}
                   </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ================= 4. OVERNIGHT & INVENTORY FULL DYNAMICS PANEL ================= */}
+          {activeDeepTab === 'overnight' && (
+            <div className="space-y-6">
+              {/* Overnight Header Controls */}
+              <div className="p-4 bg-gradient-to-r from-purple-50 via-indigo-50 to-white rounded-xl border border-purple-200 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-xs">
+                    <Moon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">
+                      背包满包时间与过夜实战推演 (Lv.{focusedLevel} 阶段)
+                    </h4>
+                    <p className="text-2xs text-slate-500 mt-0.5">
+                      模拟夜间睡眠过程中的产出、满包时间点、自大胃王（Sneaky Snacking）溢出收益与食材/技能损失
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-lg border border-purple-200 text-xs">
+                  <BedDouble className="w-4 h-4 text-purple-600" />
+                  <span className="font-semibold text-slate-700">睡眠时长:</span>
+                  <input
+                    type="number"
+                    min={4.0}
+                    max={12.0}
+                    step={0.5}
+                    value={sleepDurationHours}
+                    onChange={(e) => setSleepDurationHours(Math.max(1, Math.min(16, Number(e.target.value))))}
+                    className="input-field text-xs py-0.5 w-16 text-center font-bold"
+                  />
+                  <span className="text-slate-500">小时</span>
+                </div>
+              </div>
+
+              {/* 4 Summary KPI Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                  <div className="text-2xs font-semibold text-slate-500 flex items-center justify-between">
+                    <span>背包持有上限</span>
+                    <Package className="w-3.5 h-3.5 text-slate-400" />
+                  </div>
+                  <div className="text-2xl font-black text-slate-800 mt-1">
+                    {focusedProd.carryLimit}{' '}
+                    <span className="text-xs font-semibold text-slate-500">格空间</span>
+                  </div>
+                  <div className="text-2xs text-slate-500 mt-1">
+                    产出流速: {(focusedProd.carryLimit / Math.max(0.1, focusedProd.hoursToFullCarry)).toFixed(1)} 件/小时
+                  </div>
+                </div>
+
+                <div className={`p-4 rounded-xl border ${
+                  focusedProd.overnightAnalysis.isFullDuringSleep
+                    ? 'bg-amber-50/70 border-amber-200'
+                    : 'bg-emerald-50/70 border-emerald-200'
+                }`}>
+                  <div className={`text-2xs font-semibold flex items-center justify-between ${
+                    focusedProd.overnightAnalysis.isFullDuringSleep ? 'text-amber-800' : 'text-emerald-800'
+                  }`}>
+                    <span>自然满包耗时</span>
+                    <Clock className="w-3.5 h-3.5" />
+                  </div>
+                  <div className={`text-2xl font-black mt-1 ${
+                    focusedProd.overnightAnalysis.isFullDuringSleep ? 'text-amber-700' : 'text-emerald-700'
+                  }`}>
+                    {focusedProd.hoursToFullCarry.toFixed(1)}{' '}
+                    <span className="text-xs font-semibold">小时</span>
+                  </div>
+                  <div className="text-2xs text-slate-600 mt-1">
+                    {focusedProd.overnightAnalysis.isFullDuringSleep
+                      ? `睡眠约 ${focusedProd.hoursToFullCarry.toFixed(1)}h 后满包进入自大胃王`
+                      : '睡眠全程未满包，100%保留所有产出'}
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-purple-50/70 border border-purple-200">
+                  <div className="text-2xs font-semibold text-purple-800 flex items-center justify-between">
+                    <span>过夜实际总能量</span>
+                    <Moon className="w-3.5 h-3.5 text-purple-600" />
+                  </div>
+                  <div className="text-2xl font-black text-purple-700 mt-1">
+                    {Math.round(focusedProd.overnightAnalysis.totalOvernightEnergy).toLocaleString()}{' '}
+                    <span className="text-xs font-semibold">能量</span>
+                  </div>
+                  <div className="text-2xs text-purple-900 mt-1">
+                    理想无损 {Math.round(focusedProd.overnightAnalysis.idealOvernightEnergy).toLocaleString()} | 保持率{' '}
+                    <strong>{(focusedProd.overnightAnalysis.efficiencyRatio * 100).toFixed(1)}%</strong>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-rose-50/60 border border-rose-200">
+                  <div className="text-2xs font-semibold text-rose-800 flex items-center justify-between">
+                    <span>过夜溢出损益预警</span>
+                    <ShieldAlert className="w-3.5 h-3.5 text-rose-500" />
+                  </div>
+                  <div className="text-sm font-black text-rose-700 mt-1.5 space-y-0.5">
+                    <div>
+                      食材损失:{' '}
+                      {focusedProd.overnightAnalysis.lostIngredients > 0
+                        ? `-${focusedProd.overnightAnalysis.lostIngredients.toFixed(1)} 个`
+                        : '0 (无损失)'}
+                    </div>
+                    <div>
+                      技能损失:{' '}
+                      {focusedProd.overnightAnalysis.lostSkillProcs > 0
+                        ? `-${focusedProd.overnightAnalysis.lostSkillProcs.toFixed(2)} 次`
+                        : '0 (无损失)'}
+                    </div>
+                  </div>
+                  <div className="text-2xs text-slate-500 mt-1">
+                    自大胃王转化: +{focusedProd.overnightAnalysis.sneakySnackBerries.toFixed(1)} 溢出树果直喂卡比兽
+                  </div>
+                </div>
+              </div>
+
+              {/* Daytime Recommendation Banner */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs flex items-center justify-between gap-3 text-slate-700">
+                <div className="flex items-center space-x-2">
+                  <Info className="w-4 h-4 text-blue-600 shrink-0" />
+                  <span>
+                    <strong>日间实战收取建议</strong>：{focusedProd.overnightAnalysis.daytimeCollectionRecommendation}。
+                  </span>
+                </div>
+                <div className="text-2xs text-slate-500 shrink-0">
+                  日均帮忙 {focusedProd.dailyHelps.toFixed(1)} 次 (每隔 {focusedProd.helpingFrequency}s 帮忙一次)
+                </div>
+              </div>
+
+              {/* Overnight Simulation Progress Bar Visualizer */}
+              <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-800 flex items-center space-x-1.5">
+                    <Clock className="w-3.5 h-3.5 text-purple-600" />
+                    <span>{sleepDurationHours} 小时睡眠时间轴分段拆解</span>
+                  </span>
+                  <span className="text-2xs text-slate-500">
+                    满包点：第 {Math.min(sleepDurationHours, focusedProd.hoursToFullCarry).toFixed(1)} 小时
+                  </span>
+                </div>
+
+                <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden flex text-2xs font-bold text-white text-center">
+                  <div
+                    className="bg-emerald-500 h-full flex items-center justify-center"
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        (Math.min(sleepDurationHours, focusedProd.hoursToFullCarry) / sleepDurationHours) * 100
+                      )}%`,
+                    }}
+                  >
+                    正常采摘 {Math.min(sleepDurationHours, focusedProd.hoursToFullCarry).toFixed(1)}h
+                  </div>
+                  {focusedProd.overnightAnalysis.timeInSneakySnackHours > 0 && (
+                    <div
+                      className="bg-amber-500 h-full flex items-center justify-center"
+                      style={{
+                        width: `${Math.min(
+                          100,
+                          (focusedProd.overnightAnalysis.timeInSneakySnackHours / sleepDurationHours) * 100
+                        )}%`,
+                      }}
+                    >
+                      自大胃王 {focusedProd.overnightAnalysis.timeInSneakySnackHours.toFixed(1)}h
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs pt-1">
+                  <div className="p-3 rounded-lg bg-emerald-50/60 border border-emerald-200">
+                    <div className="font-bold text-emerald-800 flex items-center space-x-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                      <span>阶段 1：满包前正常采摘 (0h ~ {Math.min(sleepDurationHours, focusedProd.hoursToFullCarry).toFixed(1)}h)</span>
+                    </div>
+                    <div className="mt-1.5 text-2xs text-emerald-900 space-y-0.5">
+                      <div>• 获得树果：{focusedProd.overnightAnalysis.normalBerries.toFixed(1)} 颗 (塞入背包)</div>
+                      <div>• 获得食材：{focusedProd.overnightAnalysis.overnightIngredients.toFixed(1)} 个 (塞入背包)</div>
+                      <div>• 技能触发期望：{focusedProd.overnightAnalysis.overnightSkillProcs.toFixed(2)} 次</div>
+                      <div>• 阶段小计能量：{Math.round(focusedProd.overnightAnalysis.normalEnergy).toLocaleString()}</div>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-amber-50/60 border border-amber-200">
+                    <div className="font-bold text-amber-800 flex items-center space-x-1">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
+                      <span>阶段 2：满包后自大胃王 ({Math.min(sleepDurationHours, focusedProd.hoursToFullCarry).toFixed(1)}h ~ {sleepDurationHours}h)</span>
+                    </div>
+                    <div className="mt-1.5 text-2xs text-amber-900 space-y-0.5">
+                      <div>• 溢出树果：+{focusedProd.overnightAnalysis.sneakySnackBerries.toFixed(1)} 颗 (100%帮忙转换为树果直喂卡比兽)</div>
+                      <div>• 溢出能量：+{Math.round(focusedProd.overnightAnalysis.sneakySnackEnergy).toLocaleString()}</div>
+                      <div>• 停产食材损失：-{focusedProd.overnightAnalysis.lostIngredients.toFixed(1)} 个 (由于满包无法采摘)</div>
+                      <div>• 停发技能损失：-{focusedProd.overnightAnalysis.lostSkillProcs.toFixed(2)} 次 (由于满包无法判定技能)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* All Stages Overnight Progression Matrix Table */}
+              <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                    <tr>
+                      <th className="py-2.5 px-3">阶段等级</th>
+                      <th className="py-2.5 px-3">持有上限</th>
+                      <th className="py-2.5 px-3">帮忙间隔</th>
+                      <th className="py-2.5 px-3">满包时间</th>
+                      <th className="py-2.5 px-3">过夜正常 / 溢出时长</th>
+                      <th className="py-2.5 px-3">过夜总能量</th>
+                      <th className="py-2.5 px-3">过夜保持率</th>
+                      <th className="py-2.5 px-3">满包损益预警</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {multiReport.milestones.map((m) => {
+                      const p = m.rating.currentProduction;
+                      const o = p.overnightAnalysis;
+                      const isSel = m.level === focusedLevel;
+                      return (
+                        <tr
+                          key={m.level}
+                          className={isSel ? 'bg-indigo-50/40 font-semibold' : ''}
+                        >
+                          <td className="py-2 px-3 font-bold text-slate-800">
+                            Lv.{m.level}{' '}
+                            <span className="text-2xs text-slate-400 font-normal">({m.unlockNote})</span>
+                          </td>
+                          <td className="py-2 px-3 font-bold text-slate-700">
+                            {p.carryLimit} 格
+                          </td>
+                          <td className="py-2 px-3 text-slate-600">
+                            {p.helpingFrequency}s
+                          </td>
+                          <td className={`py-2 px-3 font-bold ${
+                            o.isFullDuringSleep ? 'text-amber-600' : 'text-emerald-600'
+                          }`}>
+                            {o.timeToFullHours.toFixed(1)}h
+                          </td>
+                          <td className="py-2 px-3 text-slate-600">
+                            {Math.min(o.sleepHours, o.timeToFullHours).toFixed(1)}h / {o.timeInSneakySnackHours.toFixed(1)}h
+                          </td>
+                          <td className="py-2 px-3 font-bold text-purple-700">
+                            {Math.round(o.totalOvernightEnergy).toLocaleString()}
+                          </td>
+                          <td className="py-2 px-3">
+                            <span className={`px-1.5 py-0.5 rounded text-2xs font-extrabold ${
+                              o.efficiencyRatio >= 0.95
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : o.efficiencyRatio >= 0.85
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-amber-100 text-amber-800'
+                            }`}>
+                              {(o.efficiencyRatio * 100).toFixed(1)}%
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 text-2xs text-slate-500">
+                            {o.lostIngredients > 0 ? (
+                              <span className="text-rose-600">
+                                损 {o.lostIngredients.toFixed(1)}食材, {o.lostSkillProcs.toFixed(1)}技
+                              </span>
+                            ) : (
+                              <span className="text-emerald-600">全程无损</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Specialist Playstyle Advice */}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-2">
+                <div className="font-bold text-slate-900 flex items-center space-x-1.5">
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <span>专长与游玩实战策略深度建议</span>
+                </div>
+                {species.specialty === 'berry' ? (
+                  <p>
+                    🍇 <strong>树果型特质</strong>：树果型宝可梦非常享受自大胃王机制。满包后 100% 帮忙转换为树果并直接喂给卡比兽，过夜能量基本不打折扣。即便睡前不收包，也能稳定产生可观的自大胃王树果能量。
+                  </p>
+                ) : species.specialty === 'ingredient' ? (
+                  <p>
+                    🍲 <strong>食材型特质</strong>：一旦满包，食材产出将彻底停滞！过夜期间溢出时长将导致宝贵的食材全部被吞掉。强烈建议：睡前务必清空背包，白天每 {focusedProd.hoursToFullCarry.toFixed(1)} 小时定时收取，或优先选择带有【持有上限提升 S/M/L】副技能的个体。
+                  </p>
+                ) : (
+                  <p>
+                    ⚡ <strong>技能型特质</strong>：满包后主技能无法再次触发！如果该宝可梦满包较快，过夜后半程将失去主技能发动的黄金机会。建议睡前点收，若夜间睡眠较长，可搭配【持有上限提升】副技能增加暂存空间。
+                  </p>
                 )}
               </div>
             </div>

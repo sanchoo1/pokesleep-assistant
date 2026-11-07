@@ -19,6 +19,7 @@ import {
   Search,
   Filter,
   AlertTriangle,
+  Tent,
 } from 'lucide-react';
 
 interface BoxManagerProps {
@@ -53,6 +54,11 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPokemon, setEditingPokemon] = useState<BoxPokemon | null>(null);
   const [showSendAwayModal, setShowSendAwayModal] = useState(false);
+
+  const activeTeamCount = useMemo(() => {
+    const set = new Set(pokemonList.map((p) => p.id));
+    return teamIds.filter((id) => set.has(id)).length;
+  }, [pokemonList, teamIds]);
 
   const getProdSummary = (pkmn: BoxPokemon) => {
     try {
@@ -319,6 +325,23 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
 
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2">
+            <div
+              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                activeTeamCount === 5
+                  ? 'bg-[var(--primary-light)] border-[var(--primary)] text-[var(--primary)]'
+                  : 'bg-[#f7f5ee] border-[#eae4d6] text-[var(--text-main)]'
+              }`}
+              title="当前出阵队伍编制人数（上限 5 只）"
+            >
+              <Tent className="w-3.5 h-3.5 text-[var(--primary)]" />
+              <span>出阵队伍: {activeTeamCount}/5</span>
+              {activeTeamCount === 5 && (
+                <span className="text-[10px] px-1 py-0.5 rounded bg-[var(--primary)] text-white ml-0.5 leading-none">
+                  满员
+                </span>
+              )}
+            </div>
+
             <button
               onClick={() => setShowSendAwayModal(true)}
               className="btn btn-secondary text-xs tap-feedback"

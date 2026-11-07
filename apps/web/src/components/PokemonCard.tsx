@@ -173,7 +173,10 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({
             {onToggleTeam && (
               <button
                 type="button"
-                onClick={() => onToggleTeam(pokemon)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleTeam(pokemon);
+                }}
                 title={isInTeam ? '从出阵队伍移出' : '加入出阵队伍'}
                 className={`w-7 h-7 rounded-lg flex items-center justify-center tap-feedback cursor-pointer transition-colors ${
                   isInTeam

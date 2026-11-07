@@ -104,7 +104,17 @@ export const App: React.FC = () => {
         }
         list = await getAllPokemon();
         // Default seed active team
-        setTeamIds(list.map((p) => p.id));
+        const defaultTeam = list.slice(0, 5).map((p) => p.id);
+        setTeamIds(defaultTeam);
+        localStorage.setItem('pokesleep_team_ids', JSON.stringify(defaultTeam));
+      } else {
+        // Automatically prune any stale/ghost IDs from teamIds and persist back to localStorage
+        setTeamIds((prev) => {
+          const validSet = new Set(list.map((p) => p.id));
+          const cleaned = Array.from(new Set(prev)).filter((id) => validSet.has(id)).slice(0, 5);
+          localStorage.setItem('pokesleep_team_ids', JSON.stringify(cleaned));
+          return cleaned;
+        });
       }
       setPokemonList(list);
     } catch (err) {
@@ -123,15 +133,21 @@ export const App: React.FC = () => {
 
   const handleToggleTeam = (pokemon: BoxPokemon) => {
     setTeamIds((prev) => {
+      // 1. 基于当前存在的 pokemonList 进行去重与幽灵 ID 过滤清洗
+      const validSet = new Set(pokemonList.map((p) => p.id));
+      const validIds = Array.from(new Set(prev)).filter((id) => validSet.has(id));
+
       let next: string[];
-      if (prev.includes(pokemon.id)) {
-        next = prev.filter((id) => id !== pokemon.id);
+      if (validIds.includes(pokemon.id)) {
+        // 移出队伍
+        next = validIds.filter((id) => id !== pokemon.id);
       } else {
-        if (prev.length >= 5) {
+        // 检查当前真实在队数量是否已达上限 5 只
+        if (validIds.length >= 5) {
           alert('出阵队伍最多容纳 5 只宝可梦，请先移出一只！');
-          return prev;
+          return validIds;
         }
-        next = [...prev, pokemon.id];
+        next = [...validIds, pokemon.id];
       }
       localStorage.setItem('pokesleep_team_ids', JSON.stringify(next));
       return next;

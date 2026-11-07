@@ -9,10 +9,13 @@ import {
 import {
   calculateDailyProduction,
   EVALUATION_MILESTONE_LEVELS,
+  EVALUATION_MILESTONE_LEVELS_STANDARD,
+  EVALUATION_MILESTONE_LEVELS_PREVIEW,
   SUBSKILL_UNLOCK_LEVELS,
   type IngredientSelection,
   type ProductionResult,
   type SubskillsInput,
+  type CookingScenarioContext,
 } from '../production';
 import { round } from '../formula/math';
 
@@ -39,6 +42,9 @@ export interface RatingParams {
   metric?: EvaluationMetric;
   isFavoredBerry?: boolean;
   mapBonus?: number;
+  cookingContext?: CookingScenarioContext;
+  sleepHours?: number;
+  previewLv80?: boolean;
 }
 
 export interface RatingResult {
@@ -346,6 +352,9 @@ export function ratePokemon(params: RatingParams): RatingResult {
     metric = 'auto',
     isFavoredBerry = false,
     mapBonus = 0,
+    cookingContext,
+    sleepHours = 8.5,
+    previewLv80 = false,
   } = params;
 
   const mon =
@@ -362,6 +371,7 @@ export function ratePokemon(params: RatingParams): RatingResult {
   if (!mon) throw new Error(`Pokemon species not found: ${rawPokemon}`);
 
   const evaluatedMetric = resolveDefaultMetric(mon, metric);
+  const allowPreview = previewLv80 || level >= 80;
 
   // 1. Current individual production
   const currentProd = calculateDailyProduction({
@@ -375,6 +385,9 @@ export function ratePokemon(params: RatingParams): RatingResult {
     goodCampTicket,
     isFavoredBerry,
     mapBonus,
+    cookingContext,
+    sleepHours,
+    allowPreviewLv80: allowPreview,
   });
   const currentScore = extractMetricValue(currentProd, evaluatedMetric);
 
@@ -390,6 +403,9 @@ export function ratePokemon(params: RatingParams): RatingResult {
     goodCampTicket,
     isFavoredBerry,
     mapBonus,
+    cookingContext,
+    sleepHours,
+    allowPreviewLv80: allowPreview,
   });
   const baselineScore = extractMetricValue(baselineProd, evaluatedMetric);
 
@@ -429,6 +445,9 @@ export function ratePokemon(params: RatingParams): RatingResult {
           goodCampTicket,
           isFavoredBerry,
           mapBonus,
+          cookingContext,
+          sleepHours,
+          allowPreviewLv80: allowPreview,
         });
 
         const score = extractMetricValue(prod, evaluatedMetric);
@@ -692,23 +711,33 @@ export function analyzeIndividualRecipeCoverage(
   };
 }
 
-const MILESTONE_NOTES: Record<number, string> = {
+export const MILESTONE_NOTES: Record<number, string> = {
   10: '解锁第1副技能',
   25: '解锁第2副技能',
   30: '解锁第2食材槽',
   50: '解锁第3副技能',
   60: '解锁第3食材槽',
-  70: '解锁第4副技能 (当前等级上限)',
+  70: '解锁第4副技能 (当前版本上限)',
+  80: '解锁第5副技能 (未来前瞻)',
 };
 
 /**
- * Automatically evaluates a Pokémon across all key progression milestones
- * (Lv.10, Lv.25, Lv.30, Lv.50, Lv.60, Lv.70) without requiring user currentLevel input.
+ * Automatically evaluates a Pokémon across progression milestones
+ * (Standard: Lv.10, 25, 30, 50, 60, 70; Preview: includes Lv.80).
  */
 export function evaluatePokemonMilestones(
-  params: Omit<RatingParams, 'level'> & { levels?: readonly number[]; potCapacity?: number }
+  params: Omit<RatingParams, 'level'> & {
+    levels?: readonly number[];
+    potCapacity?: number;
+    previewLv80?: boolean;
+  }
 ): MultiStageEvaluationReport {
-  const { levels = EVALUATION_MILESTONE_LEVELS, potCapacity = 100, ...rest } = params;
+  const {
+    previewLv80 = false,
+    levels = previewLv80 ? EVALUATION_MILESTONE_LEVELS_PREVIEW : EVALUATION_MILESTONE_LEVELS_STANDARD,
+    potCapacity = 100,
+    ...rest
+  } = params;
 
   const milestones: MilestoneStageEvaluation[] = levels.map(lvl => ({
     level: lvl,

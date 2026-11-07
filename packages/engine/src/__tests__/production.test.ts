@@ -136,6 +136,96 @@ describe('Production: L1 Single-Pokemon Daily Calculator', () => {
     );
     expect(usesDrawIngredients).toBe(true);
   });
+
+  it('should calculate realistic overnight production and sneaky snacking dynamics', () => {
+    // Fast Berry specialist with BFS: fills inventory quickly then enters Sneaky Snacking
+    const fastRaichu = calculateDailyProduction({
+      pokemon: 'RAICHU',
+      level: 50,
+      nature: 'Adamant',
+      subskills: ['Berry Finding S', 'Helping Speed M', 'Helping Speed S'],
+      isFavoredBerry: true,
+      sleepHours: 8.5,
+    });
+
+    const o = fastRaichu.overnightAnalysis;
+    expect(o.sleepHours).toBe(8.5);
+    expect(o.timeToFullHours).toBeLessThan(4.5); // Fills bag in under 4.5 hours!
+    expect(o.isFullDuringSleep).toBe(true);
+    expect(o.timeInSneakySnackHours).toBeGreaterThan(4.0); // Spends 4+ hours in Sneaky Snacking
+    expect(o.sneakySnackBerries).toBeGreaterThan(0);
+    expect(o.totalOvernightEnergy).toBeGreaterThan(0);
+    expect(o.efficiencyRatio).toBeGreaterThan(0.9); // Berry specialists retain high overnight efficiency
+    expect(o.daytimeCollectionRecommendation).toContain('日间建议每');
+  });
+
+  it('should dynamically value pot expansion and tasty chance with custom cookingContext', () => {
+    // Magnezone Lv.60
+    const magDefault = calculateDailyProduction({
+      pokemon: 'MAGNEZONE',
+      level: 60,
+      nature: 'Modest',
+      subskills: ['Skill Trigger M'],
+      mainSkillLevel: 6,
+    });
+
+    const magHighCooking = calculateDailyProduction({
+      pokemon: 'MAGNEZONE',
+      level: 60,
+      nature: 'Modest',
+      subskills: ['Skill Trigger M'],
+      mainSkillLevel: 6,
+      cookingContext: {
+        fillerEnergyPerSlot: 342, // Slowpoke Tail
+        recipeMultiplier: 1.48, // Lv.60 recipe bonus
+      },
+    });
+
+    // Custom filler (342 * 1.48) is ~3.75x higher than default 135
+    expect(magHighCooking.dailySkillEnergy).toBeGreaterThan(magDefault.dailySkillEnergy * 3.0);
+
+    // Dedenne Lv.50
+    const dedDefault = calculateDailyProduction({
+      pokemon: 'DEDENNE',
+      level: 50,
+      nature: 'Sassy',
+      subskills: ['Skill Trigger M'],
+      mainSkillLevel: 6,
+      cookingContext: { dishEnergyBaseline: 35000 },
+    });
+
+    const dedDouble = calculateDailyProduction({
+      pokemon: 'DEDENNE',
+      level: 50,
+      nature: 'Sassy',
+      subskills: ['Skill Trigger M'],
+      mainSkillLevel: 6,
+      cookingContext: { dishEnergyBaseline: 70000 },
+    });
+
+    expect(dedDouble.dailySkillEnergy).toBeCloseTo(dedDefault.dailySkillEnergy * 2.0, 1);
+  });
+
+  it('should evaluate Lv.80 preview when allowPreviewLv80 is enabled', () => {
+    const subskillMap = {
+      level10: 'Helping Speed S',
+      level25: 'Inventory Up S',
+      level50: 'Inventory Up M',
+      level70: 'Berry Finding S',
+      level80: 'Skill Trigger M',
+    };
+
+    const prod80 = calculateDailyProduction({
+      pokemon: 'PIKACHU',
+      level: 80,
+      subskills: subskillMap,
+      allowPreviewLv80: true,
+    });
+
+    expect(prod80.level).toBe(80);
+    expect(prod80.activeSubskills.map((s) => s.name)).toContain('Skill Trigger M');
+    expect(prod80.activeSubskills.length).toBe(5);
+  });
 });
 
 function prodMon(name: string) {

@@ -21,7 +21,10 @@ import {
  */
 export const SUBSKILL_UNLOCK_LEVELS = [10, 25, 50, 70, 80] as const;
 export const MAX_POKEMON_LEVEL = 70;
-export const EVALUATION_MILESTONE_LEVELS = [10, 25, 30, 50, 60, 70] as const;
+export const MAX_PREVIEW_POKEMON_LEVEL = 80;
+export const EVALUATION_MILESTONE_LEVELS_STANDARD = [10, 25, 30, 50, 60, 70] as const;
+export const EVALUATION_MILESTONE_LEVELS_PREVIEW = [10, 25, 30, 50, 60, 70, 80] as const;
+export const EVALUATION_MILESTONE_LEVELS = EVALUATION_MILESTONE_LEVELS_STANDARD;
 
 export interface SubskillSlotsMap {
   level10?: Subskill | string | null;
@@ -42,9 +45,42 @@ export interface IngredientSelection {
   slot60?: string;
 }
 
+/**
+ * Flexible cooking context to replace generic coefficients with precise scenario metrics.
+ */
+export interface CookingScenarioContext {
+  scenarioName?: string;
+  dishEnergyBaseline?: number; // e.g. 35,000 standard, 55,000 for 77-recipes, 80,000 for mega meals
+  fillerEnergyPerSlot?: number; // e.g. 135 standard, 140 for Corn, 185 for Leek, 342 for Slowpoke Tail
+  recipeMultiplier?: number; // e.g. 1.0 Lv1, 1.35 Lv30, 1.48 Lv60
+}
+
+export interface OvernightAnalysisResult {
+  sleepHours: number;
+  carryLimit: number;
+  timeToFullHours: number;
+  isFullDuringSleep: boolean;
+  timeInSneakySnackHours: number;
+  normalHelps: number;
+  sneakySnackHelps: number;
+  normalBerries: number;
+  sneakySnackBerries: number;
+  totalOvernightBerries: number;
+  overnightIngredients: number;
+  overnightSkillProcs: number;
+  normalEnergy: number;
+  sneakySnackEnergy: number;
+  totalOvernightEnergy: number;
+  idealOvernightEnergy: number;
+  efficiencyRatio: number; // totalOvernightEnergy / idealOvernightEnergy
+  lostIngredients: number;
+  lostSkillProcs: number;
+  daytimeCollectionRecommendation: string;
+}
+
 export interface ProductionParams {
   pokemon: PokemonSpecies | string; // Species object or name
-  level: number; // 1 to 70
+  level: number; // 1 to 80
   nature?: Nature | string | null;
   subskills?: SubskillsInput;
   ingredientSelection?: IngredientSelection | string; // Object or combo like 'AAA', 'ABB'
@@ -57,6 +93,9 @@ export interface ProductionParams {
   isFavoredBerry?: boolean;
   mapBonus?: number; // 0 to 85
   withPity?: boolean; // default true
+  cookingContext?: CookingScenarioContext;
+  sleepHours?: number; // default 8.5
+  allowPreviewLv80?: boolean;
 }
 
 export interface DailyIngredientProduce {
@@ -132,6 +171,7 @@ export interface ProductionResult {
   skillActivationDetails: SkillActivationSummary;
   totalDailyEnergy: number;
   rp: number;
+  overnightAnalysis: OvernightAnalysisResult;
 }
 
 export function resolveSubskillObject(sub: Subskill | string | null | undefined): Subskill | null {
@@ -410,6 +450,7 @@ export function evaluateSkillActivations(params: {
   selfBerryFinalStrength: number;
   selfBerryBaseStrengthAtLevel: number;
   mapBonus: number;
+  cookingContext?: CookingScenarioContext;
 }): { dailySkillEnergy: number; summary: SkillActivationSummary } {
   const {
     mon,
@@ -423,6 +464,7 @@ export function evaluateSkillActivations(params: {
     selfBerryFinalStrength,
     selfBerryBaseStrengthAtLevel,
     mapBonus,
+    cookingContext,
   } = params;
 
   const maxSkillLevel = mon.skill.maxLevel || (mon.skill.RP?.length || 6);
@@ -491,7 +533,9 @@ export function evaluateSkillActivations(params: {
         break;
       }
       case 'pot size': {
-        const avgPotSlotBonusEnergy = 135 * fieldMult;
+        const fillerBase = cookingContext?.fillerEnergyPerSlot ?? 135;
+        const recipeMult = cookingContext?.recipeMultiplier ?? 1.0;
+        const avgPotSlotBonusEnergy = fillerBase * recipeMult * fieldMult;
         estEnergy = dailySelf * avgPotSlotBonusEnergy;
         break;
       }
@@ -514,7 +558,10 @@ export function evaluateSkillActivations(params: {
       }
       case 'crit chance': {
         // Tasty Chance S (+% meal crit chance)
-        estEnergy = dailySkillProcs * selfAmt * 420 * fieldMult;
+        // Baseline 35,000 meal energy produces ~420 base value per % of daily crit boost with Markov reset.
+        const mealEnergy = cookingContext?.dishEnergyBaseline ?? 35000;
+        const scale = mealEnergy / 35000;
+        estEnergy = dailySkillProcs * selfAmt * 420 * scale * fieldMult;
         break;
       }
       case 'dream shards': {
@@ -627,6 +674,101 @@ export function estimateSkillEnergy(
 }
 
 /**
+ * Calculates overnight production and full inventory dynamics for a sleep session (default 8.5h).
+ */
+export function calculateOvernightProduction(params: {
+  carryLimit: number;
+  helpingFrequency: number;
+  dailyHelps: number;
+  berriesPerDrop: number;
+  berryRate: number;
+  ingredientRate: number;
+  dailyBerryCount: number;
+  dailyIngredientCount: number;
+  dailyIngredientEnergy: number;
+  berryStrength: number;
+  skillRate: number;
+  dailySkillProcs: number;
+  dailySkillEnergy: number;
+  totalDailyEnergy: number;
+  sleepHours?: number;
+}): OvernightAnalysisResult {
+  const sleepHours = params.sleepHours ?? 8.5;
+  const carryLimit = params.carryLimit;
+  const helpsPerHour = 3600 / Math.max(1, params.helpingFrequency);
+
+  // Total daily items produced under regular conditions
+  const totalDailyItems = params.dailyBerryCount + params.dailyIngredientCount;
+  const itemsPerHour = totalDailyItems / 24;
+  const timeToFullHours = itemsPerHour > 0 ? carryLimit / itemsPerHour : 24;
+  const isFullDuringSleep = timeToFullHours < sleepHours;
+
+  const normalHours = Math.min(sleepHours, timeToFullHours);
+  const sneakySnackHours = Math.max(0, sleepHours - timeToFullHours);
+
+  const normalHelps = normalHours * helpsPerHour;
+  const sneakySnackHelps = sneakySnackHours * helpsPerHour;
+
+  // Normal Phase Output (both berries and ingredients accumulate in bag, skills can trigger)
+  const normalBerries = normalHelps * params.berryRate * params.berriesPerDrop;
+  const normalIngredients = (normalHours / 24) * params.dailyIngredientCount;
+  const normalSkillProcs = normalHelps * params.skillRate;
+
+  const normalBerryEnergy = normalBerries * params.berryStrength;
+  const normalIngredientEnergy = (normalHours / 24) * params.dailyIngredientEnergy;
+  const avgEnergyPerSkillProc =
+    params.dailySkillProcs > 0 ? params.dailySkillEnergy / params.dailySkillProcs : 0;
+  const normalSkillEnergy = normalSkillProcs * avgEnergyPerSkillProc;
+  const normalEnergy = normalBerryEnergy + normalIngredientEnergy + normalSkillEnergy;
+
+  // Sneaky Snacking Phase Output (100% of helps drop berries directly into Snorlax)
+  const sneakySnackBerries = sneakySnackHelps * params.berriesPerDrop;
+  const sneakySnackEnergy = sneakySnackBerries * params.berryStrength;
+
+  // Losses during Sneaky Snacking: ingredients and skills are halted
+  const lostIngredients = (sneakySnackHours / 24) * params.dailyIngredientCount;
+  const lostSkillProcs = sneakySnackHelps * params.skillRate;
+
+  const totalOvernightBerries = normalBerries + sneakySnackBerries;
+  const totalOvernightEnergy = normalEnergy + sneakySnackEnergy;
+  const idealOvernightEnergy = (sleepHours / 24) * params.totalDailyEnergy;
+  const efficiencyRatio =
+    idealOvernightEnergy > 0 ? totalOvernightEnergy / idealOvernightEnergy : 1.0;
+
+  let daytimeCollectionRecommendation = '';
+  if (timeToFullHours < 3.0) {
+    daytimeCollectionRecommendation = `极速满包型：日间建议每 ${timeToFullHours.toFixed(1)} 小时收取一次，避免食材与技能损失`;
+  } else if (timeToFullHours < 5.0) {
+    daytimeCollectionRecommendation = `中速满包型：日间建议每 ${timeToFullHours.toFixed(1)} 小时收取一次`;
+  } else {
+    daytimeCollectionRecommendation = `高背包冗余型：日间可每 ${timeToFullHours.toFixed(1)} 小时或更久收取一次`;
+  }
+
+  return {
+    sleepHours,
+    carryLimit,
+    timeToFullHours,
+    isFullDuringSleep,
+    timeInSneakySnackHours: sneakySnackHours,
+    normalHelps,
+    sneakySnackHelps,
+    normalBerries,
+    sneakySnackBerries,
+    totalOvernightBerries,
+    overnightIngredients: normalIngredients,
+    overnightSkillProcs: normalSkillProcs,
+    normalEnergy,
+    sneakySnackEnergy,
+    totalOvernightEnergy,
+    idealOvernightEnergy,
+    efficiencyRatio,
+    lostIngredients,
+    lostSkillProcs,
+    daytimeCollectionRecommendation,
+  };
+}
+
+/**
  * Calculates complete L1 single-Pokémon daily expected production.
  */
 export function calculateDailyProduction(params: ProductionParams): ProductionResult {
@@ -645,9 +787,13 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
     isFavoredBerry = false,
     mapBonus = 0,
     withPity = true,
+    cookingContext,
+    sleepHours = 8.5,
+    allowPreviewLv80 = false,
   } = params;
 
-  const level = Math.max(1, Math.min(MAX_POKEMON_LEVEL, rawLevel));
+  const maxAllowedLevel = allowPreviewLv80 ? MAX_PREVIEW_POKEMON_LEVEL : MAX_POKEMON_LEVEL;
+  const level = Math.max(1, Math.min(maxAllowedLevel, rawLevel));
 
   // Resolve Pokémon species
   const mon: PokemonSpecies | undefined =
@@ -809,6 +955,7 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
     selfBerryFinalStrength: berryStrengthResult.finalStrength,
     selfBerryBaseStrengthAtLevel: berryStrengthResult.baseStrengthAtLevel,
     mapBonus,
+    cookingContext,
   });
   const dailySkillEnergy = skillEval.dailySkillEnergy;
 
@@ -857,6 +1004,25 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
     ribbonLevel,
   });
 
+  // 9. Overnight Sleep & Carry Dynamics Simulation
+  const overnightAnalysis = calculateOvernightProduction({
+    carryLimit: carryResult.totalCarryLimit,
+    helpingFrequency: freqResult.frequency,
+    dailyHelps,
+    berriesPerDrop,
+    berryRate,
+    ingredientRate,
+    dailyBerryCount,
+    dailyIngredientCount,
+    dailyIngredientEnergy,
+    berryStrength: berryStrengthResult.finalStrength,
+    skillRate: skillProcResult.effectiveRate,
+    dailySkillProcs,
+    dailySkillEnergy,
+    totalDailyEnergy,
+    sleepHours,
+  });
+
   return {
     pokemon: mon,
     level,
@@ -892,5 +1058,6 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
     skillActivationDetails: skillEval.summary,
     totalDailyEnergy,
     rp: rpResult.rp,
+    overnightAnalysis,
   };
 }

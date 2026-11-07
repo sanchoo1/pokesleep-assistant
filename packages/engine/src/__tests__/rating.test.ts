@@ -45,5 +45,28 @@ describe('Rating: Rate My Pokémon Evaluator', () => {
     expect(result.bestCombination.subskillNames.length).toBeGreaterThan(0);
     expect(result.worstCombination.subskillNames.length).toBeGreaterThan(0);
   });
+
+  it('should evaluate 7 progression milestones including Lv.80 when previewLv80 is enabled', async () => {
+    const { evaluatePokemonMilestones } = await import('../rating');
+    const report = evaluatePokemonMilestones({
+      pokemon: 'PIKACHU',
+      nature: 'Adamant',
+      subskills: {
+        level10: 'Helping Speed S',
+        level25: 'Inventory Up S',
+        level50: 'Inventory Up M',
+        level70: 'Berry Finding S',
+        level80: 'Helping Speed M',
+      },
+      previewLv80: true,
+    });
+
+    expect(report.milestones.map((m) => m.level)).toEqual([10, 25, 30, 50, 60, 70, 80]);
+    const m80 = report.milestones.find((m) => m.level === 80);
+    expect(m80).toBeDefined();
+    expect(m80!.unlockNote).toContain('未来前瞻');
+    expect(m80!.rating.currentProduction.activeSubskills.length).toBe(5);
+    expect(m80!.rating.currentProduction.activeSubskills.map((s) => s.name)).toContain('Helping Speed M');
+  });
 });
 
