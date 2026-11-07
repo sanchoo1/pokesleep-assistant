@@ -143,6 +143,13 @@ terms:
       ja: "フェアリー"
       en: "Fairy"
 
+  ribbon:
+    zh-CN: "晚安缎带"
+    zh-TW: "睡飽飽獎章"
+    ja: "おやすみリボン"
+    en: "Good Night Ribbon"
+    aliases: ["睡饱饱徽章", "睡飽飽徽章", "睡饱饱奖章", "睡飽飽獎章", "晚安缎带", "晚安緞帶", "おやすみリボン", "Good Night Ribbon", "Ribbon"]
+
 subskills:
   "Berry Finding S":
     zh-CN: "树果数量S"

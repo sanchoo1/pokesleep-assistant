@@ -171,7 +171,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
     }
 
     setIsScanning(true);
-    setOcrMessage('正在上传并运行 RapidOCR 模型解析面板与副技能...');
+    setOcrMessage(locale === 'zh-TW' ? '正在上傳並執行 RapidOCR 模型解析面板與副技能...' : '正在上传并运行 RapidOCR 模型解析面板与副技能...');
     const formData = new FormData();
     formData.append('file', file, file.name || 'screenshot.png');
     try {
@@ -184,14 +184,16 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
         applyOcrData(data.parsed);
         const rpHint = data.parsed.rp ? ` | SP ${data.parsed.rp}` : '';
         setOcrMessage(
-          `识别成功！物种：${data.parsed.pokemon?.displayName || data.parsed.pokemon?.name || '未知'} Lv.${data.parsed.level || '?'}${rpHint}（置信度 ${(data.parsed.confidence * 100).toFixed(0)}%，已自动填入表单供核对）`
+          locale === 'zh-TW'
+            ? `辨識成功！物種：${data.parsed.pokemon?.displayName || data.parsed.pokemon?.name || '未知'} Lv.${data.parsed.level || '?'}${rpHint}（置信度 ${(data.parsed.confidence * 100).toFixed(0)}%，已自動填入表單供核對）`
+            : `识别成功！物种：${data.parsed.pokemon?.displayName || data.parsed.pokemon?.name || '未知'} Lv.${data.parsed.level || '?'}${rpHint}（置信度 ${(data.parsed.confidence * 100).toFixed(0)}%，已自动填入表单供核对）`
         );
       } else {
         const errData = await res.json().catch(() => null);
-        setOcrMessage(errData?.detail || '后端 OCR 处理失败，请检查文件是否为有效截图及 Python 服务是否运行。');
+        setOcrMessage(errData?.detail || (locale === 'zh-TW' ? '後端 OCR 處理失敗，請檢查檔案是否為有效截圖。' : '后端 OCR 处理失败，请检查文件是否为有效截图。'));
       }
     } catch {
-      setOcrMessage('无法连接到后端 OCR 服务（端口 8000），请确认后端已启动或直接粘贴文本识别。');
+      setOcrMessage(locale === 'zh-TW' ? '無法連線到後端 OCR 服務，請確認後端已啟動或直接貼上文字辨識。' : '无法连接到后端 OCR 服务，请确认后端已启动或直接粘贴文本识别。');
     } finally {
       setIsScanning(false);
     }
@@ -241,7 +243,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
       if (res.ok) {
         const data = await res.json();
         applyOcrData(data);
-        setOcrMessage(`识别成功！匹配物种：${data.pokemon?.displayName || data.pokemon?.name}`);
+        setOcrMessage(locale === 'zh-TW' ? `辨識成功！匹配物種：${data.pokemon?.displayName || data.pokemon?.name}` : `识别成功！匹配物种：${data.pokemon?.displayName || data.pokemon?.name}`);
       } else {
         fallbackClientOcr(ocrText);
       }
@@ -322,7 +324,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
         break;
       }
     }
-    setOcrMessage('本地前端词库模糊匹配完成，请核对信息。');
+    setOcrMessage(locale === 'zh-TW' ? '本地前端詞庫模糊匹配完成，請核對資訊。' : '本地前端词库模糊匹配完成，请核对信息。');
     setActiveMode('manual');
   };
 
@@ -354,7 +356,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
       onClick={requestClose}
     >
       <div
-        className={`modal-panel p-6 ${isClosing ? 'animate-panel-out' : 'animate-panel-in'}`}
+        className={`modal-panel p-4 sm:p-6 ${isClosing ? 'animate-panel-out' : 'animate-panel-in'}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with Camp Slumber Journal Typography */}
@@ -365,10 +367,10 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-bold text-[var(--text-main)] leading-tight">
-                {isEditMode ? '编辑宝可梦档案' : getUIText('addPokemon', locale)}
+                {isEditMode ? getUIText('editPokemon', locale) : getUIText('addPokemon', locale)}
               </h2>
               <p className="text-[11px] text-[var(--text-muted)]">
-                营地观测记录表 · Camp Slumber Journal
+                {getUIText('journalSubtitle', locale)}
               </p>
             </div>
           </div>
@@ -392,7 +394,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
                 : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
             }`}
           >
-            手动填选 / 属性核对
+            {getUIText('tabManual', locale)}
           </button>
           <button
             type="button"
@@ -403,7 +405,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
                 : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
             }`}
           >
-            截图 / 文本 OCR 识别
+            {getUIText('tabOcr', locale)}
           </button>
         </div>
 
@@ -418,7 +420,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
           <div className="space-y-4 py-1">
             <div>
               <label className="block text-xs font-semibold text-[var(--text-main)] mb-1.5">
-                上传或拖拽截图 (支持简中/繁中/日文/英文)
+                {getUIText('ocrUploadLabel', locale)}
               </label>
               <div
                 onDragOver={(e) => {
@@ -446,35 +448,36 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
                   {isScanning ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
-                      正在运行 OCR 识别...
+                      {getUIText('scanningOcr', locale)}
                     </>
                   ) : (
                     <>
                       <ImageIcon className="w-4 h-4 mr-1.5" />
-                      选择截图文件
+                      {getUIText('selectImageFile', locale)}
                     </>
                   )}
                   <input
                     type="file"
+                    accept="image/*"
                     onChange={handleImageUpload}
                     className="hidden"
                   />
                 </label>
                 <p className="text-xs text-[var(--text-muted)] mt-2.5">
-                  支持无扩展名图片或截屏，也可在此按 <kbd className="px-1.5 py-0.5 bg-white border border-[#eae4d6] rounded text-2xs shadow-2xs font-mono">Ctrl+V</kbd> 直接粘贴
+                  {getUIText('ocrDropHint', locale)}
                 </p>
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-[var(--text-main)] mb-1">
-                或直接粘贴 OCR 文本内容
+                {getUIText('ocrTextLabel', locale)}
               </label>
               <textarea
                 rows={3}
                 value={ocrText}
                 onChange={(e) => setOcrText(e.target.value)}
-                placeholder={'例如：\nLv.41 蜥蜴王\n树果遽增 Lv.3\nLv.10 技能几率提升M\nLv.25 持有上限提升S\nLv.50 树果数量S\n性格 悠闲'}
+                placeholder={'Lv.41 蜥蜴王 / Sceptile\nLv.10 技能幾率提升M\nLv.25 持有上限提升S\nLv.50 樹果數量S\n性格 悠閒'}
                 className="input-field text-xs font-mono"
               />
               <button
@@ -484,7 +487,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
                 className="btn btn-secondary mt-2 w-full text-xs"
               >
                 <FileText className="w-3.5 h-3.5 mr-1.5" />
-                解析文本并填入表单
+                {getUIText('ocrParseBtn', locale)}
               </button>
             </div>
           </div>
@@ -492,11 +495,11 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
 
         {/* Manual Input Form */}
         {activeMode === 'manual' && (
-          <div className="space-y-3.5 py-1 max-h-[62vh] overflow-y-auto px-0.5 pr-1.5">
+          <div className="space-y-3.5 py-1 max-h-[58dvh] sm:max-h-[62vh] overflow-y-auto px-0.5 pr-1.5">
             {/* Species Selector */}
             <div>
               <label className="block text-xs font-semibold text-[var(--text-main)] mb-1">
-                宝可梦物种 (支持按专长 / 属性 / 食材 / 进化检索)
+                {getUIText('speciesLabel', locale)}
               </label>
               <PokemonSelector
                 value={pokemonName}
@@ -509,23 +512,24 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               <div>
                 <label className="block text-xs font-semibold text-[var(--text-main)] mb-1">
-                  昵称 / 备注 (可选)
+                  {getUIText('nicknameLabel', locale)}
                 </label>
                 <input
                   type="text"
                   value={nickname}
                   onChange={(e) => setNickname(e.target.value)}
-                  placeholder="例如：主力树果王"
+                  placeholder={getUIText('nicknamePlaceholder', locale)}
                   className="input-field text-xs"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-[var(--text-main)] mb-1">
-                  当前等级 (上限 Lv.70)
+                  {getUIText('currentLevelLabel', locale)}
                 </label>
                 <input
                   type="number"
+                  inputMode="numeric"
                   min={1}
                   max={70}
                   value={level}
@@ -541,7 +545,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
                     alt=""
                     className="w-3.5 h-3.5 object-contain"
                   />
-                  <span>主技能等级 (1–{maxSkillLvl})</span>
+                  <span>{getUIText('mainSkillLevelLabel', locale)} (1–{maxSkillLvl})</span>
                 </label>
                 <select
                   value={mainSkillLevel}
@@ -557,7 +561,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
               </div>
             </div>
 
-            {/* Nature & Ribbon */}
+            {/* Nature & Ribbon (睡飽飽獎章 / 睡饱饱徽章) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
                 <label className="block text-xs font-semibold text-[var(--text-main)] mb-1">
@@ -573,7 +577,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
                       {getEntityName(n, locale)}
                       {n.positiveModifier && n.positiveModifier !== 'neutral'
                         ? ` (▲${getNatureModLabel(n.positiveModifier, locale)} ▼${getNatureModLabel(n.negativeModifier, locale)})`
-                        : ' (无修正)'}
+                        : ` (${getUIText('noMod', locale)})`}
                     </option>
                   ))}
                 </select>
@@ -581,18 +585,18 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
 
               <div>
                 <label className="block text-xs font-semibold text-[var(--text-main)] mb-1">
-                  晚安缎带等级 (0–4 级)
+                  {getUIText('ribbonTitle', locale)}
                 </label>
                 <select
                   value={ribbonLevel}
                   onChange={(e) => setRibbonLevel(Number(e.target.value))}
                   className="input-field text-xs"
                 >
-                  <option value={0}>0 级 (无缎带)</option>
-                  <option value={1}>1 级 (200小时：持有+1)</option>
-                  <option value={2}>2 级 (500小时：持有+3, 未进化加速)</option>
-                  <option value={3}>3 级 (1000小时：持有+6)</option>
-                  <option value={4}>4 级 (2000小时：持有+8, 未进化二段加速)</option>
+                  <option value={0}>{getUIText('ribbonLevel0', locale)}</option>
+                  <option value={1}>{getUIText('ribbonLevel1', locale)}</option>
+                  <option value={2}>{getUIText('ribbonLevel2', locale)}</option>
+                  <option value={3}>{getUIText('ribbonLevel3', locale)}</option>
+                  <option value={4}>{getUIText('ribbonLevel4', locale)}</option>
                 </select>
               </div>
             </div>
@@ -604,7 +608,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
                   {getUIText('subskills', locale)}
                 </label>
                 <span className="text-[11px] text-[var(--text-muted)]">
-                  开放至 Lv.70 / 当前等级 Lv.{level}
+                  {getUIText('subskillsAvailable', locale)} Lv.{level}
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -644,10 +648,10 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
                       onChange={(e) => setSubskills({ ...subskills, [key]: e.target.value })}
                       className="input-field text-xs py-1"
                     >
-                      <option value="">(未设置 / 无)</option>
+                      <option value="">{getUIText('notSet', locale)}</option>
                       {GAME_DATA.subskills.map((s) => (
                         <option key={s.name} value={s.name}>
-                          [{s.rarity === 'gold' ? '金' : s.rarity === 'silver' ? '银' : '白'}] {getEntityName(s, locale)}
+                          [{s.rarity === 'gold' ? (locale === 'en' ? 'G' : '金') : s.rarity === 'silver' ? (locale === 'en' ? 'S' : '银') : (locale === 'en' ? 'W' : '白')}] {getEntityName(s, locale)}
                         </option>
                       ))}
                     </select>
@@ -663,9 +667,9 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { label: 'A 槽 (Lv.1)', key: 'slotA' as const, list: validSlotA },
-                  { label: 'B 槽 (Lv.30)', key: 'slotB' as const, list: validSlotB },
-                  { label: 'C 槽 (Lv.60)', key: 'slotC' as const, list: validSlotC },
+                  { label: getUIText('slotA', locale), key: 'slotA' as const, list: validSlotA },
+                  { label: getUIText('slotB', locale), key: 'slotB' as const, list: validSlotB },
+                  { label: getUIText('slotC', locale), key: 'slotC' as const, list: validSlotC },
                 ].map(({ label, key, list }) => {
                   const selectedIng = ingredients[key];
                   return (
@@ -710,7 +714,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
             {getUIText('cancel', locale)}
           </button>
           <button type="button" onClick={handleSave} className="btn btn-primary tap-feedback text-xs">
-            {isEditMode ? '保存修改' : getUIText('save', locale)}
+            {isEditMode ? getUIText('saveChanges', locale) : getUIText('save', locale)}
           </button>
         </div>
       </div>

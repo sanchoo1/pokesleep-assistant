@@ -102,7 +102,7 @@ export const PokemonSelector: React.FC<PokemonSelectorProps> = ({
     if (spec === 'berry') return getUIText('filterBerry', locale);
     if (spec === 'ingredient') return getUIText('filterIngredient', locale);
     if (spec === 'skill') return getUIText('filterSkill', locale);
-    return '全能';
+    return getUIText('allAroundSpec', locale) || '全能';
   };
 
   return (
@@ -168,7 +168,7 @@ export const PokemonSelector: React.FC<PokemonSelectorProps> = ({
           </div>
         </div>
         <div className="flex items-center space-x-1 text-xs text-[var(--primary)] font-semibold shrink-0 ml-2">
-          <span>切换检索</span>
+          <span>{getUIText('switchSearch', locale)}</span>
           {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </div>
       </button>
@@ -184,7 +184,7 @@ export const PokemonSelector: React.FC<PokemonSelectorProps> = ({
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="输入宝可梦名称 (中/英/日) 或图鉴号..."
+                placeholder={getUIText('searchPkmnPlaceholder', locale)}
                 className="input-field pl-9 text-xs py-1.5 bg-white"
                 autoFocus
               />
@@ -194,10 +194,10 @@ export const PokemonSelector: React.FC<PokemonSelectorProps> = ({
                 type="button"
                 onClick={resetFilters}
                 className="btn btn-secondary text-2xs py-1.5 px-2.5 shrink-0"
-                title="重置筛选条件"
+                title={getUIText('reset', locale)}
               >
                 <RotateCcw className="w-3.5 h-3.5 mr-1" />
-                重置 ({activeFilterCount})
+                {getUIText('reset', locale)} ({activeFilterCount})
               </button>
             )}
           </div>
@@ -206,11 +206,11 @@ export const PokemonSelector: React.FC<PokemonSelectorProps> = ({
           <div className="flex flex-wrap items-center gap-1.5">
             {(
               [
-                { id: 'all', label: '全部专长' },
-                { id: 'berry', label: '树果型' },
-                { id: 'ingredient', label: '食材型' },
-                { id: 'skill', label: '技能型' },
-                { id: 'all_spec', label: '全能型' },
+                { id: 'all', label: getUIText('allSpecialties', locale) },
+                { id: 'berry', label: getUIText('berrySpec', locale) },
+                { id: 'ingredient', label: getUIText('ingredientSpec', locale) },
+                { id: 'skill', label: getUIText('skillSpec', locale) },
+                { id: 'all_spec', label: getUIText('allAroundSpec', locale) },
               ] as const
             ).map((sp) => {
               const isSelected =
@@ -239,9 +239,9 @@ export const PokemonSelector: React.FC<PokemonSelectorProps> = ({
 
             {(
               [
-                { id: 'all', label: '全部阶段' },
-                { id: 'final', label: '最终进化' },
-                { id: 'unevolved', label: '未最终进化' },
+                { id: 'all', label: getUIText('allStages', locale) },
+                { id: 'final', label: getUIText('finalEvo', locale) },
+                { id: 'unevolved', label: getUIText('unevolved', locale) },
               ] as const
             ).map((ev) => (
               <button
@@ -261,7 +261,9 @@ export const PokemonSelector: React.FC<PokemonSelectorProps> = ({
 
           {/* Type Icons Filter Row */}
           <div>
-            <div className="text-2xs font-semibold text-[var(--text-muted)] mb-1">按属性 / 树果筛选:</div>
+            <div className="text-2xs font-semibold text-[var(--text-muted)] mb-1">
+              {getUIText('filterByType', locale)}
+            </div>
             <div className="flex flex-wrap gap-1">
               <button
                 type="button"
@@ -272,7 +274,7 @@ export const PokemonSelector: React.FC<PokemonSelectorProps> = ({
                     : 'bg-white text-[var(--text-muted)] border-[#eae4d6] hover:bg-[#f3efe6]'
                 }`}
               >
-                全部
+                {getUIText('allOption', locale)}
               </button>
               {ALL_TYPES.map((t) => (
                 <button
@@ -295,7 +297,9 @@ export const PokemonSelector: React.FC<PokemonSelectorProps> = ({
 
           {/* Ingredient Icons Filter Row */}
           <div>
-            <div className="text-2xs font-semibold text-[var(--text-muted)] mb-1">按可产食材筛选:</div>
+            <div className="text-2xs font-semibold text-[var(--text-muted)] mb-1">
+              {getUIText('filterByIngredient', locale)}
+            </div>
             <div className="flex flex-wrap gap-1">
               <button
                 type="button"
@@ -306,7 +310,7 @@ export const PokemonSelector: React.FC<PokemonSelectorProps> = ({
                     : 'bg-white text-[var(--text-muted)] border-[#eae4d6] hover:bg-[#f3efe6]'
                 }`}
               >
-                全部
+                {getUIText('allOption', locale)}
               </button>
               {GAME_DATA.ingredients.map((ing) => (
                 <button
@@ -335,7 +339,7 @@ export const PokemonSelector: React.FC<PokemonSelectorProps> = ({
 
           {/* Results Grid */}
           <div className="text-2xs text-[var(--text-muted)] flex items-center justify-between pt-1">
-            <span>匹配结果：{filteredList.length} 只宝可梦</span>
+            <span>{getUIText('matchedCount', locale).replace('{0}', filteredList.length.toString())}</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-60 overflow-y-auto pr-1">

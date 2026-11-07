@@ -5,9 +5,9 @@
   "description": "A high-performance Pokémon Sleep companion and calculation toolkit",
   "packageManager": "pnpm@12.17.0",
   "scripts": {
-    "dev": "concurrently -k -p \"[{name}]\" -n \"web,api\" -c \"cyan.bold,yellow.bold\" \"pnpm --filter @pokesleep/web dev\" \"uv run --directory services/py-backend uvicorn main:app --reload --port 8000\"",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"web,api\" -c \"cyan.bold,yellow.bold\" \"pnpm --filter @pokesleep/web dev\" \"uv run --directory services/py-backend uvicorn main:app --reload --host 0.0.0.0 --port 8000\"",
     "web:dev": "pnpm --filter @pokesleep/web dev",
-    "py:dev": "uv run --directory services/py-backend uvicorn main:app --reload --port 8000",
+    "py:dev": "uv run --directory services/py-backend uvicorn main:app --reload --host 0.0.0.0 --port 8000",
     "py:install": "uv pip install -r services/py-backend/requirements.txt",
     "data:etl": "pnpm --filter \"@pokesleep/etl\" run build-data",
     "data:images": ".venv/bin/python tools/etl/sync_images.py",

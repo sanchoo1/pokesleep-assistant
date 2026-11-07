@@ -52,6 +52,11 @@
   --white-text: #64748b;
 }
 
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -60,6 +65,30 @@ body {
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100dvh;
+}
+
+/* Safe Area Inset Utilities for mobile notches and home indicators */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pl-safe {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+.pr-safe {
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* Hide scrollbar utility for clean horizontal swipe tabs on mobile */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Custom styles and utilities */
@@ -73,6 +102,9 @@ body {
 .tap-feedback {
   transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease;
   touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 .tap-feedback:active {
   transform: scale(0.96);
@@ -87,10 +119,13 @@ body {
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease;
 }
 
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 28px -6px rgba(60, 50, 30, 0.09), 0 4px 10px -3px rgba(60, 50, 30, 0.04);
-  border-color: var(--border-strong);
+/* Restrict hover styling to mouse/fine pointers so taps don't get stuck on mobile */
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px -6px rgba(60, 50, 30, 0.09), 0 4px 10px -3px rgba(60, 50, 30, 0.04);
+    border-color: var(--border-strong);
+  }
 }
 
 /* Button System */
@@ -107,6 +142,8 @@ body {
   font-size: 0.875rem;
   touch-action: manipulation;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 .btn:active {
   transform: scale(0.97);
@@ -117,19 +154,11 @@ body {
   color: #ffffff;
   box-shadow: 0 2px 8px -2px rgba(50, 67, 95, 0.3);
 }
-.btn-primary:hover {
-  background-color: var(--primary-hover);
-  box-shadow: 0 4px 12px -2px rgba(50, 67, 95, 0.4);
-}
 
 .btn-secondary {
   background-color: var(--surface-subtle);
   color: var(--text-main);
   border-color: var(--border-subtle);
-}
-.btn-secondary:hover {
-  background-color: #eee8dc;
-  border-color: var(--border-strong);
 }
 
 .btn-danger {
@@ -137,9 +166,20 @@ body {
   color: #b91c1c;
   border-color: #fecaca;
 }
-.btn-danger:hover {
-  background-color: #fee2e2;
-  border-color: #fca5a5;
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover {
+    background-color: var(--primary-hover);
+    box-shadow: 0 4px 12px -2px rgba(50, 67, 95, 0.4);
+  }
+  .btn-secondary:hover {
+    background-color: #eee8dc;
+    border-color: var(--border-strong);
+  }
+  .btn-danger:hover {
+    background-color: #fee2e2;
+    border-color: #fca5a5;
+  }
 }
 
 /* Badge System with Macaron & Nature Tones */
@@ -206,6 +246,13 @@ body {
   box-shadow: 0 0 0 3px rgba(50, 67, 95, 0.12);
 }
 
+/* Prevent iOS Safari / Webview auto-zoom on input focus */
+@media (pointer: coarse), (max-width: 640px) {
+  input, select, textarea, .input-field {
+    font-size: 16px !important;
+  }
+}
+
 /* Modal System with Emil Kowalski & Apple-grade entrance physics */
 .modal-backdrop {
   position: fixed;
@@ -217,7 +264,7 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 50;
-  padding: 1rem;
+  padding: 0.75rem;
 }
 
 .modal-panel {
@@ -225,8 +272,9 @@ body {
   border-radius: 1.25rem;
   max-width: 660px;
   width: 100%;
-  max-height: 90vh;
+  max-height: 90dvh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid rgba(234, 228, 214, 0.8);
   box-shadow: 0 25px 50px -12px rgba(40, 32, 20, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
 }

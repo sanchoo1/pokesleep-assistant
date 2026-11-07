@@ -77,10 +77,10 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ locale }) => {
   return (
     <div className="space-y-6">
       {/* Sub tabs */}
-      <div className="flex space-x-2 bg-white p-2 rounded-xl border border-slate-200">
+      <div className="flex space-x-1.5 sm:space-x-2 bg-white p-1.5 sm:p-2 rounded-xl border border-slate-200">
         <button
           onClick={() => setActiveTab('pokemon')}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg cursor-pointer ${
+          className={`flex-1 py-2 px-1 text-2xs sm:text-xs font-bold rounded-lg cursor-pointer tap-feedback text-center transition-colors ${
             activeTab === 'pokemon'
               ? 'bg-blue-600 text-white'
               : 'text-slate-600 hover:bg-slate-50'
@@ -90,7 +90,7 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ locale }) => {
         </button>
         <button
           onClick={() => setActiveTab('recipes')}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg cursor-pointer ${
+          className={`flex-1 py-2 px-1 text-2xs sm:text-xs font-bold rounded-lg cursor-pointer tap-feedback text-center transition-colors ${
             activeTab === 'recipes'
               ? 'bg-blue-600 text-white'
               : 'text-slate-600 hover:bg-slate-50'
@@ -100,13 +100,13 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ locale }) => {
         </button>
         <button
           onClick={() => setActiveTab('attribution')}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg cursor-pointer ${
+          className={`flex-1 py-2 px-1 text-2xs sm:text-xs font-bold rounded-lg cursor-pointer tap-feedback text-center transition-colors ${
             activeTab === 'attribution'
               ? 'bg-blue-600 text-white'
               : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
-          开源致谢与声明
+          开源致谢
         </button>
       </div>
 
@@ -432,7 +432,7 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ locale }) => {
 
       {/* Attribution Tab */}
       {activeTab === 'attribution' && (
-        <div className="bg-white p-6 rounded-xl border border-slate-200 space-y-6">
+        <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 space-y-6">
           <div className="flex items-center space-x-2 pb-4 border-b border-slate-100">
             <ShieldCheck className="w-6 h-6 text-emerald-600" />
             <h2 className="text-lg font-bold text-slate-900">

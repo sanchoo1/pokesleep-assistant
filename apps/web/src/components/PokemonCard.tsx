@@ -90,7 +90,7 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({
         berry: getUIText('filterBerry', locale),
         ingredient: getUIText('filterIngredient', locale),
         skill: getUIText('filterSkill', locale),
-        all: '全能',
+        all: getUIText('allAroundSpec', locale) || '全能',
       } as Record<string, string>
     )[species.specialty] || species.specialty;
 
@@ -161,7 +161,7 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({
                 {isInTeam && (
                   <span className="inline-flex items-center text-2xs font-semibold px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
                     <Tent className="w-3 h-3 mr-0.5" />
-                    已出阵
+                    {getUIText('inTeam', locale)}
                   </span>
                 )}
               </div>
@@ -169,7 +169,7 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({
           </div>
 
           {/* Action Bar with Apple-style micro-interactions */}
-          <div className="flex items-center space-x-0.5 shrink-0">
+          <div className="flex items-center space-x-1 shrink-0">
             {onToggleTeam && (
               <button
                 type="button"
@@ -177,37 +177,37 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({
                   e.stopPropagation();
                   onToggleTeam(pokemon);
                 }}
-                title={isInTeam ? '从出阵队伍移出' : '加入出阵队伍'}
-                className={`w-7 h-7 rounded-lg flex items-center justify-center tap-feedback cursor-pointer transition-colors ${
+                title={isInTeam ? getUIText('removeFromTeam', locale) : getUIText('addToTeam', locale)}
+                className={`w-8 h-8 rounded-lg flex items-center justify-center tap-feedback cursor-pointer transition-colors ${
                   isInTeam
                     ? 'bg-[var(--primary)] text-white shadow-2xs'
                     : 'text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-[#f4efe6]'
                 }`}
               >
-                {isInTeam ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-4 h-4" />}
+                {isInTeam ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
               </button>
             )}
             <button
               type="button"
               onClick={() => onAnalyze(pokemon)}
-              title="多阶段个体分析 (PR 评估)"
-              className="w-7 h-7 rounded-lg flex items-center justify-center tap-feedback text-amber-500 hover:text-amber-600 hover:bg-amber-50 cursor-pointer"
+              title={getUIText('analyzePr', locale)}
+              className="w-8 h-8 rounded-lg flex items-center justify-center tap-feedback text-amber-500 hover:text-amber-600 hover:bg-amber-50 cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <Sparkles className="w-4 h-4" />
             </button>
             <button
               type="button"
               onClick={() => onEdit(pokemon)}
-              title="编辑宝可梦卡片"
-              className="w-7 h-7 rounded-lg flex items-center justify-center tap-feedback text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-[#f4efe6] cursor-pointer"
+              title={getUIText('editCard', locale)}
+              className="w-8 h-8 rounded-lg flex items-center justify-center tap-feedback text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-[#f4efe6] cursor-pointer"
             >
               <Pencil className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
               onClick={() => onDelete(pokemon.id)}
-              title="删除卡片"
-              className="w-7 h-7 rounded-lg flex items-center justify-center tap-feedback text-slate-400 hover:text-red-500 hover:bg-red-50 cursor-pointer"
+              title={getUIText('deleteCard', locale)}
+              className="w-8 h-8 rounded-lg flex items-center justify-center tap-feedback text-slate-400 hover:text-red-500 hover:bg-red-50 cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -259,7 +259,7 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({
               </span>
             </span>
           ) : (
-            <span className="text-2xs text-[var(--text-subtle)]">无修正</span>
+            <span className="text-2xs text-[var(--text-subtle)]">{getUIText('noMod', locale)}</span>
           )}
         </div>
 
@@ -293,7 +293,7 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({
                   className={`badge ${badgeType} text-2xs transition-opacity ${
                     !isUnlocked ? 'opacity-40 grayscale-[25%]' : 'shadow-2xs'
                   }`}
-                  title={`Lv.${lvl}${isCapLocked ? ' (当前版本上限70未开放)' : ''}: ${subObj ? getEntityName(subObj, locale) : '未设置'}`}
+                  title={`Lv.${lvl}${isCapLocked ? ` (${getUIText('unreleased', locale)})` : ''}: ${subObj ? getEntityName(subObj, locale) : getUIText('notSet', locale)}`}
                 >
                   {!isUnlocked && <Lock className="w-2.5 h-2.5 mr-0.5 inline-block opacity-70" />}
                   <span className="font-mono text-[10px] mr-1 opacity-80">
@@ -355,16 +355,18 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({
         <div className="mt-3.5 pt-2.5 border-t border-[#eae4d6] flex items-center justify-between text-xs">
           <span className="text-[var(--text-muted)] text-2xs">
             {species.specialty === 'skill'
-              ? `期望触发 ${production.dailySkillProcs.toFixed(2)} 次/天`
+              ? getUIText('expSkillProcs', locale).replace('{0}', production.dailySkillProcs.toFixed(2))
               : species.specialty === 'ingredient'
-                ? `日产食材 ${production.dailyIngredientCount.toFixed(1)} 个`
-                : `持有上限 ${production.carryLimit} 个`}
+                ? getUIText('dailyIngsCount', locale).replace('{0}', production.dailyIngredientCount.toFixed(1))
+                : getUIText('carryLimitCount', locale).replace('{0}', production.carryLimit.toString())}
           </span>
           <div className="text-right">
             <span className="font-bold text-sm text-[var(--text-main)]">
               {Math.round(production.totalDailyEnergy).toLocaleString()}{' '}
             </span>
-            <span className="text-2xs font-normal text-[var(--text-muted)]">能量/天</span>
+            <span className="text-2xs font-normal text-[var(--text-muted)]">
+              {getUIText('energyPerDay', locale)}
+            </span>
           </div>
         </div>
       )}

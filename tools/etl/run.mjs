@@ -472,6 +472,7 @@ for (const lang of languages) {
           val?.[lang] || typeKey,
         ])
       ),
+      ribbon: sleepLocales.terms?.ribbon?.[lang] || 'Good Night Ribbon',
     },
     pokemon: {},
     berries: {},
@@ -529,6 +530,13 @@ for (const lang of languages) {
       for (const al of skillVal.aliases) {
         pack.aliases[al.toLowerCase()] = { type: 'mainskill', key: skillKey };
       }
+    }
+  }
+
+  // Ribbon aliases
+  if (sleepLocales.terms?.ribbon?.aliases) {
+    for (const al of sleepLocales.terms.ribbon.aliases) {
+      pack.aliases[al.toLowerCase()] = { type: 'ribbon', key: 'Good Night Ribbon' };
     }
   }
 

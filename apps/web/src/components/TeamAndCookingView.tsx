@@ -158,7 +158,7 @@ export const TeamAndCookingView: React.FC<TeamAndCookingViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Active Team Bar */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200">
+      <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200">
         <div className="flex items-center justify-between pb-4 border-b border-slate-100">
           <div className="flex items-center space-x-2">
             <Flame className="w-5 h-5 text-amber-500" />
@@ -244,7 +244,7 @@ export const TeamAndCookingView: React.FC<TeamAndCookingViewProps> = ({
 
       {/* Daily Ingredient Output with Official Icons */}
       {teamPokemon.length > 0 && (
-        <div className="bg-white p-5 rounded-xl border border-slate-200">
+        <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200">
           <div className="text-xs font-bold text-slate-700 mb-3 flex items-center">
             <Utensils className="w-4 h-4 mr-1 text-amber-500" />
             {getUIText('dailyIngredientsTitle', locale)}
@@ -278,7 +278,7 @@ export const TeamAndCookingView: React.FC<TeamAndCookingViewProps> = ({
       {/* R1 Single Meal Recommendation & R2 Weekly LP Planner */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Meal Settings & Inventory */}
-        <div className="bg-white p-6 rounded-xl border border-slate-200 space-y-4">
+        <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 space-y-4">
           <div className="flex items-center space-x-2 pb-3 border-b border-slate-100">
             <ChefHat className="w-5 h-5 text-blue-600" />
             <h3 className="font-bold text-slate-900 text-sm">料理与食材背包配置</h3>
@@ -411,7 +411,7 @@ export const TeamAndCookingView: React.FC<TeamAndCookingViewProps> = ({
         {/* Right Columns: R1 Best Meal & R2 Schedule */}
         <div className="lg:col-span-2 space-y-6">
           {/* R1 Card */}
-          <div className="card p-6 border-l-4 border-l-blue-600">
+          <div className="card p-4 sm:p-6 border-l-4 border-l-blue-600">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center space-x-2">
                 <Sparkles className="w-5 h-5 text-blue-600" />
@@ -483,7 +483,7 @@ export const TeamAndCookingView: React.FC<TeamAndCookingViewProps> = ({
 
           {/* R2 LP Plan Results Table */}
           {weeklyPlan && (
-            <div className="card p-6">
+            <div className="card p-4 sm:p-6">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="w-5 h-5 text-emerald-600" />

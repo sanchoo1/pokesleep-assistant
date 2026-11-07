@@ -6,6 +6,7 @@ import { BoxManager } from './components/BoxManager';
 import { RatingView } from './components/RatingView';
 import { TeamAndCookingView } from './components/TeamAndCookingView';
 import { PokedexView } from './components/PokedexView';
+import { getUIText } from './i18n';
 
 const SEED_POKEMON: BoxPokemon[] = [
   {
@@ -144,7 +145,7 @@ export const App: React.FC = () => {
       } else {
         // 检查当前真实在队数量是否已达上限 5 只
         if (validIds.length >= 5) {
-          alert('出阵队伍最多容纳 5 只宝可梦，请先移出一只！');
+          alert(getUIText('teamLimitAlert', locale));
           return validIds;
         }
         next = [...validIds, pokemon.id];
@@ -171,7 +172,7 @@ export const App: React.FC = () => {
         pokemonCount={pokemonList.length}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 sm:pb-8">
         {currentTab === 'box' && (
           <BoxManager
             pokemonList={pokemonList}
@@ -202,7 +203,7 @@ export const App: React.FC = () => {
         {currentTab === 'pokedex' && <PokedexView locale={locale} />}
       </main>
 
-      <footer className="bg-[var(--surface)] border-t border-[var(--border-subtle)] py-6 text-center text-xs text-[var(--text-muted)]">
+      <footer className="bg-[var(--surface)] border-t border-[var(--border-subtle)] py-6 pb-24 sm:pb-6 text-center text-xs text-[var(--text-muted)] px-4">
         <p>Pokémon Sleep Companion Toolkit © 2026. Made with ❤️ for the Pokémon Sleep Community.</p>
         <p className="mt-1 text-[var(--text-subtle)]">
           Pokémon and its trademarks are © Nintendo / Creatures Inc. / GAME FREAK inc. / The Pokémon Company.

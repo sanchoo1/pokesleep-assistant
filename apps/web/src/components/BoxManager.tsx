@@ -237,17 +237,17 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
         if (Array.isArray(parsed)) {
           await importBox(parsed);
           onReload();
-          alert(`成功导入 ${parsed.length} 只宝可梦！`);
+          alert(getUIText('importSuccess', locale).replace('{0}', parsed.length.toString()));
         }
       } catch {
-        alert('导入失败，请检查 JSON 格式！');
+        alert(getUIText('importFailed', locale));
       }
     };
     reader.readAsText(file);
   };
 
   const handleClearAll = async () => {
-    if (confirm('警告：清空后所有本地盒子数据将被删除，确定继续？')) {
+    if (confirm(getUIText('confirmClearBox', locale))) {
       await clearBox();
       onReload();
     }
@@ -256,75 +256,77 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Multi-Filter Toolbar */}
-      <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--border-subtle)] space-y-3 shadow-2xs">
+      <div className="bg-[var(--surface)] p-3.5 sm:p-4 rounded-2xl border border-[var(--border-subtle)] space-y-3 shadow-2xs">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
           {/* Search & Multi-Dimensional Filters */}
-          <div className="flex flex-wrap flex-1 items-center gap-2">
-            <div className="relative min-w-[200px] flex-1 max-w-xs">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap flex-1 items-stretch sm:items-center gap-2">
+            <div className="relative w-full sm:min-w-[200px] sm:max-w-xs">
               <Search className="w-4 h-4 text-[var(--text-subtle)] absolute left-3 top-2.5" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={getUIText('searchPlaceholder', locale)}
-                className="input-field pl-9 text-xs py-1.5"
+                className="input-field pl-9 text-xs py-1.5 w-full"
               />
             </div>
 
-            <div className="flex items-center space-x-1">
-              <Filter className="w-4 h-4 text-[var(--text-muted)] shrink-0" />
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 w-full sm:w-auto">
+              <div className="flex items-center space-x-1 min-w-0">
+                <Filter className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0 hidden sm:inline" />
+                <select
+                  value={specialtyFilter}
+                  onChange={(e) => setSpecialtyFilter(e.target.value as any)}
+                  className="input-field text-xs py-1.5 w-full sm:w-auto"
+                >
+                  <option value="all">{getUIText('filterAll', locale)}</option>
+                  <option value="berry">{getUIText('filterBerry', locale)}</option>
+                  <option value="ingredient">{getUIText('filterIngredient', locale)}</option>
+                  <option value="skill">{getUIText('filterSkill', locale)}</option>
+                </select>
+              </div>
+
               <select
-                value={specialtyFilter}
-                onChange={(e) => setSpecialtyFilter(e.target.value as any)}
-                className="input-field text-xs py-1.5 w-auto"
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="input-field text-xs py-1.5 w-full sm:w-auto"
               >
-                <option value="all">{getUIText('filterAll', locale)}</option>
-                <option value="berry">{getUIText('filterBerry', locale)}</option>
-                <option value="ingredient">{getUIText('filterIngredient', locale)}</option>
-                <option value="skill">{getUIText('filterSkill', locale)}</option>
+                <option value="all">{getUIText('allTypes', locale)}</option>
+                {ALL_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {getPokemonTypeLabel(t, locale)}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={ingredientFilter}
+                onChange={(e) => setIngredientFilter(e.target.value)}
+                className="input-field text-xs py-1.5 w-full sm:w-auto"
+              >
+                <option value="all">{getUIText('allIngredients', locale)}</option>
+                {GAME_DATA.ingredients.map((ing) => (
+                  <option key={ing.name} value={ing.name}>
+                    {getUIText('withIngredient', locale).replace('{0}', getEntityName(ing, locale))}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="input-field text-xs py-1.5 w-full sm:w-auto"
+              >
+                <option value="energy">{getUIText('sortByEnergy', locale)}</option>
+                <option value="rp">{getUIText('sortByRp', locale)}</option>
+                <option value="level">{getUIText('sortByLevel', locale)}</option>
+                <option value="dex">{getUIText('sortByDex', locale)}</option>
               </select>
             </div>
-
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="input-field text-xs py-1.5 w-auto"
-            >
-              <option value="all">全部属性</option>
-              {ALL_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {getPokemonTypeLabel(t, locale)}属性
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={ingredientFilter}
-              onChange={(e) => setIngredientFilter(e.target.value)}
-              className="input-field text-xs py-1.5 w-auto"
-            >
-              <option value="all">全部食材</option>
-              {GAME_DATA.ingredients.map((ing) => (
-                <option key={ing.name} value={ing.name}>
-                  含 {getEntityName(ing, locale)}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="input-field text-xs py-1.5 w-auto"
-            >
-              <option value="energy">按日能量排序</option>
-              <option value="rp">按 SP 排序</option>
-              <option value="level">按等级排序</option>
-              <option value="dex">按图鉴编号排序</option>
-            </select>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 pt-1 lg:pt-0 border-t lg:border-t-0 border-[var(--border-subtle)]/50">
             <div
               className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                 activeTeamCount === 5
@@ -334,41 +336,41 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
               title="当前出阵队伍编制人数（上限 5 只）"
             >
               <Tent className="w-3.5 h-3.5 text-[var(--primary)]" />
-              <span>出阵队伍: {activeTeamCount}/5</span>
+              <span>{getUIText('teamCount', locale).replace('{0}', activeTeamCount.toString())}</span>
               {activeTeamCount === 5 && (
                 <span className="text-[10px] px-1 py-0.5 rounded bg-[var(--primary)] text-white ml-0.5 leading-none">
-                  满员
+                  {getUIText('teamFull', locale)}
                 </span>
               )}
             </div>
 
             <button
               onClick={() => setShowSendAwayModal(true)}
-              className="btn btn-secondary text-xs tap-feedback"
-              title="压制分析"
+              className="btn btn-secondary text-xs tap-feedback py-1.5"
+              title={getUIText('sendAwaySuggestion', locale)}
             >
               <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-500" />
-              送走建议 ({inferiorList.length})
+              {getUIText('sendAwaySuggestion', locale)} ({inferiorList.length})
             </button>
 
-            <label className="btn btn-secondary text-xs cursor-pointer tap-feedback">
+            <label className="btn btn-secondary text-xs cursor-pointer tap-feedback py-1.5">
               <Upload className="w-3.5 h-3.5 mr-1 text-[var(--text-muted)]" />
-              {getUIText('importJson', locale)}
+              导入
               <input type="file" accept=".json" onChange={handleImportJson} className="hidden" />
             </label>
 
-            <button onClick={handleExportJson} className="btn btn-secondary text-xs tap-feedback">
+            <button onClick={handleExportJson} className="btn btn-secondary text-xs tap-feedback py-1.5">
               <Download className="w-3.5 h-3.5 mr-1 text-[var(--text-muted)]" />
-              {getUIText('exportJson', locale)}
+              导出
             </button>
 
             {pokemonList.length > 0 && (
-              <button onClick={handleClearAll} className="btn btn-secondary text-xs text-rose-600 tap-feedback">
+              <button onClick={handleClearAll} className="btn btn-secondary text-xs text-rose-600 tap-feedback py-1.5">
                 {getUIText('clearAll', locale)}
               </button>
             )}
 
-            <button onClick={handleOpenAdd} className="btn btn-primary text-xs tap-feedback">
+            <button onClick={handleOpenAdd} className="btn btn-primary text-xs tap-feedback py-1.5 flex-1 sm:flex-none">
               <Plus className="w-4 h-4 mr-1" />
               {getUIText('addPokemon', locale)}
             </button>
@@ -455,7 +457,7 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
                         onClick={() => handleDelete(item.inferior.id)}
                         className="btn btn-danger text-xs py-1 tap-feedback"
                       >
-                        送走
+                        {getUIText('sendAwayBtn', locale)}
                       </button>
                     </div>
                   );
@@ -469,7 +471,7 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
                 onClick={() => setShowSendAwayModal(false)}
                 className="btn btn-secondary text-xs tap-feedback"
               >
-                关闭
+                {getUIText('close', locale)}
               </button>
             </div>
           </div>

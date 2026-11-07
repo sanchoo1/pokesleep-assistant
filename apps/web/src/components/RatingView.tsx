@@ -127,6 +127,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     slotC: initialPokemon?.ingredients?.slotC || 'Apple',
   });
   const [mainSkillLevel, setMainSkillLevel] = useState(initialPokemon?.mainSkillLevel || 1);
+  const [ribbonLevel, setRibbonLevel] = useState(initialPokemon?.ribbonLevel || 0);
   const [simulateMaxSkillSeed, setSimulateMaxSkillSeed] = useState(false);
   const [isFavoredBerry, setIsFavoredBerry] = useState(true);
   const [mapBonus, setMapBonus] = useState(0);
@@ -190,6 +191,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
       slotC: initialPokemon.ingredients?.slotC || sp.ingredient60?.[0]?.ingredient || 'Apple',
     });
     setMainSkillLevel(initialPokemon.mainSkillLevel || 1 + (sp.previousEvolutions || 0));
+    setRibbonLevel(initialPokemon.ribbonLevel || 0);
     setActiveDeepTab(sp.specialty === 'all' ? 'skill' : sp.specialty);
     setFocusedLevel(sp.specialty === 'ingredient' ? 60 : 50);
   }, [initialPokemon]);
@@ -241,6 +243,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
           slot60: ingredients.slotC,
         },
         mainSkillLevel: effectiveInputSkillLevel,
+        ribbonLevel,
         metric,
         isFavoredBerry,
         mapBonus,
@@ -258,6 +261,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     subskills,
     ingredients,
     effectiveInputSkillLevel,
+    ribbonLevel,
     metric,
     isFavoredBerry,
     mapBonus,
@@ -290,6 +294,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
         slot60: ingredients.slotC,
       },
       mainSkillLevel: effectiveInputSkillLevel,
+      ribbonLevel,
       isFavoredBerry: true,
       mapBonus,
     });
@@ -304,6 +309,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
         slot60: ingredients.slotC,
       },
       mainSkillLevel: effectiveInputSkillLevel,
+      ribbonLevel,
       isFavoredBerry: false,
       mapBonus,
     });
@@ -316,6 +322,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     subskills,
     ingredients,
     effectiveInputSkillLevel,
+    ribbonLevel,
     mapBonus,
   ]);
 
@@ -368,7 +375,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
   return (
     <div className="space-y-6">
       {/* Top Card: Configuration + Auto Multi-Stage PR Matrix */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-2xs">
+      <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-2xs">
         <div className="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-100">
           <div className="flex items-center space-x-2">
             <Sparkles className="w-5 h-5 text-amber-500" />
@@ -558,6 +565,23 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                     <span>满级金瓜子</span>
                   </label>
                 </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-1 border-t border-slate-200/70">
+                <span className="font-semibold text-slate-700 flex items-center space-x-1">
+                  <span>🎖️ {getUIText('ribbonTitle', locale)}:</span>
+                </span>
+                <select
+                  value={ribbonLevel}
+                  onChange={(e) => setRibbonLevel(Number(e.target.value))}
+                  className="input-field text-xs py-0.5 w-auto bg-white"
+                >
+                  <option value={0}>{getUIText('ribbonLevel0', locale)}</option>
+                  <option value={1}>{getUIText('ribbonLevel1', locale)}</option>
+                  <option value={2}>{getUIText('ribbonLevel2', locale)}</option>
+                  <option value={3}>{getUIText('ribbonLevel3', locale)}</option>
+                  <option value={4}>{getUIText('ribbonLevel4', locale)}</option>
+                </select>
               </div>
 
               <div className="flex items-center justify-between pt-1 border-t border-slate-200/70">
@@ -861,7 +885,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
 
       {/* Specialty-Specific Deep-Dive Analysis Section */}
       {multiReport && focusedProd && (
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-2xs space-y-5">
+        <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-2xs space-y-5">
           {/* Specialty Deep-Dive Switcher */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-100">
             <div>
@@ -876,11 +900,11 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
               </p>
             </div>
 
-            <div className="flex space-x-1.5 bg-slate-100 p-1 rounded-xl">
+            <div className="flex space-x-1.5 bg-slate-100 p-1 rounded-xl overflow-x-auto no-scrollbar flex-nowrap">
               <button
                 type="button"
                 onClick={() => setActiveDeepTab('berry')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center space-x-1.5 cursor-pointer transition-colors ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center space-x-1.5 cursor-pointer transition-colors whitespace-nowrap shrink-0 ${
                   activeDeepTab === 'berry'
                     ? 'bg-white text-emerald-700 shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -896,7 +920,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
               <button
                 type="button"
                 onClick={() => setActiveDeepTab('ingredient')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center space-x-1.5 cursor-pointer transition-colors ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center space-x-1.5 cursor-pointer transition-colors whitespace-nowrap shrink-0 ${
                   activeDeepTab === 'ingredient'
                     ? 'bg-white text-amber-700 shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -916,7 +940,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
               <button
                 type="button"
                 onClick={() => setActiveDeepTab('skill')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center space-x-1.5 cursor-pointer transition-colors ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center space-x-1.5 cursor-pointer transition-colors whitespace-nowrap shrink-0 ${
                   activeDeepTab === 'skill'
                     ? 'bg-white text-indigo-700 shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -932,7 +956,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
               <button
                 type="button"
                 onClick={() => setActiveDeepTab('overnight')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center space-x-1.5 cursor-pointer transition-colors ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold inline-flex items-center space-x-1.5 cursor-pointer transition-colors whitespace-nowrap shrink-0 ${
                   activeDeepTab === 'overnight'
                     ? 'bg-white text-purple-700 shadow-2xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -1537,7 +1561,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                     <span>Lv.{focusedLevel} 核心适配食谱与一日三餐覆盖率分析</span>
                   </div>
 
-                  <div className="flex space-x-1.5">
+                  <div className="flex space-x-1.5 overflow-x-auto no-scrollbar flex-nowrap">
                     {(
                       [
                         { id: 'curry' as const, label: getUIText('curry', locale) },
@@ -1551,7 +1575,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                           type="button"
                           key={tab.id}
                           onClick={() => setRecipeDishTab(tab.id)}
-                          className={`px-3 py-1 rounded-lg text-xs font-semibold border cursor-pointer ${
+                          className={`px-3 py-1 rounded-lg text-xs font-semibold border cursor-pointer whitespace-nowrap shrink-0 ${
                             recipeDishTab === tab.id
                               ? 'bg-amber-600 text-white border-amber-600'
                               : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'

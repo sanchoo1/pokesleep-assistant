@@ -31,7 +31,8 @@
       "dark": "惡",
       "steel": "鋼",
       "fairy": "妖精"
-    }
+    },
+    "ribbon": "睡飽飽獎章"
   },
   "pokemon": {
     "DARKRAI": "達克萊伊",
@@ -1415,6 +1416,42 @@
     "魔法火焰": {
       "type": "mainskill",
       "key": "Mystical Fire (Cooking Advance S)"
+    },
+    "睡饱饱徽章": {
+      "type": "ribbon",
+      "key": "Good Night Ribbon"
+    },
+    "睡飽飽徽章": {
+      "type": "ribbon",
+      "key": "Good Night Ribbon"
+    },
+    "睡饱饱奖章": {
+      "type": "ribbon",
+      "key": "Good Night Ribbon"
+    },
+    "睡飽飽獎章": {
+      "type": "ribbon",
+      "key": "Good Night Ribbon"
+    },
+    "晚安缎带": {
+      "type": "ribbon",
+      "key": "Good Night Ribbon"
+    },
+    "晚安緞帶": {
+      "type": "ribbon",
+      "key": "Good Night Ribbon"
+    },
+    "おやすみリボン": {
+      "type": "ribbon",
+      "key": "Good Night Ribbon"
+    },
+    "good night ribbon": {
+      "type": "ribbon",
+      "key": "Good Night Ribbon"
+    },
+    "ribbon": {
+      "type": "ribbon",
+      "key": "Good Night Ribbon"
     }
   }
 }
