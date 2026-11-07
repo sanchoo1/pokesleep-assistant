@@ -12,18 +12,21 @@ const SEED_POKEMON: BoxPokemon[] = [
     id: 'seed_pikachu_01',
     pokemonName: 'PIKACHU',
     nickname: '雷电先锋',
-    level: 25,
+    level: 30,
     nature: 'Adamant',
     subskills: {
       level10: 'Berry Finding S',
       level25: 'Helping Speed M',
-      level50: 'Inventory Up L',
+      level50: 'Helping Bonus',
+      level70: 'Helping Speed S',
+      level80: 'Inventory Up L',
     },
     ingredients: {
       slotA: 'Apple',
       slotB: 'Apple',
       slotC: 'Apple',
     },
+    mainSkillLevel: 2,
     ribbonLevel: 1,
     createdAt: Date.now() - 100000,
   },
@@ -31,37 +34,43 @@ const SEED_POKEMON: BoxPokemon[] = [
     id: 'seed_charizard_02',
     pokemonName: 'CHARIZARD',
     nickname: '火龙大厨',
-    level: 35,
-    nature: 'Naughty',
+    level: 50,
+    nature: 'Quiet',
     subskills: {
       level10: 'Helping Bonus',
       level25: 'Ingredient Finder M',
       level50: 'Inventory Up L',
+      level70: 'Ingredient Finder S',
+      level80: 'Helping Speed M',
     },
     ingredients: {
       slotA: 'Sausage',
       slotB: 'Ginger',
-      slotC: 'Sausage',
+      slotC: 'Herb',
     },
+    mainSkillLevel: 3,
     ribbonLevel: 2,
     createdAt: Date.now() - 50000,
   },
   {
-    id: 'seed_blastoise_03',
-    pokemonName: 'BLASTOISE',
-    nickname: '纯奶大管家',
-    level: 32,
-    nature: 'Quiet',
+    id: 'seed_gardevoir_03',
+    pokemonName: 'GARDEVOIR',
+    nickname: '奶妈女王',
+    level: 50,
+    nature: 'Calm',
     subskills: {
-      level10: 'Ingredient Finder M',
-      level25: 'Skill Trigger S',
-      level50: 'Helping Speed S',
+      level10: 'Skill Trigger M',
+      level25: 'Helping Speed M',
+      level50: 'Skill Trigger S',
+      level70: 'Skill Level Up M',
+      level80: 'Berry Finding S',
     },
     ingredients: {
-      slotA: 'Milk',
-      slotB: 'Cacao',
-      slotC: 'Milk',
+      slotA: 'Apple',
+      slotB: 'Corn',
+      slotC: 'Leek',
     },
+    mainSkillLevel: 4,
     ribbonLevel: 0,
     createdAt: Date.now() - 20000,
   },
@@ -137,7 +146,7 @@ export const App: React.FC = () => {
   const teamPokemon = pokemonList.filter((p) => teamIds.includes(p.id));
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
+    <div className="min-h-screen flex flex-col bg-[var(--canvas)] text-[var(--text-main)] selection:bg-[var(--primary-light)] selection:text-[var(--primary)]">
       <Header
         currentTab={currentTab}
         onTabChange={setCurrentTab}
@@ -177,9 +186,9 @@ export const App: React.FC = () => {
         {currentTab === 'pokedex' && <PokedexView locale={locale} />}
       </main>
 
-      <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
+      <footer className="bg-[var(--surface)] border-t border-[var(--border-subtle)] py-6 text-center text-xs text-[var(--text-muted)]">
         <p>Pokémon Sleep Companion Toolkit © 2026. Made with ❤️ for the Pokémon Sleep Community.</p>
-        <p className="mt-1 text-slate-400">
+        <p className="mt-1 text-[var(--text-subtle)]">
           Pokémon and its trademarks are © Nintendo / Creatures Inc. / GAME FREAK inc. / The Pokémon Company.
         </p>
       </footer>

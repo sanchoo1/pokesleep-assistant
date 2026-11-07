@@ -32,6 +32,27 @@ export interface IngredientSlotItem {
   amount: number;
 }
 
+export type MainskillUnit =
+  | 'energy'
+  | 'berries'
+  | 'berry zone'
+  | 'ingredients'
+  | 'helps'
+  | 'skill helps'
+  | 'dream shards'
+  | 'strength'
+  | 'pot size'
+  | 'crit chance'
+  | 'candy'
+  | 'items';
+
+export interface SkillActivationEntry {
+  unit: MainskillUnit;
+  amounts: number[];
+  teamAmounts?: number[];
+  critAmounts?: number[];
+}
+
 export interface PokemonSkillInfo {
   name: string;
   modifierName: string | null;
@@ -40,6 +61,11 @@ export interface PokemonSkillInfo {
   RP: number[];
   strengthAmounts?: number[];
   image: string;
+  activations?: Record<string, SkillActivationEntry>;
+  descriptions?: string[];
+  critChance?: number;
+  critMultiplier?: number;
+  translations?: MultilingualText;
 }
 
 export interface PokemonSpecies {
@@ -47,6 +73,7 @@ export interface PokemonSpecies {
   displayName: string;
   pokedexNumber: number;
   specialty: Specialty;
+  type: string;
   frequency: number;
   ingredientPercentage: number;
   skillPercentage: number;
@@ -247,6 +274,7 @@ export interface LanguagePack {
   terms: {
     specialty: Record<Specialty, string>;
     recipe_types: Record<RecipeType, string>;
+    pokemon_types?: Record<string, string>;
   };
   pokemon: Record<string, string>;
   berries: Record<string, string>;

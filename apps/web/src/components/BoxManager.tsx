@@ -1,19 +1,24 @@
 import React, { useState, useMemo } from 'react';
 import { GAME_DATA, SupportedLocale } from '@pokesleep/data';
 import { calculateDailyProduction } from '@pokesleep/engine';
-import { BoxPokemon, clearBox, deletePokemon, importBox, savePokemon } from '../storage/db';
-import { getEntityName, getUIText } from '../i18n';
+import {
+  BoxPokemon,
+  clearBox,
+  deletePokemon,
+  importBox,
+  normalizeBoxSubskills,
+  savePokemon,
+} from '../storage/db';
+import { getEntityName, getPokemonTypeLabel, getUIText } from '../i18n';
 import { PokemonCard } from './PokemonCard';
 import { AddPokemonModal } from './AddPokemonModal';
 import {
   Plus,
   Download,
   Upload,
-  Trash,
   Search,
   Filter,
   AlertTriangle,
-  Sparkles,
 } from 'lucide-react';
 
 interface BoxManagerProps {
@@ -25,6 +30,12 @@ interface BoxManagerProps {
   onToggleTeam: (pokemon: BoxPokemon) => void;
 }
 
+const ALL_TYPES = [
+  'normal', 'fire', 'water', 'electric', 'grass', 'ice',
+  'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug',
+  'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy',
+];
+
 export const BoxManager: React.FC<BoxManagerProps> = ({
   pokemonList,
   onReload,
@@ -35,9 +46,36 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [specialtyFilter, setSpecialtyFilter] = useState<'all' | 'berry' | 'ingredient' | 'skill'>('all');
-  const [sortBy, setSortBy] = useState<'level' | 'energy' | 'dex'>('energy');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [ingredientFilter, setIngredientFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'energy' | 'level' | 'dex' | 'rp'>('energy');
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPokemon, setEditingPokemon] = useState<BoxPokemon | null>(null);
   const [showSendAwayModal, setShowSendAwayModal] = useState(false);
+
+  const getProdSummary = (pkmn: BoxPokemon) => {
+    try {
+      const sp = GAME_DATA.pokemon.find(
+        (s) => s.name.toUpperCase() === pkmn.pokemonName.toUpperCase()
+      );
+      return calculateDailyProduction({
+        pokemon: pkmn.pokemonName,
+        level: pkmn.level,
+        nature: pkmn.nature,
+        subskills: normalizeBoxSubskills(pkmn.subskills),
+        ingredientSelection: {
+          slot0: pkmn.ingredients.slotA,
+          slot30: pkmn.ingredients.slotB,
+          slot60: pkmn.ingredients.slotC,
+        },
+        mainSkillLevel: pkmn.mainSkillLevel || 1 + (sp?.previousEvolutions || 0),
+        ribbonLevel: pkmn.ribbonLevel || 0,
+      });
+    } catch {
+      return null;
+    }
+  };
 
   // Filter & sort
   const filteredList = useMemo(() => {
@@ -48,7 +86,6 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
         );
         if (!species) return false;
 
-        // Search
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
           const nameZh = species.translations?.['zh-CN'] || '';
@@ -65,96 +102,85 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
           if (!matches) return false;
         }
 
-        // Specialty filter
         if (specialtyFilter !== 'all' && species.specialty !== specialtyFilter) {
           return false;
+        }
+
+        if (typeFilter !== 'all' && species.type?.toLowerCase() !== typeFilter) {
+          return false;
+        }
+
+        if (ingredientFilter !== 'all') {
+          const pIngs = [p.ingredients.slotA, p.ingredients.slotB, p.ingredients.slotC].filter(
+            Boolean
+          ) as string[];
+          if (!pIngs.some((i) => i.toLowerCase() === ingredientFilter.toLowerCase())) {
+            return false;
+          }
         }
 
         return true;
       })
       .sort((a, b) => {
-        if (sortBy === 'level') {
-          return b.level - a.level;
-        }
+        if (sortBy === 'level') return b.level - a.level;
         if (sortBy === 'dex') {
           const spA = GAME_DATA.pokemon.find((s) => s.name.toUpperCase() === a.pokemonName.toUpperCase());
           const spB = GAME_DATA.pokemon.find((s) => s.name.toUpperCase() === b.pokemonName.toUpperCase());
           return (spA?.pokedexNumber || 0) - (spB?.pokedexNumber || 0);
         }
-        // default energy
-        const getEnergy = (pkmn: BoxPokemon) => {
-          try {
-            const activeSubs = [
-              pkmn.subskills.level10,
-              pkmn.level >= 25 ? pkmn.subskills.level25 : undefined,
-              pkmn.level >= 50 ? pkmn.subskills.level50 : undefined,
-            ].filter(Boolean) as string[];
-
-            const res = calculateDailyProduction({
-              pokemon: pkmn.pokemonName,
-              level: pkmn.level,
-              nature: pkmn.nature,
-              subskills: activeSubs,
-              ingredientSelection: { slot0: pkmn.ingredients.slotA },
-            });
-            return res.totalDailyEnergy;
-          } catch {
-            return 0;
-          }
-        };
-        return getEnergy(b) - getEnergy(a);
+        const prodA = getProdSummary(a);
+        const prodB = getProdSummary(b);
+        if (sortBy === 'rp') {
+          return (prodB?.rp || 0) - (prodA?.rp || 0);
+        }
+        return (prodB?.totalDailyEnergy || 0) - (prodA?.totalDailyEnergy || 0);
       });
-  }, [pokemonList, searchQuery, specialtyFilter, sortBy]);
+  }, [pokemonList, searchQuery, specialtyFilter, typeFilter, ingredientFilter, sortBy]);
 
-  // Pareto domination analysis: find individuals of the same species where one strictly beats another
+  // Pareto domination analysis across Lv.30 and Lv.60/70
   const inferiorList = useMemo(() => {
     const list: Array<{ inferior: BoxPokemon; superior: BoxPokemon; reason: string }> = [];
-    // Group by species
     const bySpecies: Record<string, BoxPokemon[]> = {};
     for (const p of pokemonList) {
       bySpecies[p.pokemonName] = bySpecies[p.pokemonName] || [];
       bySpecies[p.pokemonName].push(p);
     }
 
-    for (const [_, group] of Object.entries(bySpecies)) {
+    for (const group of Object.values(bySpecies)) {
       if (group.length < 2) continue;
       for (let i = 0; i < group.length; i++) {
         for (let j = 0; j < group.length; j++) {
           if (i === j) continue;
           const a = group[i];
           const b = group[j];
-          // Check if b is superior to a at critical levels (Lv.30, Lv.50)
           try {
-            const energyA30 = calculateDailyProduction({
+            const pA50 = calculateDailyProduction({
               pokemon: a.pokemonName,
-              level: 30,
+              level: 50,
               nature: a.nature,
-              subskills: [a.subskills.level10, a.subskills.level25].filter(Boolean) as string[],
+              subskills: normalizeBoxSubskills(a.subskills),
               ingredientSelection: {
                 slot0: a.ingredients.slotA,
                 slot30: a.ingredients.slotB || a.ingredients.slotA,
               },
             }).totalDailyEnergy;
 
-            const energyB30 = calculateDailyProduction({
+            const pB50 = calculateDailyProduction({
               pokemon: b.pokemonName,
-              level: 30,
+              level: 50,
               nature: b.nature,
-              subskills: [b.subskills.level10, b.subskills.level25].filter(Boolean) as string[],
+              subskills: normalizeBoxSubskills(b.subskills),
               ingredientSelection: {
                 slot0: b.ingredients.slotA,
                 slot30: b.ingredients.slotB || b.ingredients.slotA,
               },
             }).totalDailyEnergy;
 
-            if (energyB30 > energyA30 * 1.15) {
+            if (pB50 > pA50 * 1.15) {
               list.push({
                 inferior: a,
                 superior: b,
-                reason: `同定位在 Lv.30 预测能量低于对比个体 ${(
-                  ((energyB30 - energyA30) / energyA30) *
-                  100
-                ).toFixed(0)}%`,
+                reason: `同物种在 Lv.50 预测日能量低于对比个体 ${(((pB50 - pA50) / pA50) * 100).toFixed(0)}%`,
               });
               break;
             }
@@ -167,6 +193,16 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
     return list;
   }, [pokemonList]);
 
+  const handleOpenAdd = () => {
+    setEditingPokemon(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (pkmn: BoxPokemon) => {
+    setEditingPokemon(pkmn);
+    setIsModalOpen(true);
+  };
+
   const handleDelete = async (id: string) => {
     if (confirm(getUIText('confirmDelete', locale))) {
       await deletePokemon(id);
@@ -175,7 +211,8 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
   };
 
   const handleExportJson = () => {
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(pokemonList, null, 2));
+    const dataStr =
+      'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(pokemonList, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
     downloadAnchor.setAttribute('download', `pokesleep_box_${Date.now()}.json`);
@@ -196,7 +233,7 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
           onReload();
           alert(`成功导入 ${parsed.length} 只宝可梦！`);
         }
-      } catch (err) {
+      } catch {
         alert('导入失败，请检查 JSON 格式！');
       }
     };
@@ -212,84 +249,116 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200">
-        {/* Search & Filters */}
-        <div className="flex flex-1 items-center space-x-2">
-          <div className="relative flex-1 max-w-xs">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={getUIText('searchPlaceholder', locale)}
-              className="input-field pl-9"
-            />
-          </div>
+      {/* Top Multi-Filter Toolbar */}
+      <div className="bg-[var(--surface)] p-4 rounded-2xl border border-[var(--border-subtle)] space-y-3 shadow-2xs">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          {/* Search & Multi-Dimensional Filters */}
+          <div className="flex flex-wrap flex-1 items-center gap-2">
+            <div className="relative min-w-[200px] flex-1 max-w-xs">
+              <Search className="w-4 h-4 text-[var(--text-subtle)] absolute left-3 top-2.5" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={getUIText('searchPlaceholder', locale)}
+                className="input-field pl-9 text-xs py-1.5"
+              />
+            </div>
 
-          <div className="flex items-center space-x-1">
-            <Filter className="w-4 h-4 text-slate-400" />
+            <div className="flex items-center space-x-1">
+              <Filter className="w-4 h-4 text-[var(--text-muted)] shrink-0" />
+              <select
+                value={specialtyFilter}
+                onChange={(e) => setSpecialtyFilter(e.target.value as any)}
+                className="input-field text-xs py-1.5 w-auto"
+              >
+                <option value="all">{getUIText('filterAll', locale)}</option>
+                <option value="berry">{getUIText('filterBerry', locale)}</option>
+                <option value="ingredient">{getUIText('filterIngredient', locale)}</option>
+                <option value="skill">{getUIText('filterSkill', locale)}</option>
+              </select>
+            </div>
+
             <select
-              value={specialtyFilter}
-              onChange={(e) => setSpecialtyFilter(e.target.value as any)}
-              className="input-field text-xs py-1.5"
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="input-field text-xs py-1.5 w-auto"
             >
-              <option value="all">{getUIText('filterAll', locale)}</option>
-              <option value="berry">{getUIText('filterBerry', locale)}</option>
-              <option value="ingredient">{getUIText('filterIngredient', locale)}</option>
-              <option value="skill">{getUIText('filterSkill', locale)}</option>
+              <option value="all">全部属性</option>
+              {ALL_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {getPokemonTypeLabel(t, locale)}属性
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={ingredientFilter}
+              onChange={(e) => setIngredientFilter(e.target.value)}
+              className="input-field text-xs py-1.5 w-auto"
+            >
+              <option value="all">全部食材</option>
+              {GAME_DATA.ingredients.map((ing) => (
+                <option key={ing.name} value={ing.name}>
+                  含 {getEntityName(ing, locale)}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="input-field text-xs py-1.5 w-auto"
+            >
+              <option value="energy">按日能量排序</option>
+              <option value="rp">按 SP 排序</option>
+              <option value="level">按等级排序</option>
+              <option value="dex">按图鉴编号排序</option>
             </select>
           </div>
 
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="input-field text-xs py-1.5"
-          >
-            <option value="energy">按日能量排序</option>
-            <option value="level">按等级排序</option>
-            <option value="dex">按图鉴编号排序</option>
-          </select>
-        </div>
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setShowSendAwayModal(true)}
+              className="btn btn-secondary text-xs tap-feedback"
+              title="压制分析"
+            >
+              <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-500" />
+              送走建议 ({inferiorList.length})
+            </button>
 
-        {/* Action Buttons */}
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setShowSendAwayModal(true)}
-            className="btn btn-secondary text-xs"
-            title="压制分析"
-          >
-            <AlertTriangle className="w-3.5 h-3.5 mr-1 text-amber-500" />
-            送走建议 ({inferiorList.length})
-          </button>
+            <label className="btn btn-secondary text-xs cursor-pointer tap-feedback">
+              <Upload className="w-3.5 h-3.5 mr-1 text-[var(--text-muted)]" />
+              {getUIText('importJson', locale)}
+              <input type="file" accept=".json" onChange={handleImportJson} className="hidden" />
+            </label>
 
-          <label className="btn btn-secondary text-xs cursor-pointer">
-            <Upload className="w-3.5 h-3.5 mr-1 text-slate-500" />
-            {getUIText('importJson', locale)}
-            <input type="file" accept=".json" onChange={handleImportJson} className="hidden" />
-          </label>
+            <button onClick={handleExportJson} className="btn btn-secondary text-xs tap-feedback">
+              <Download className="w-3.5 h-3.5 mr-1 text-[var(--text-muted)]" />
+              {getUIText('exportJson', locale)}
+            </button>
 
-          <button onClick={handleExportJson} className="btn btn-secondary text-xs">
-            <Download className="w-3.5 h-3.5 mr-1 text-slate-500" />
-            {getUIText('exportJson', locale)}
-          </button>
+            {pokemonList.length > 0 && (
+              <button onClick={handleClearAll} className="btn btn-secondary text-xs text-rose-600 tap-feedback">
+                {getUIText('clearAll', locale)}
+              </button>
+            )}
 
-          <button onClick={() => setIsAddModalOpen(true)} className="btn btn-primary text-xs">
-            <Plus className="w-4 h-4 mr-1" />
-            {getUIText('addPokemon', locale)}
-          </button>
+            <button onClick={handleOpenAdd} className="btn btn-primary text-xs tap-feedback">
+              <Plus className="w-4 h-4 mr-1" />
+              {getUIText('addPokemon', locale)}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Grid of Pokemon */}
       {filteredList.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl border border-dashed border-slate-300">
-          <span className="text-4xl block mb-3">📦</span>
-          <p className="text-slate-500 text-sm">{getUIText('emptyBoxHint', locale)}</p>
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="btn btn-primary mt-4 text-xs"
-          >
+        <div className="text-center py-16 bg-[var(--surface)] rounded-2xl border-2 border-dashed border-[#d8cfbf] shadow-2xs">
+          <span className="text-4xl block mb-3 drop-shadow-xs">🏕️</span>
+          <p className="text-[var(--text-muted)] text-sm font-medium">{getUIText('emptyBoxHint', locale)}</p>
+          <button onClick={handleOpenAdd} className="btn btn-primary mt-4 text-xs tap-feedback">
             <Plus className="w-4 h-4 mr-1" />
             {getUIText('addPokemon', locale)}
           </button>
@@ -302,6 +371,7 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
               pokemon={pkmn}
               locale={locale}
               onDelete={handleDelete}
+              onEdit={handleOpenEdit}
               onAnalyze={onAnalyze}
               isInTeam={teamIds.includes(pkmn.id)}
               onToggleTeam={onToggleTeam}
@@ -312,18 +382,25 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
 
       {/* Send Away / Domination Modal */}
       {showSendAwayModal && (
-        <div className="modal-backdrop">
-          <div className="modal-panel p-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+        <div
+          className="modal-backdrop animate-backdrop-in"
+          onClick={() => setShowSendAwayModal(false)}
+        >
+          <div
+            className="modal-panel p-6 animate-panel-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3.5 border-b border-[#eae4d6]">
               <div className="flex items-center space-x-2">
                 <AlertTriangle className="w-5 h-5 text-amber-500" />
-                <h3 className="text-lg font-bold text-slate-900">
+                <h3 className="text-base font-bold text-[var(--text-main)]">
                   {getUIText('sendAwaySuggestion', locale)}
                 </h3>
               </div>
               <button
+                type="button"
                 onClick={() => setShowSendAwayModal(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-[#f4efe6] tap-feedback cursor-pointer transition-colors"
               >
                 ✕
               </button>
@@ -331,7 +408,7 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
 
             <div className="py-4 space-y-3">
               {inferiorList.length === 0 ? (
-                <div className="text-center py-8 text-slate-500 text-sm">
+                <div className="text-center py-8 text-[var(--text-muted)] text-sm font-medium">
                   {getUIText('noInferiorPokemon', locale)}
                 </div>
               ) : (
@@ -342,17 +419,18 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
                   return (
                     <div
                       key={idx}
-                      className="p-3 bg-amber-50/50 border border-amber-200 rounded-lg flex items-center justify-between text-xs"
+                      className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl flex items-center justify-between text-xs"
                     >
                       <div>
-                        <div className="font-bold text-slate-800">
+                        <div className="font-bold text-[var(--text-main)]">
                           {getEntityName(sp, locale)} Lv.{item.inferior.level}
+                          {item.inferior.nickname ? ` (${item.inferior.nickname})` : ''}
                         </div>
                         <div className="text-amber-800 text-2xs mt-1">{item.reason}</div>
                       </div>
                       <button
                         onClick={() => handleDelete(item.inferior.id)}
-                        className="btn btn-danger text-xs py-1"
+                        className="btn btn-danger text-xs py-1 tap-feedback"
                       >
                         送走
                       </button>
@@ -362,8 +440,12 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
               )}
             </div>
 
-            <div className="flex justify-end pt-3 border-t border-slate-200">
-              <button onClick={() => setShowSendAwayModal(false)} className="btn btn-secondary">
+            <div className="flex justify-end pt-3 border-t border-[#eae4d6]">
+              <button
+                type="button"
+                onClick={() => setShowSendAwayModal(false)}
+                className="btn btn-secondary text-xs tap-feedback"
+              >
                 关闭
               </button>
             </div>
@@ -371,10 +453,14 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
         </div>
       )}
 
-      {/* Add / OCR Modal */}
+      {/* Add / Edit / OCR Modal */}
       <AddPokemonModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingPokemon(null);
+        }}
+        initialData={editingPokemon || undefined}
         onSave={async (pkmn) => {
           await savePokemon(pkmn);
           onReload();

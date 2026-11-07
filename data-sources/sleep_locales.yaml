@@ -51,6 +51,98 @@ terms:
       en: "Desserts/Drinks"
       aliases: ["甜点", "甜點", "饮料", "飲料"]
 
+  pokemon_types:
+    normal:
+      zh-CN: "一般"
+      zh-TW: "一般"
+      ja: "ノーマル"
+      en: "Normal"
+    fire:
+      zh-CN: "火"
+      zh-TW: "火"
+      ja: "ほのお"
+      en: "Fire"
+    water:
+      zh-CN: "水"
+      zh-TW: "水"
+      ja: "みず"
+      en: "Water"
+    electric:
+      zh-CN: "电"
+      zh-TW: "電"
+      ja: "でんき"
+      en: "Electric"
+    grass:
+      zh-CN: "草"
+      zh-TW: "草"
+      ja: "くさ"
+      en: "Grass"
+    ice:
+      zh-CN: "冰"
+      zh-TW: "冰"
+      ja: "こおり"
+      en: "Ice"
+    fighting:
+      zh-CN: "格斗"
+      zh-TW: "格鬥"
+      ja: "かくとう"
+      en: "Fighting"
+    poison:
+      zh-CN: "毒"
+      zh-TW: "毒"
+      ja: "どく"
+      en: "Poison"
+    ground:
+      zh-CN: "地面"
+      zh-TW: "地面"
+      ja: "じめん"
+      en: "Ground"
+    flying:
+      zh-CN: "飞行"
+      zh-TW: "飛行"
+      ja: "ひこう"
+      en: "Flying"
+    psychic:
+      zh-CN: "超能力"
+      zh-TW: "超能力"
+      ja: "エスパー"
+      en: "Psychic"
+    bug:
+      zh-CN: "虫"
+      zh-TW: "蟲"
+      ja: "むし"
+      en: "Bug"
+    rock:
+      zh-CN: "岩石"
+      zh-TW: "岩石"
+      ja: "いわ"
+      en: "Rock"
+    ghost:
+      zh-CN: "幽灵"
+      zh-TW: "幽靈"
+      ja: "ゴースト"
+      en: "Ghost"
+    dragon:
+      zh-CN: "龙"
+      zh-TW: "龍"
+      ja: "ドラゴン"
+      en: "Dragon"
+    dark:
+      zh-CN: "恶"
+      zh-TW: "惡"
+      ja: "あく"
+      en: "Dark"
+    steel:
+      zh-CN: "钢"
+      zh-TW: "鋼"
+      ja: "はがね"
+      en: "Steel"
+    fairy:
+      zh-CN: "妖精"
+      zh-TW: "妖精"
+      ja: "フェアリー"
+      en: "Fairy"
+
 subskills:
   "Berry Finding S":
     zh-CN: "树果数量S"
@@ -74,19 +166,19 @@ subskills:
     rarity: "gold"
     aliases: ["ERB", "活力奖励", "精力回复奖励"]
   "Sleep EXP Bonus":
-    zh-CN: "睡眠经验值奖励"
+    zh-CN: "睡眠EXP奖励"
     zh-TW: "睡眠EXP獎勵"
     ja: "睡眠EXPボーナス"
     en: "Sleep EXP Bonus"
     rarity: "gold"
-    aliases: ["SEB", "睡经", "睡眠经验"]
+    aliases: ["SEB", "睡经", "睡眠经验", "睡眠经验值奖励"]
   "Research EXP Bonus":
-    zh-CN: "研究经验值奖励"
+    zh-CN: "研究EXP奖励"
     zh-TW: "研究EXP獎勵"
     ja: "リサーチEXPボーナス"
     en: "Research EXP Bonus"
     rarity: "gold"
-    aliases: ["REB", "研经", "研究经验"]
+    aliases: ["REB", "研经", "研究经验", "研究经验值奖励"]
   "Dream Shard Bonus":
     zh-CN: "梦之碎片奖励"
     zh-TW: "夢之碎片獎勵"
@@ -96,81 +188,81 @@ subskills:
     aliases: ["DSB", "碎片奖励", "梦碎奖励"]
   "Skill Level Up M":
     zh-CN: "技能等级提升M"
-    zh-TW: "主技能等級提升M"
+    zh-TW: "技能等級提升M"
     ja: "スキルレベルアップM"
     en: "Skill Level Up M"
     rarity: "gold"
-    aliases: ["技升M", "技能等级M", "技能+2"]
+    aliases: ["主技能等級提升M", "主技能等级提升M", "技升M", "技能等级M", "技能+2"]
   "Helping Speed M":
-    zh-CN: "帮手速度M"
-    zh-TW: "幫手速度M"
+    zh-CN: "帮忙速度M"
+    zh-TW: "幫忙速度M"
     ja: "おてつだいスピードM"
     en: "Helping Speed M"
     rarity: "silver"
-    aliases: ["帮速M", "幫速M", "帮助速度M"]
+    aliases: ["帮手速度M", "幫手速度M", "帮速M", "幫速M", "帮助速度M", "忙速度M"]
   "Helping Speed S":
-    zh-CN: "帮手速度S"
-    zh-TW: "幫手速度S"
+    zh-CN: "帮忙速度S"
+    zh-TW: "幫忙速度S"
     ja: "おてつだいスピードS"
     en: "Helping Speed S"
     rarity: "white"
-    aliases: ["帮速S", "幫速S", "帮助速度S"]
+    aliases: ["帮手速度S", "幫手速度S", "帮速S", "幫速S", "帮助速度S", "忙速度S"]
   "Ingredient Finder M":
-    zh-CN: "食材发现率M"
-    zh-TW: "食材機率M"
+    zh-CN: "食材几率提升M"
+    zh-TW: "食材機率提升M"
     ja: "食材確率アップM"
     en: "Ingredient Finder M"
     rarity: "silver"
-    aliases: ["食材概率M", "食率M", "食材M"]
+    aliases: ["食材发现率M", "食材機率M", "食材概率M", "食率M", "食材M"]
   "Ingredient Finder S":
-    zh-CN: "食材发现率S"
-    zh-TW: "食材機率S"
+    zh-CN: "食材几率提升S"
+    zh-TW: "食材機率提升S"
     ja: "食材確率アップS"
     en: "Ingredient Finder S"
     rarity: "white"
-    aliases: ["食材概率S", "食率S", "食材S"]
+    aliases: ["食材发现率S", "食材機率S", "食材概率S", "食率S", "食材S"]
   "Inventory Up L":
-    zh-CN: "持有上限L"
-    zh-TW: "最大持有上限L"
+    zh-CN: "持有上限提升L"
+    zh-TW: "持有上限提升L"
     ja: "最大所持数アップL"
     en: "Inventory Up L"
     rarity: "silver"
-    aliases: ["包包L", "背包L", "持有L", "最大所持数L"]
+    aliases: ["持有上限L", "最大持有上限L", "包包L", "背包L", "持有L", "最大所持数L"]
   "Inventory Up M":
-    zh-CN: "持有上限M"
-    zh-TW: "最大持有上限M"
+    zh-CN: "持有上限提升M"
+    zh-TW: "持有上限提升M"
     ja: "最大所持数アップM"
     en: "Inventory Up M"
     rarity: "silver"
-    aliases: ["包包M", "背包M", "持有M", "最大所持数M"]
+    aliases: ["持有上限M", "最大持有上限M", "包包M", "背包M", "持有M", "最大所持数M"]
   "Inventory Up S":
-    zh-CN: "持有上限S"
-    zh-TW: "最大持有上限S"
+    zh-CN: "持有上限提升S"
+    zh-TW: "持有上限提升S"
     ja: "最大所持数アップS"
     en: "Inventory Up S"
     rarity: "white"
-    aliases: ["包包S", "背包S", "持有S", "最大所持数S"]
+    aliases: ["持有上限S", "最大持有上限S", "包包S", "背包S", "持有S", "最大所持数S"]
   "Skill Level Up S":
     zh-CN: "技能等级提升S"
-    zh-TW: "主技能等級提升S"
+    zh-TW: "技能等級提升S"
     ja: "スキルレベルアップS"
     en: "Skill Level Up S"
     rarity: "silver"
-    aliases: ["技升S", "技能等级S", "技能+1"]
+    aliases: ["主技能等級提升S", "主技能等级提升S", "技升S", "技能等级S", "技能+1"]
   "Skill Trigger M":
-    zh-CN: "技能概率提升M"
-    zh-TW: "主技能發動機率M"
+    zh-CN: "技能几率提升M"
+    zh-TW: "技能機率提升M"
     ja: "スキル確率アップM"
     en: "Skill Trigger M"
     rarity: "silver"
-    aliases: ["技率M", "技能概率M", "主技能机率M", "技能触发M"]
+    aliases: ["技能概率提升M", "主技能發動機率M", "技率M", "技能概率M", "主技能机率M", "技能触发M"]
   "Skill Trigger S":
-    zh-CN: "技能概率提升S"
-    zh-TW: "主技能發動機率S"
+    zh-CN: "技能几率提升S"
+    zh-TW: "技能機率提升S"
     ja: "スキル確率アップS"
     en: "Skill Trigger S"
     rarity: "white"
-    aliases: ["技率S", "技能概率S", "主技能机率S", "技能触发S"]
+    aliases: ["技能概率提升S", "主技能發動機率S", "技率S", "技能概率S", "主技能机率S", "技能触发S"]
 
 ingredients:
   Apple:
@@ -418,35 +510,155 @@ mainskills:
     en: "Cooking Advance S"
     aliases: ["料理加速", "做饭加速"]
   "Berry Burst":
-    zh-CN: "树果连击"
-    zh-TW: "樹果連擊"
+    zh-CN: "树果遽增"
+    zh-TW: "樹果遽增"
     ja: "きのみバースト"
     en: "Berry Burst"
-    aliases: ["树果爆发", "樹果爆發"]
+    aliases: ["树果连击", "樹果連擊", "树果爆发", "樹果爆發"]
+  "Disguise (Berry Burst)":
+    zh-CN: "画皮（树果遽增）"
+    zh-TW: "畫皮（樹果遽增）"
+    ja: "ばけのかわ（きのみバースト）"
+    en: "Disguise (Berry Burst)"
+    aliases: ["画皮", "畫皮"]
+  "Draco Meteor (Berry Burst)":
+    zh-CN: "流星群（树果遽增）"
+    zh-TW: "流星群（樹果遽增）"
+    ja: "りゅうせいぐん（きのみバースト）"
+    en: "Draco Meteor (Berry Burst)"
+    aliases: ["流星群"]
   "Berry Zone":
     zh-CN: "树果领域"
     zh-TW: "樹果領域"
     ja: "きのみフィールド"
     en: "Berry Zone"
     aliases: ["树果场地"]
+  "Psystrike (Berry Zone)":
+    zh-CN: "精神击破（树果领域）"
+    zh-TW: "精神擊破（樹果領域）"
+    ja: "サイコブレイク（きのみフィールド）"
+    en: "Psystrike (Berry Zone)"
+    aliases: ["精神击破", "精神擊破"]
   "Ingredient Draw S":
     zh-CN: "食材抽选S"
     zh-TW: "食材抽選S"
     ja: "食材セレクトS"
     en: "Ingredient Draw S"
     aliases: ["抽食材"]
+  "Hyper Cutter (Ingredient Draw S)":
+    zh-CN: "怪力钳（食材抽选S）"
+    zh-TW: "怪力鉗（食材抽選S）"
+    ja: "かいりきバサミ（食材セレクトS）"
+    en: "Hyper Cutter (Ingredient Draw S)"
+    aliases: ["怪力钳", "怪力鉗"]
+  "Super Luck (Ingredient Draw S)":
+    zh-CN: "超幸运（食材抽选S）"
+    zh-TW: "超幸運（食材抽選S）"
+    ja: "きょううん（食材セレクトS）"
+    en: "Super Luck (Ingredient Draw S)"
+    aliases: ["超幸运", "超幸運"]
   "Skill Copy":
     zh-CN: "技能复制"
     zh-TW: "技能複製"
     ja: "スキルコピー"
     en: "Skill Copy"
     aliases: ["变身", "抄技能"]
+  "Transform (Skill Copy)":
+    zh-CN: "变身（技能复制）"
+    zh-TW: "變身（技能複製）"
+    ja: "へんしん（スキルコピー）"
+    en: "Transform (Skill Copy)"
+    aliases: ["变身", "變身"]
+  "Mimic (Skill Copy)":
+    zh-CN: "模仿（技能复制）"
+    zh-TW: "模仿（技能複製）"
+    ja: "ものまね（スキルコピー）"
+    en: "Mimic (Skill Copy)"
+    aliases: ["模仿"]
   "Versatile":
     zh-CN: "写生全能"
     zh-TW: "寫生全能"
     ja: "スケッチ"
     en: "Versatile"
     aliases: ["写生"]
+  "Bad Dreams (Charge Strength M)":
+    zh-CN: "梦魇（能量填充M）"
+    zh-TW: "夢魘（能量填充M）"
+    ja: "ナイトメア（エナジーチャージM）"
+    en: "Bad Dreams (Charge Strength M)"
+    aliases: ["梦魇", "夢魘"]
+  "Stockpile (Charge Strength S)":
+    zh-CN: "蓄力（能量填充S）"
+    zh-TW: "蓄力（能量填充S）"
+    ja: "たくわえる（エナジーチャージS）"
+    en: "Stockpile (Charge Strength S)"
+    aliases: ["蓄力"]
+  "Lunar Blessing (Energy For Everyone S)":
+    zh-CN: "新月祈祷（活力疗愈S）"
+    zh-TW: "新月祈禱（活力療癒S）"
+    ja: "みかづきのいのり（げんきオールS）"
+    en: "Lunar Blessing (Energy For Everyone S)"
+    aliases: ["新月祈祷", "新月祈禱"]
+  "Berry Juice (Energy For Everyone S)":
+    zh-CN: "树果汁（活力疗愈S）"
+    zh-TW: "樹果汁（活力療癒S）"
+    ja: "きのみジュース（げんきオールS）"
+    en: "Berry Juice (Energy For Everyone S)"
+    aliases: ["树果汁", "樹果汁"]
+  "Moonlight (Charge Energy S)":
+    zh-CN: "月光（活力填充S）"
+    zh-TW: "月光（活力填充S）"
+    ja: "つきのひかり（げんきチャージS）"
+    en: "Moonlight (Charge Energy S)"
+    aliases: ["月光"]
+  "Heal Pulse (Energizing Cheer S)":
+    zh-CN: "治愈波动（活力加油S）"
+    zh-TW: "治癒波動（活力加油S）"
+    ja: "いやしのはどう（げんきエールS）"
+    en: "Heal Pulse (Energizing Cheer S)"
+    aliases: ["治愈波动", "治癒波動"]
+  "Nuzzle (Energizing Cheer S)":
+    zh-CN: "蹭蹭脸颊（活力加油S）"
+    zh-TW: "蹭蹭臉頰（活力加油S）"
+    ja: "ほっぺすりすり（げんきエールS）"
+    en: "Nuzzle (Energizing Cheer S)"
+    aliases: ["蹭蹭脸颊", "蹭蹭臉頰"]
+  "Plus (Ingredient Magnet S)":
+    zh-CN: "正电（食材获取S）"
+    zh-TW: "正電（食材獲取S）"
+    ja: "プラス（食材ゲットS）"
+    en: "Plus (Ingredient Magnet S)"
+    aliases: ["正电", "正電"]
+  "Present (Ingredient Magnet S)":
+    zh-CN: "礼物（食材获取S）"
+    zh-TW: "禮物（食材獲取S）"
+    ja: "プレゼント（食材ゲットS）"
+    en: "Present (Ingredient Magnet S)"
+    aliases: ["礼物", "禮物"]
+  "Minus (Cooking Power-Up S)":
+    zh-CN: "负电（料理强化S）"
+    zh-TW: "負電（料理強化S）"
+    ja: "マイナス（料理パワーアップS）"
+    en: "Minus (Cooking Power-Up S)"
+    aliases: ["负电", "負電"]
+  "Aura Sphere (Dream Shard Magnet S)":
+    zh-CN: "波导弹（梦之碎片获取S）"
+    zh-TW: "波導彈（夢之碎片獲取S）"
+    ja: "はどうだん（ゆめのかけらゲットS）"
+    en: "Aura Sphere (Dream Shard Magnet S)"
+    aliases: ["波导弹", "波導彈"]
+  "Bulk Up (Cooking Assist S)":
+    zh-CN: "健美（料理协助S）"
+    zh-TW: "健美（料理協助S）"
+    ja: "ビルドアップ（りょうりサポートS）"
+    en: "Bulk Up (Cooking Assist S)"
+    aliases: ["健美"]
+  "Mystical Fire (Cooking Advance S)":
+    zh-CN: "魔法火焰（料理推进S）"
+    zh-TW: "魔法火焰（料理推進S）"
+    ja: "マジカルフレイム（りょうり時短）"
+    en: "Mystical Fire (Cooking Advance S)"
+    aliases: ["魔法火焰"]
 
 recipes:
   # Curries

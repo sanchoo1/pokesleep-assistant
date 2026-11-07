@@ -16,8 +16,8 @@
   <img src="https://img.shields.io/badge/FastAPI-0.110+-009688?logo=fastapi" alt="FastAPI" />
   <img src="https://img.shields.io/badge/SciPy-HiGHS%20MILP-8CAAE6?logo=scipy" alt="SciPy" />
   <img src="https://img.shields.io/badge/RapidOCR-ONNX-orange" alt="RapidOCR" />
-  <img src="https://img.shields.io/badge/Vitest-39%20passed-green?logo=vitest" alt="Vitest" />
-  <img src="https://img.shields.io/badge/pytest-5%20passed-brightgreen?logo=pytest" alt="pytest" />
+  <img src="https://img.shields.io/badge/Vitest-74%20passed-green?logo=vitest" alt="Vitest" />
+  <img src="https://img.shields.io/badge/pytest-7%20passed-brightgreen?logo=pytest" alt="pytest" />
   <img src="https://img.shields.io/badge/License-MIT%20%2F%20Apache--2.0-blue.svg" alt="License" />
 </p>
 
@@ -26,21 +26,22 @@
 ## 🌟 核心特性
 
 - 📦 **宝可梦盒整理 (Box Manager)**
-  - 基于浏览器原生 **IndexedDB** 实现本地离线存储，首发预置新手队伍，数据永不上传云端，隐私安全。
-  - 支持物种名/多语言/编号搜索、专长（树果/食材/技能）筛选及日能量/等级排序。
-  - **帕累托压制分析（送走建议）**：自动对比盒中同物种个体，若某个体在关键等级（Lv.30/50）产出被另一只绝对压制，自动给出送走建议。
-  - 支持盒子配置的 **JSON 导入与导出** 备份。
+  - 基于浏览器原生 **IndexedDB** 实现本地离线存储，支持记录每只宝可梦的当前等级、昵称、主技能等级与缎带，数据永不上传云端。
+  - **卡片一键编辑与官方立绘展示**：支持随时编辑盒中已有宝可梦配置，全面集成宝可梦、树果、食材、属性、主技能与料理官方高清图标。
+  - **多维检索筛选器**：支持按名称/图鉴号、专长（树果/食材/技能/全能）、18 种宝可梦属性（对应树果）、19 种产食材与进化阶段组合快速检索。
+  - **帕累托压制分析（送走建议）** 与 **JSON 导入/导出** 备份。
 
-- 📸 **多语言截图与文本 OCR (RapidOCR + Fuzzy Correction)**
-  - 基于本地轻量 ONNX 模型的 `RapidOCR`，无需联网调用商业云 API 即可离线秒级提取截图文字。
-  - 智能解析宝可梦物种、等级、性格、副技能（Lv.10/25/50/75/100）及食材槽位（A/B/C）。
-  - **词典纠错机制**：基于自建多语言词库，自动纠正 OCR 常见错别字（如将“帮手奖励”/“帮忙奖励”、“食材几率提升”/“食材发现率”自动归一化到规范 ID，并根据物种特定食材池校验过滤）。
+- 📸 **多语言截图与无扩展名图片 OCR (RapidOCR + RP 反推)**
+  - 基于本地轻量 ONNX 模型的 `RapidOCR`，支持任意图片文件选择（包括无扩展名截图）、拖拽上传与剪贴板 `Ctrl+V` 粘贴识别。
+  - 採用 **CLAHE 对比度增强 + 3×2 二维网格几何定位**，精准提取物种、等级、`SP (RP)`、主技能等级、携带上限、性格及副技能（`Lv.10 / 25 / 50 / 70 / 80`）。
+  - **精确 SP 反推屏幕外食材槽**：利用游戏内精确 `SP (RP)` 公式自动反推截图中未露出的第 2/3 食材槽配置。
 
-- 🌟 **个体分析与 PR 评定 (Rate My Pokémon)**
-  - 复刻并对齐社区公认的 RaenonX 算法模型。
-  - **加权百分位 (PR)**：使用副技能抽取真实概率（金 14% / 银 33% / 白 53% 及保底规则）计算当前个体的 PR 百分位排名（0–100）。
-  - **多维度评估**：最好/最坏组合区间相对位置（%）、相比完全中性基准个体的相对增益。
-  - **成长里程碑走势走廊**：一键预览该个体在 Lv.25 / Lv.30 / Lv.50 / Lv.60 / Lv.70 各阶段的 PR 变化与理论最佳/最差性格副技能组合。
+- 🌟 **全阶段自动个体分析与专长深度拆解 (Rate My Pokémon)**
+  - **免输当前等级，全阶段自动评估**：自动横跨 **`Lv.10`、`Lv.25`、`Lv.30`、`Lv.50`、`Lv.60`、`Lv.70`（当前版本满级上限，解锁第 4 副技能）** 六大关键节点计算精确全组合去重加权 PR 百分位。
+  - **三大专长专属深度分析面板**：
+    - **技能型专长**：分析每日期望技能触发次数、基础/修正/保底后触发率、有效主技能等级（自动计入解锁的 `技能等级提升S/M`）及每次/每日具体量化收益（树果遽增、活力全开、能量填充、料理强化、食材获取等）。
+    - **树果型专长**：分析树果日能量与总能量、单次掉落数、卡比兽喜好树果（2×）与岛屿加成对比、满包偷吃（Sneaky Snacking）纯树果日能量及装满携带上限所需时长。
+    - **食材型专长**：分析各槽位食材日产量/能量获取效率，以及**单宠食谱覆盖率（咖喱 / 沙拉 / 甜点三大类一日三餐自给率与高阶食谱契合度排名）**。
 
 - 🍲 **队伍能量与料理规划 (Team Energy & Cooking Planner)**
   - 支持配置 5 宠出阵队伍，自动计算每日树果、食材、主技能期望产出及每日卡比兽总能量贡献。
@@ -152,18 +153,22 @@ pnpm dev
 
 ---
 
-## 🧪 自动化测试
+## 🧪 自动化测试与跨源交叉验证流水线
 
-项目拥有覆盖全面的测试套件，可使用一条命令完成全栈回归验证：
+项目内置了面向新版本、新宝可梦与核心公式回归的**黄金验证集与跨源交叉验证流水线**（见 [`.github/workflows/ci.yml`](./.github/workflows/ci.yml)）：
+- 使用 [`tools/etl/generate_golden_dataset.mjs`](./tools/etl/generate_golden_dataset.mjs) 基于固定随机种子与真实截图算例生成 **30 个代表性个体**（覆盖树果 / 食材 / 技能 / 全能专长、Lv.8–Lv.70、缎带、好露营券、技能升级副技能与多种主技能），与 **Neroli's Lab (`sleepapi-common`)**、**RaenonX 公式**及游戏内实机 `SP` 面板交叉核验。
 
 ```bash
-# 一键运行全部测试 (39 个 Vitest 黄金算例 + 5 个 pytest 接口测试)
+# 重新从上游参考源生成 30 个代表性个体的黄金交叉验证集
+pnpm run validate:generate
+
+# 一键运行全栈测试 (74 个 Vitest 交叉验证与引擎算例 + 7 个 pytest OCR/RP/MILP 测试)
 pnpm run test:all
 
-# 单独运行 TypeScript 引擎与数据测试 (Vitest)
+# 单独运行 TypeScript 引擎与交叉验证套件 (Vitest)
 pnpm test
 
-# 单独运行 Python 后端测试 (pytest)
+# 单独运行 Python 后端 OCR、精确 RP 反推与线性规划测试 (pytest)
 pnpm run test:py
 
 # 全栈前端生产环境构建
@@ -189,3 +194,4 @@ pnpm run build
    - 对照官方游戏内文本独立整理的 17 种副技能、19 种食材、78 道食谱与主技能四语规范词典及 OCR 别名库。
 
 *Pokémon 以及相关角色名称为 Nintendo、Creatures Inc.、GAME FREAK inc. 及 The Pokémon Company 的注册商标。本项目为非营利性开源辅助工具，与官方机构无任何关联。*
+

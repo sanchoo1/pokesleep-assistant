@@ -11,6 +11,26 @@
       "curry": "カレー・シチュー",
       "salad": "サラダ",
       "dessert": "デザート・ドリンク"
+    },
+    "pokemon_types": {
+      "normal": "ノーマル",
+      "fire": "ほのお",
+      "water": "みず",
+      "electric": "でんき",
+      "grass": "くさ",
+      "ice": "こおり",
+      "fighting": "かくとう",
+      "poison": "どく",
+      "ground": "じめん",
+      "flying": "ひこう",
+      "psychic": "エスパー",
+      "bug": "むし",
+      "rock": "いわ",
+      "ghost": "ゴースト",
+      "dragon": "ドラゴン",
+      "dark": "あく",
+      "steel": "はがね",
+      "fairy": "フェアリー"
     }
   },
   "pokemon": {
@@ -458,10 +478,30 @@
     "Cooking Assist S": "りょうりサポートS",
     "Cooking Advance S": "りょうり時短",
     "Berry Burst": "きのみバースト",
+    "Disguise (Berry Burst)": "ばけのかわ（きのみバースト）",
+    "Draco Meteor (Berry Burst)": "りゅうせいぐん（きのみバースト）",
     "Berry Zone": "きのみフィールド",
+    "Psystrike (Berry Zone)": "サイコブレイク（きのみフィールド）",
     "Ingredient Draw S": "食材セレクトS",
+    "Hyper Cutter (Ingredient Draw S)": "かいりきバサミ（食材セレクトS）",
+    "Super Luck (Ingredient Draw S)": "きょううん（食材セレクトS）",
     "Skill Copy": "スキルコピー",
-    "Versatile": "スケッチ"
+    "Transform (Skill Copy)": "へんしん（スキルコピー）",
+    "Mimic (Skill Copy)": "ものまね（スキルコピー）",
+    "Versatile": "スケッチ",
+    "Bad Dreams (Charge Strength M)": "ナイトメア（エナジーチャージM）",
+    "Stockpile (Charge Strength S)": "たくわえる（エナジーチャージS）",
+    "Lunar Blessing (Energy For Everyone S)": "みかづきのいのり（げんきオールS）",
+    "Berry Juice (Energy For Everyone S)": "きのみジュース（げんきオールS）",
+    "Moonlight (Charge Energy S)": "つきのひかり（げんきチャージS）",
+    "Heal Pulse (Energizing Cheer S)": "いやしのはどう（げんきエールS）",
+    "Nuzzle (Energizing Cheer S)": "ほっぺすりすり（げんきエールS）",
+    "Plus (Ingredient Magnet S)": "プラス（食材ゲットS）",
+    "Present (Ingredient Magnet S)": "プレゼント（食材ゲットS）",
+    "Minus (Cooking Power-Up S)": "マイナス（料理パワーアップS）",
+    "Aura Sphere (Dream Shard Magnet S)": "はどうだん（ゆめのかけらゲットS）",
+    "Bulk Up (Cooking Assist S)": "ビルドアップ（りょうりサポートS）",
+    "Mystical Fire (Cooking Advance S)": "マジカルフレイム（りょうり時短）"
   },
   "aliases": {
     "苹果": {
@@ -796,6 +836,14 @@
       "type": "subskill",
       "key": "Helping Bonus"
     },
+    "帮手速度s": {
+      "type": "subskill",
+      "key": "Helping Speed S"
+    },
+    "幫手速度s": {
+      "type": "subskill",
+      "key": "Helping Speed S"
+    },
     "帮速s": {
       "type": "subskill",
       "key": "Helping Speed S"
@@ -807,6 +855,18 @@
     "帮助速度s": {
       "type": "subskill",
       "key": "Helping Speed S"
+    },
+    "忙速度s": {
+      "type": "subskill",
+      "key": "Helping Speed S"
+    },
+    "帮手速度m": {
+      "type": "subskill",
+      "key": "Helping Speed M"
+    },
+    "幫手速度m": {
+      "type": "subskill",
+      "key": "Helping Speed M"
     },
     "帮速m": {
       "type": "subskill",
@@ -820,6 +880,18 @@
       "type": "subskill",
       "key": "Helping Speed M"
     },
+    "忙速度m": {
+      "type": "subskill",
+      "key": "Helping Speed M"
+    },
+    "食材发现率s": {
+      "type": "subskill",
+      "key": "Ingredient Finder S"
+    },
+    "食材機率s": {
+      "type": "subskill",
+      "key": "Ingredient Finder S"
+    },
     "食材概率s": {
       "type": "subskill",
       "key": "Ingredient Finder S"
@@ -832,6 +904,14 @@
       "type": "subskill",
       "key": "Ingredient Finder S"
     },
+    "食材发现率m": {
+      "type": "subskill",
+      "key": "Ingredient Finder M"
+    },
+    "食材機率m": {
+      "type": "subskill",
+      "key": "Ingredient Finder M"
+    },
     "食材概率m": {
       "type": "subskill",
       "key": "Ingredient Finder M"
@@ -843,6 +923,14 @@
     "食材m": {
       "type": "subskill",
       "key": "Ingredient Finder M"
+    },
+    "持有上限s": {
+      "type": "subskill",
+      "key": "Inventory Up S"
+    },
+    "最大持有上限s": {
+      "type": "subskill",
+      "key": "Inventory Up S"
     },
     "包包s": {
       "type": "subskill",
@@ -860,6 +948,14 @@
       "type": "subskill",
       "key": "Inventory Up S"
     },
+    "持有上限m": {
+      "type": "subskill",
+      "key": "Inventory Up M"
+    },
+    "最大持有上限m": {
+      "type": "subskill",
+      "key": "Inventory Up M"
+    },
     "包包m": {
       "type": "subskill",
       "key": "Inventory Up M"
@@ -875,6 +971,14 @@
     "最大所持数m": {
       "type": "subskill",
       "key": "Inventory Up M"
+    },
+    "持有上限l": {
+      "type": "subskill",
+      "key": "Inventory Up L"
+    },
+    "最大持有上限l": {
+      "type": "subskill",
+      "key": "Inventory Up L"
     },
     "包包l": {
       "type": "subskill",
@@ -904,6 +1008,18 @@
       "type": "subskill",
       "key": "Research EXP Bonus"
     },
+    "研究经验值奖励": {
+      "type": "subskill",
+      "key": "Research EXP Bonus"
+    },
+    "主技能等級提升m": {
+      "type": "subskill",
+      "key": "Skill Level Up M"
+    },
+    "主技能等级提升m": {
+      "type": "subskill",
+      "key": "Skill Level Up M"
+    },
     "技升m": {
       "type": "subskill",
       "key": "Skill Level Up M"
@@ -916,6 +1032,14 @@
       "type": "subskill",
       "key": "Skill Level Up M"
     },
+    "主技能等級提升s": {
+      "type": "subskill",
+      "key": "Skill Level Up S"
+    },
+    "主技能等级提升s": {
+      "type": "subskill",
+      "key": "Skill Level Up S"
+    },
     "技升s": {
       "type": "subskill",
       "key": "Skill Level Up S"
@@ -927,6 +1051,14 @@
     "技能+1": {
       "type": "subskill",
       "key": "Skill Level Up S"
+    },
+    "技能概率提升m": {
+      "type": "subskill",
+      "key": "Skill Trigger M"
+    },
+    "主技能發動機率m": {
+      "type": "subskill",
+      "key": "Skill Trigger M"
     },
     "技率m": {
       "type": "subskill",
@@ -943,6 +1075,14 @@
     "技能触发m": {
       "type": "subskill",
       "key": "Skill Trigger M"
+    },
+    "技能概率提升s": {
+      "type": "subskill",
+      "key": "Skill Trigger S"
+    },
+    "主技能發動機率s": {
+      "type": "subskill",
+      "key": "Skill Trigger S"
     },
     "技率s": {
       "type": "subskill",
@@ -969,6 +1109,10 @@
       "key": "Sleep EXP Bonus"
     },
     "睡眠经验": {
+      "type": "subskill",
+      "key": "Sleep EXP Bonus"
+    },
+    "睡眠经验值奖励": {
       "type": "subskill",
       "key": "Sleep EXP Bonus"
     },
@@ -1076,6 +1220,14 @@
       "type": "mainskill",
       "key": "Cooking Advance S"
     },
+    "树果连击": {
+      "type": "mainskill",
+      "key": "Berry Burst"
+    },
+    "樹果連擊": {
+      "type": "mainskill",
+      "key": "Berry Burst"
+    },
     "树果爆发": {
       "type": "mainskill",
       "key": "Berry Burst"
@@ -1084,25 +1236,157 @@
       "type": "mainskill",
       "key": "Berry Burst"
     },
+    "画皮": {
+      "type": "mainskill",
+      "key": "Disguise (Berry Burst)"
+    },
+    "畫皮": {
+      "type": "mainskill",
+      "key": "Disguise (Berry Burst)"
+    },
+    "流星群": {
+      "type": "mainskill",
+      "key": "Draco Meteor (Berry Burst)"
+    },
     "树果场地": {
       "type": "mainskill",
       "key": "Berry Zone"
+    },
+    "精神击破": {
+      "type": "mainskill",
+      "key": "Psystrike (Berry Zone)"
+    },
+    "精神擊破": {
+      "type": "mainskill",
+      "key": "Psystrike (Berry Zone)"
     },
     "抽食材": {
       "type": "mainskill",
       "key": "Ingredient Draw S"
     },
+    "怪力钳": {
+      "type": "mainskill",
+      "key": "Hyper Cutter (Ingredient Draw S)"
+    },
+    "怪力鉗": {
+      "type": "mainskill",
+      "key": "Hyper Cutter (Ingredient Draw S)"
+    },
+    "超幸运": {
+      "type": "mainskill",
+      "key": "Super Luck (Ingredient Draw S)"
+    },
+    "超幸運": {
+      "type": "mainskill",
+      "key": "Super Luck (Ingredient Draw S)"
+    },
     "变身": {
       "type": "mainskill",
-      "key": "Skill Copy"
+      "key": "Transform (Skill Copy)"
     },
     "抄技能": {
       "type": "mainskill",
       "key": "Skill Copy"
     },
+    "變身": {
+      "type": "mainskill",
+      "key": "Transform (Skill Copy)"
+    },
+    "模仿": {
+      "type": "mainskill",
+      "key": "Mimic (Skill Copy)"
+    },
     "写生": {
       "type": "mainskill",
       "key": "Versatile"
+    },
+    "梦魇": {
+      "type": "mainskill",
+      "key": "Bad Dreams (Charge Strength M)"
+    },
+    "夢魘": {
+      "type": "mainskill",
+      "key": "Bad Dreams (Charge Strength M)"
+    },
+    "蓄力": {
+      "type": "mainskill",
+      "key": "Stockpile (Charge Strength S)"
+    },
+    "新月祈祷": {
+      "type": "mainskill",
+      "key": "Lunar Blessing (Energy For Everyone S)"
+    },
+    "新月祈禱": {
+      "type": "mainskill",
+      "key": "Lunar Blessing (Energy For Everyone S)"
+    },
+    "树果汁": {
+      "type": "mainskill",
+      "key": "Berry Juice (Energy For Everyone S)"
+    },
+    "樹果汁": {
+      "type": "mainskill",
+      "key": "Berry Juice (Energy For Everyone S)"
+    },
+    "月光": {
+      "type": "mainskill",
+      "key": "Moonlight (Charge Energy S)"
+    },
+    "治愈波动": {
+      "type": "mainskill",
+      "key": "Heal Pulse (Energizing Cheer S)"
+    },
+    "治癒波動": {
+      "type": "mainskill",
+      "key": "Heal Pulse (Energizing Cheer S)"
+    },
+    "蹭蹭脸颊": {
+      "type": "mainskill",
+      "key": "Nuzzle (Energizing Cheer S)"
+    },
+    "蹭蹭臉頰": {
+      "type": "mainskill",
+      "key": "Nuzzle (Energizing Cheer S)"
+    },
+    "正电": {
+      "type": "mainskill",
+      "key": "Plus (Ingredient Magnet S)"
+    },
+    "正電": {
+      "type": "mainskill",
+      "key": "Plus (Ingredient Magnet S)"
+    },
+    "礼物": {
+      "type": "mainskill",
+      "key": "Present (Ingredient Magnet S)"
+    },
+    "禮物": {
+      "type": "mainskill",
+      "key": "Present (Ingredient Magnet S)"
+    },
+    "负电": {
+      "type": "mainskill",
+      "key": "Minus (Cooking Power-Up S)"
+    },
+    "負電": {
+      "type": "mainskill",
+      "key": "Minus (Cooking Power-Up S)"
+    },
+    "波导弹": {
+      "type": "mainskill",
+      "key": "Aura Sphere (Dream Shard Magnet S)"
+    },
+    "波導彈": {
+      "type": "mainskill",
+      "key": "Aura Sphere (Dream Shard Magnet S)"
+    },
+    "健美": {
+      "type": "mainskill",
+      "key": "Bulk Up (Cooking Assist S)"
+    },
+    "魔法火焰": {
+      "type": "mainskill",
+      "key": "Mystical Fire (Cooking Advance S)"
     }
   }
 }

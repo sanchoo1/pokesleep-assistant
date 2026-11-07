@@ -5,4 +5,5 @@ export * from './cookingStrength';
 export * from './potCapacity';
 export * from './carryLimit';
 export * from './skillProc';
+export * from './rp';
 

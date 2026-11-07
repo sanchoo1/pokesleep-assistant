@@ -1,28 +1,65 @@
 @import "tailwindcss";
 
 :root {
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --bg-main: #f8fafc;
-  --card-bg: #ffffff;
-  --border: #e2e8f0;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --gold: #eab308;
-  --silver: #94a3b8;
-  --white: #cbd5e1;
-  --berry: #10b981;
-  --ingredient: #f59e0b;
-  --skill: #6366f1;
+  /* Camp Slumber Semantic Color System */
+  --canvas: #f7f5ee;
+  --surface: #ffffff;
+  --surface-subtle: #f4efe6;
+  --surface-hover: #fbf9f4;
+  --border-subtle: #eae4d6;
+  --border-strong: #d8cfbf;
+
+  --text-main: #1f242d;
+  --text-muted: #6e7687;
+  --text-subtle: #9ca3af;
+
+  /* Primary Camp Accent - Twilight Midnight Navy */
+  --primary: #32435f;
+  --primary-hover: #26334a;
+  --primary-light: #ebf1f8;
+  --primary-border: #cad8e8;
+
+  /* Specialty 3 Sleep Stages Metaphors */
+  /* Berry / Dozing (浅睡) - Sage Berry Green */
+  --berry: #3a8a62;
+  --berry-bg: #eaf5ee;
+  --berry-border: #c2e5d0;
+  --berry-text: #21593e;
+
+  /* Ingredient / Snoozing (安睡) - Warm Morning Honey Amber */
+  --ingredient: #d07512;
+  --ingredient-bg: #fef6eb;
+  --ingredient-border: #fadcb7;
+  --ingredient-text: #864606;
+
+  /* Skill / Slumbering (深睡) - Twilight Lavender Lilac */
+  --skill: #7258c7;
+  --skill-bg: #f4f1fd;
+  --skill-border: #dccefb;
+  --skill-text: #4e3698;
+
+  /* Subskill Tiers */
+  --gold-bg: #fef9c3;
+  --gold-border: #fde047;
+  --gold-text: #854d0e;
+
+  --silver-bg: #f1f5f9;
+  --silver-border: #cbd5e1;
+  --silver-text: #334155;
+
+  --white-bg: #f8fafc;
+  --white-border: #e2e8f0;
+  --white-text: #64748b;
 }
 
 body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background-color: var(--bg-main);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--canvas);
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Custom styles and utilities */
@@ -32,122 +69,150 @@ body {
   padding: 1rem;
 }
 
+/* Apple-style Fluid Spring transitions & Emil active scale */
+.tap-feedback {
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease;
+  touch-action: manipulation;
+}
+.tap-feedback:active {
+  transform: scale(0.96);
+}
+
+/* Camp Slumber Card with Emil-style soft elevation */
 .card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-  transition: all 0.2s ease;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1.125rem; /* 18px Squircle */
+  box-shadow: 0 4px 20px -4px rgba(60, 50, 30, 0.05), 0 2px 6px -2px rgba(60, 50, 30, 0.02);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease;
 }
 
 .card:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px -6px rgba(60, 50, 30, 0.09), 0 4px 10px -3px rgba(60, 50, 30, 0.04);
+  border-color: var(--border-strong);
 }
 
+/* Button System */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-weight: 500;
+  font-weight: 600;
   padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  border-radius: 0.625rem;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   border: 1px solid transparent;
   font-size: 0.875rem;
+  touch-action: manipulation;
+  user-select: none;
+}
+.btn:active {
+  transform: scale(0.97);
 }
 
 .btn-primary {
-  background-color: #2563eb;
+  background-color: var(--primary);
   color: #ffffff;
+  box-shadow: 0 2px 8px -2px rgba(50, 67, 95, 0.3);
 }
 .btn-primary:hover {
-  background-color: #1d4ed8;
+  background-color: var(--primary-hover);
+  box-shadow: 0 4px 12px -2px rgba(50, 67, 95, 0.4);
 }
 
 .btn-secondary {
-  background-color: #f1f5f9;
-  color: #334155;
-  border-color: #cbd5e1;
+  background-color: var(--surface-subtle);
+  color: var(--text-main);
+  border-color: var(--border-subtle);
 }
 .btn-secondary:hover {
-  background-color: #e2e8f0;
+  background-color: #eee8dc;
+  border-color: var(--border-strong);
 }
 
 .btn-danger {
-  background-color: #fee2e2;
+  background-color: #fef2f2;
   color: #b91c1c;
-  border-color: #fca5a5;
+  border-color: #fecaca;
 }
 .btn-danger:hover {
-  background-color: #fecaca;
+  background-color: #fee2e2;
+  border-color: #fca5a5;
 }
 
+/* Badge System with Macaron & Nature Tones */
 .badge {
   display: inline-flex;
   align-items: center;
   padding: 0.2rem 0.55rem;
   border-radius: 9999px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .badge-gold {
-  background-color: #fef9c3;
-  color: #854d0e;
-  border: 1px solid #fde047;
+  background-color: var(--gold-bg);
+  color: var(--gold-text);
+  border: 1px solid var(--gold-border);
 }
 
 .badge-silver {
-  background-color: #f1f5f9;
-  color: #475569;
-  border: 1px solid #cbd5e1;
+  background-color: var(--silver-bg);
+  color: var(--silver-text);
+  border: 1px solid var(--silver-border);
 }
 
 .badge-white {
-  background-color: #f8fafc;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
+  background-color: var(--white-bg);
+  color: var(--white-text);
+  border: 1px solid var(--white-border);
 }
 
 .badge-berry {
-  background-color: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
+  background-color: var(--berry-bg);
+  color: var(--berry-text);
+  border: 1px solid var(--berry-border);
 }
 
 .badge-ingredient {
-  background-color: #fffbeb;
-  color: #92400e;
-  border: 1px solid #fde68a;
+  background-color: var(--ingredient-bg);
+  color: var(--ingredient-text);
+  border: 1px solid var(--ingredient-border);
 }
 
 .badge-skill {
-  background-color: #eef2ff;
-  color: #3730a3;
-  border: 1px solid #c7d2fe;
+  background-color: var(--skill-bg);
+  color: var(--skill-text);
+  border: 1px solid var(--skill-border);
 }
 
+/* Form Inputs */
 .input-field {
   width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.5rem;
-  background-color: #ffffff;
-  color: #1e293b;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.625rem;
+  background-color: var(--surface);
+  color: var(--text-main);
   font-size: 0.875rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .input-field:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(50, 67, 95, 0.12);
 }
 
+/* Modal System with Emil Kowalski & Apple-grade entrance physics */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(2px);
+  background-color: rgba(26, 32, 44, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -156,11 +221,61 @@ body {
 }
 
 .modal-panel {
-  background: #ffffff;
-  border-radius: 1rem;
-  max-width: 640px;
+  background: var(--surface);
+  border-radius: 1.25rem;
+  max-width: 660px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(234, 228, 214, 0.8);
+  box-shadow: 0 25px 50px -12px rgba(40, 32, 20, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+}
+
+/* Animation Keyframes */
+@keyframes backdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes backdropFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modalScaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.97) translateY(6px);
+  }
+}
+
+.animate-backdrop-in {
+  animation: backdropFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-backdrop-out {
+  animation: backdropFadeOut 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-panel-in {
+  animation: modalScaleIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-panel-out {
+  animation: modalScaleOut 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

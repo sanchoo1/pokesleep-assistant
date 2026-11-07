@@ -3,8 +3,7 @@ import {
   type PokemonSpecies,
   type Nature,
   type Subskill,
-  type Ingredient,
-  type Berry,
+  type MainskillUnit,
 } from '@pokesleep/data';
 import {
   calculateHelpingFrequency,
@@ -12,9 +11,30 @@ import {
   calculateCarryLimit,
   calculateIngredientRate,
   calculateSkillRate,
+  calculateRP,
 } from '../formula';
 
-export const SUBSKILL_UNLOCK_LEVELS = [10, 25, 50, 75, 100];
+/**
+ * Current game version subskill unlock levels:
+ * Slot 1: Lv.10, Slot 2: Lv.25, Slot 3: Lv.50, Slot 4: Lv.70, Slot 5: Lv.80.
+ * Current game max Pokémon level cap is Lv.70 (so up to 4 subskills can be unlocked).
+ */
+export const SUBSKILL_UNLOCK_LEVELS = [10, 25, 50, 70, 80] as const;
+export const MAX_POKEMON_LEVEL = 70;
+export const EVALUATION_MILESTONE_LEVELS = [10, 25, 30, 50, 60, 70] as const;
+
+export interface SubskillSlotsMap {
+  level10?: Subskill | string | null;
+  level25?: Subskill | string | null;
+  level50?: Subskill | string | null;
+  level70?: Subskill | string | null;
+  level80?: Subskill | string | null;
+  /** Legacy compatibility keys */
+  level75?: Subskill | string | null;
+  level100?: Subskill | string | null;
+}
+
+export type SubskillsInput = Array<Subskill | string | null | undefined> | SubskillSlotsMap;
 
 export interface IngredientSelection {
   slot0?: string;
@@ -26,13 +46,14 @@ export interface ProductionParams {
   pokemon: PokemonSpecies | string; // Species object or name
   level: number; // 1 to 70
   nature?: Nature | string | null;
-  subskills?: Array<Subskill | string>;
+  subskills?: SubskillsInput;
   ingredientSelection?: IngredientSelection | string; // Object or combo like 'AAA', 'ABB'
-  mainSkillLevel?: number; // 1 to 7
+  mainSkillLevel?: number; // Base skill level (1 to maxLevel)
+  applySkillLevelUpSubskills?: boolean; // default true: adds +1/+2 from unlocked Skill Level Up S/M
   ribbonLevel?: number; // 0 to 4
   goodCampTicket?: boolean;
   nrOfTeamHelpingBonus?: number;
-  energyMultiplier?: number; // default 0.45
+  energyMultiplier?: number; // default 0.45 (>=80% energy)
   isFavoredBerry?: boolean;
   mapBonus?: number; // 0 to 85
   withPity?: boolean; // default true
@@ -45,6 +66,37 @@ export interface DailyIngredientProduce {
   energy: number;
 }
 
+export interface SkillActivationBreakdownItem {
+  key: string;
+  unit: MainskillUnit;
+  perProcSelf: number;
+  perProcTeamEach: number;
+  dailySelf: number;
+  dailyTeamTotal: number;
+  estimatedDailyEnergy: number;
+}
+
+export interface SkillActivationSummary {
+  skillName: string;
+  baseSkillName: string;
+  baseSkillLevel: number;
+  skillLevelUpBonus: number;
+  effectiveSkillLevel: number;
+  maxSkillLevel: number;
+  baseTriggerRate: number;
+  modifiedTriggerRate: number; // without pity
+  effectiveTriggerRate: number; // with pity (if enabled)
+  pityProcThreshold: number;
+  dailySkillProcs: number;
+  primaryUnit: MainskillUnit;
+  perProcOutput: number;
+  dailyOutput: number;
+  perProcTeamTotalOutput: number;
+  dailyTeamTotalOutput: number;
+  description: string;
+  activations: SkillActivationBreakdownItem[];
+}
+
 export interface ProductionResult {
   pokemon: PokemonSpecies;
   level: number;
@@ -54,66 +106,118 @@ export interface ProductionResult {
   helpingFrequency: number; // seconds
   dailyHelps: number;
   carryLimit: number;
+  hoursToFullCarry: number;
   ingredientRate: number;
   berryRate: number;
   berriesPerDrop: number;
   berryStrength: number; // final berry strength per single berry
   dailyBerryCount: number;
   dailyBerryEnergy: number;
+  sneakySnackingDailyEnergy: number; // 100% berry drops when inventory full
   dailyIngredients: DailyIngredientProduce[];
   dailyIngredientCount: number;
   dailyIngredientEnergy: number;
   skillRate: number;
+  baseSkillRate: number;
+  skillRateWithoutPity: number;
+  effectiveMainSkillLevel: number;
+  skillLevelUpBonus: number;
   dailySkillProcs: number;
   dailySkillEnergy: number;
+  skillActivationDetails: SkillActivationSummary;
   totalDailyEnergy: number;
+  rp: number;
+}
+
+export function resolveSubskillObject(sub: Subskill | string | null | undefined): Subskill | null {
+  if (!sub) return null;
+  if (typeof sub !== 'string') return sub;
+  const clean = sub.trim().toLowerCase();
+  if (!clean) return null;
+  return (
+    GAME_DATA.subskills.find(
+      s =>
+        s.name.toLowerCase() === clean ||
+        s.shortName.toLowerCase() === clean ||
+        s.translations['zh-CN'].toLowerCase() === clean ||
+        s.translations['zh-TW'].toLowerCase() === clean ||
+        (s.aliases && s.aliases.some(a => a.toLowerCase() === clean))
+    ) || null
+  );
 }
 
 /**
- * Filter subskills to only those unlocked at the given level.
+ * Normalize subskills input into a fixed 5-slot positional array:
+ * [Lv.10, Lv.25, Lv.50, Lv.70, Lv.80].
+ */
+export function normalizeSubskillSlots(
+  input?: SubskillsInput
+): Array<Subskill | null> {
+  if (!input) return [null, null, null, null, null];
+  if (Array.isArray(input)) {
+    return [0, 1, 2, 3, 4].map(idx => resolveSubskillObject(input[idx]));
+  }
+  return [
+    resolveSubskillObject(input.level10),
+    resolveSubskillObject(input.level25),
+    resolveSubskillObject(input.level50),
+    resolveSubskillObject(input.level70 ?? input.level75),
+    resolveSubskillObject(input.level80 ?? input.level100),
+  ];
+}
+
+/**
+ * Filter subskills to only those unlocked at the given level ([10, 25, 50, 70, 80]).
  */
 export function getActiveSubskills(
-  allSubskills: Array<Subskill | string> = [],
+  allSubskills: SubskillsInput = [],
   level: number
 ): Subskill[] {
+  const slots = normalizeSubskillSlots(allSubskills);
   const active: Subskill[] = [];
-  allSubskills.forEach((sub, idx) => {
-    const unlockLevel = SUBSKILL_UNLOCK_LEVELS[idx] ?? 100;
-    if (level >= unlockLevel) {
-      const subObj =
-        typeof sub === 'string'
-          ? GAME_DATA.subskills.find(
-              s =>
-                s.name.toLowerCase() === sub.toLowerCase() ||
-                s.shortName.toLowerCase() === sub.toLowerCase() ||
-                s.translations['zh-CN'].toLowerCase() === sub.toLowerCase()
-            )
-          : sub;
-      if (subObj) active.push(subObj);
+  slots.forEach((subObj, idx) => {
+    const unlockLevel = SUBSKILL_UNLOCK_LEVELS[idx] ?? 80;
+    if (subObj && level >= unlockLevel) {
+      active.push(subObj);
     }
   });
   return active;
 }
 
 /**
- * Resolve ingredient combo from string (e.g. 'AAA', 'ABC') or selection object.
+ * Compute main skill level bonus granted by active Skill Level Up S (+1) and M (+2).
+ */
+export function calculateSkillLevelUpBonus(activeSubskills: Subskill[]): number {
+  let bonus = 0;
+  for (const s of activeSubskills) {
+    const n = s.name.toLowerCase();
+    if (n === 'skill level up s') bonus += 1;
+    else if (n === 'skill level up m') bonus += 2;
+  }
+  return bonus;
+}
+
+/**
+ * Resolve ingredient combo from string (e.g. 'AAA', 'AB', 'ABC') or selection object.
  */
 export function resolveIngredientsForSlots(
   mon: PokemonSpecies,
   selection?: IngredientSelection | string
-): { slot0: { ingredient: string; amount: number }; slot30?: { ingredient: string; amount: number }; slot60?: { ingredient: string; amount: number } } {
+): {
+  slot0: { ingredient: string; amount: number };
+  slot30?: { ingredient: string; amount: number };
+  slot60?: { ingredient: string; amount: number };
+} {
   const slot0List = mon.ingredient0 || [];
   const slot30List = mon.ingredient30 || [];
   const slot60List = mon.ingredient60 || [];
 
-  // Default selection is first item in each slot
   let s0 = slot0List[0] || { ingredient: 'Apple', amount: 1 };
   let s30 = slot30List.find(i => i.ingredient !== 'Locked') || slot30List[0];
   let s60 = slot60List.find(i => i.ingredient !== 'Locked') || slot60List[0];
 
   if (typeof selection === 'string' && selection.length >= 1) {
     const code = selection.toUpperCase();
-    // A -> index 0, B -> index 1, C -> index 2
     const letterToIndex = (ch: string) => Math.max(0, ch.charCodeAt(0) - 65);
     const i0 = letterToIndex(code[0]);
     if (slot0List[i0]) s0 = slot0List[i0];
@@ -148,52 +252,235 @@ export function resolveIngredientsForSlots(
 }
 
 /**
- * Calculates estimated skill energy value for L1 single-pokemon rating.
+ * Evaluate quantized skill outputs & estimated Snorlax strength equivalent.
+ */
+export function evaluateSkillActivations(params: {
+  mon: PokemonSpecies;
+  level: number;
+  baseSkillLevel: number;
+  skillLevelUpBonus: number;
+  effectiveSkillLevel: number;
+  baseTriggerRate: number;
+  modifiedTriggerRate: number;
+  effectiveTriggerRate: number;
+  dailySkillProcs: number;
+  selfBerryFinalStrength: number;
+  selfBerryBaseStrengthAtLevel: number;
+  mapBonus: number;
+}): { dailySkillEnergy: number; summary: SkillActivationSummary } {
+  const {
+    mon,
+    baseSkillLevel,
+    skillLevelUpBonus,
+    effectiveSkillLevel,
+    baseTriggerRate,
+    modifiedTriggerRate,
+    effectiveTriggerRate,
+    dailySkillProcs,
+    selfBerryFinalStrength,
+    selfBerryBaseStrengthAtLevel,
+    mapBonus,
+  } = params;
+
+  const maxSkillLevel = mon.skill.maxLevel || (mon.skill.RP?.length || 6);
+  const clampedLvl = Math.max(1, Math.min(effectiveSkillLevel, maxSkillLevel));
+  const lvlIdx = clampedLvl - 1;
+  const fieldMult = 1.0 + Math.max(0, mapBonus) / 100;
+  const skillName = mon.skill.name;
+  const baseSkillName = mon.skill.baseSkillName || mon.skill.name;
+  const description = mon.skill.descriptions?.[lvlIdx] || '';
+
+  const activationsRaw = mon.skill.activations || {};
+  const breakdown: SkillActivationBreakdownItem[] = [];
+  let totalEstimatedEnergy = 0;
+
+  // Expected crit multiplier for skills like Disguise (Berry Burst)
+  const critBoost =
+    typeof mon.skill.critChance === 'number' && typeof mon.skill.critMultiplier === 'number'
+      ? 1 + mon.skill.critChance * (mon.skill.critMultiplier - 1)
+      : 1.0;
+
+  const actEntries = Object.entries(activationsRaw);
+
+  for (const [actKey, actDef] of actEntries) {
+    // Skip mutually-exclusive range bounds or paired-only variants in L1 solo evaluation:
+    // - ChargeStrengthSRange defines { mean, low, high }: only evaluate `mean`
+    // - Draco Meteor / Plus / Minus define { solo, paired }: only evaluate `solo`
+    // - Heal Pulse defines { soloHelps, pairedHelps }: only evaluate `soloHelps`
+    if ((actKey === 'low' || actKey === 'high') && activationsRaw.mean) continue;
+    if (actKey === 'paired' && activationsRaw.solo) continue;
+    if (actKey === 'pairedHelps' && activationsRaw.soloHelps) continue;
+
+    const rawAmt = actDef.amounts?.[lvlIdx] ?? actDef.amounts?.[actDef.amounts.length - 1] ?? 0;
+    const isTeamOnlyBerries = actKey === 'teamBerries';
+    const selfAmt = isTeamOnlyBerries ? 0 : rawAmt;
+    const teamEach = isTeamOnlyBerries ? rawAmt : (actDef.teamAmounts?.[lvlIdx] ?? 0);
+    const isTeamWideAll5 =
+      actDef.unit === 'energy' &&
+      (baseSkillName.includes('Energy For Everyone') || skillName.includes('Energy For Everyone')) ||
+      (actDef.unit === 'helps' && baseSkillName.includes('Helper Boost'));
+    const teamTotalPerProc = isTeamWideAll5
+      ? selfAmt * 5
+      : teamEach > 0
+        ? teamEach * 4
+        : 0;
+
+    const dailySelf = dailySkillProcs * selfAmt * critBoost;
+    const dailyTeamTotal = dailySkillProcs * teamTotalPerProc * critBoost;
+
+    let estEnergy = 0;
+    switch (actDef.unit) {
+      case 'berries': {
+        // Self berries use Pokémon's actual berry strength (including favored 2x & map bonus)
+        // Team berries (4 teammates) use level-scaled berry strength * mapBonus
+        const selfEnergyPerProc = selfAmt * selfBerryFinalStrength * critBoost;
+        const teamEnergyPerProc = 4 * teamEach * selfBerryBaseStrengthAtLevel * fieldMult * critBoost;
+        estEnergy = dailySkillProcs * (selfEnergyPerProc + teamEnergyPerProc);
+        break;
+      }
+      case 'strength': {
+        estEnergy = dailySkillProcs * selfAmt * fieldMult;
+        break;
+      }
+      case 'ingredients': {
+        const avgIngEnergy = 125 * fieldMult;
+        estEnergy = (dailySelf + dailyTeamTotal) * avgIngEnergy;
+        break;
+      }
+      case 'pot size': {
+        const avgPotSlotBonusEnergy = 135 * fieldMult;
+        estEnergy = dailySelf * avgPotSlotBonusEnergy;
+        break;
+      }
+      case 'energy': {
+        // Energy recovery maintains 2.22x speed multiplier across team vs self
+        if (baseSkillName.includes('Energy For Everyone')) {
+          estEnergy = dailySkillProcs * selfAmt * 160 * fieldMult;
+        } else if (baseSkillName.includes('Energizing Cheer')) {
+          estEnergy = dailySkillProcs * selfAmt * 55 * fieldMult;
+        } else {
+          // Self Charge Energy S: keeps self near 100% energy, modest direct equivalent
+          estEnergy = dailySkillProcs * selfAmt * 20 * fieldMult;
+        }
+        break;
+      }
+      case 'helps': {
+        const teamMult = baseSkillName.includes('Helper Boost') ? 5 : 1;
+        estEnergy = dailySkillProcs * selfAmt * teamMult * 185 * fieldMult;
+        break;
+      }
+      case 'crit chance': {
+        // Tasty Chance S (+% meal crit chance)
+        estEnergy = dailySkillProcs * selfAmt * 420 * fieldMult;
+        break;
+      }
+      case 'dream shards': {
+        // Dream Shard Magnet S — utility skill, use RP-aligned valuation
+        estEnergy = dailySkillProcs * (mon.skill.RP?.[lvlIdx] ?? 400) * 0.65 * fieldMult;
+        break;
+      }
+      default: {
+        estEnergy = dailySkillProcs * (mon.skill.RP?.[lvlIdx] ?? 400) * fieldMult;
+        break;
+      }
+    }
+
+    totalEstimatedEnergy += estEnergy;
+    breakdown.push({
+      key: actKey,
+      unit: actDef.unit,
+      perProcSelf: selfAmt,
+      perProcTeamEach: teamEach,
+      dailySelf,
+      dailyTeamTotal,
+      estimatedDailyEnergy: estEnergy,
+    });
+  }
+
+  // Fallback if activations map is empty (e.g. Metronome, Skill Copy, Versatile)
+  if (breakdown.length === 0) {
+    const fallbackRp = mon.skill.RP?.[lvlIdx] ?? 400;
+    const estEnergy = dailySkillProcs * fallbackRp * fieldMult;
+    totalEstimatedEnergy = estEnergy;
+    breakdown.push({
+      key: 'default',
+      unit: 'strength',
+      perProcSelf: Math.round(fallbackRp * fieldMult),
+      perProcTeamEach: 0,
+      dailySelf: estEnergy,
+      dailyTeamTotal: 0,
+      estimatedDailyEnergy: estEnergy,
+    });
+  }
+
+  const primary = breakdown[0];
+  const perProcTotalPrimary =
+    primary.unit === 'berries' && primary.perProcTeamEach > 0
+      ? primary.perProcSelf + 4 * primary.perProcTeamEach
+      : primary.perProcSelf;
+  const dailyTotalPrimary =
+    primary.unit === 'berries' && primary.perProcTeamEach > 0
+      ? primary.dailySelf + primary.dailyTeamTotal
+      : primary.dailySelf;
+
+  return {
+    dailySkillEnergy: totalEstimatedEnergy,
+    summary: {
+      skillName,
+      baseSkillName,
+      baseSkillLevel,
+      skillLevelUpBonus,
+      effectiveSkillLevel: clampedLvl,
+      maxSkillLevel,
+      baseTriggerRate,
+      modifiedTriggerRate,
+      effectiveTriggerRate,
+      pityProcThreshold: mon.pityProcThreshold,
+      dailySkillProcs,
+      primaryUnit: primary.unit,
+      perProcOutput: perProcTotalPrimary,
+      dailyOutput: dailyTotalPrimary,
+      perProcTeamTotalOutput: primary.perProcTeamEach > 0 ? 4 * primary.perProcTeamEach : 0,
+      dailyTeamTotalOutput: primary.dailyTeamTotal,
+      description,
+      activations: breakdown,
+    },
+  };
+}
+
+/**
+ * Backwards-compatible helper for L1 skill energy estimation.
  */
 export function estimateSkillEnergy(
   mon: PokemonSpecies,
   dailySkillProcs: number,
   mainSkillLevel: number = 1,
-  mapBonus: number = 0
+  mapBonus: number = 0,
+  level: number = 30,
+  isFavoredBerry: boolean = false
 ): number {
   if (dailySkillProcs <= 0) return 0;
-  const skillName = mon.skill.baseSkillName || mon.skill.name;
-  const levelIdx = Math.max(0, Math.min(mainSkillLevel - 1, (mon.skill.RP?.length || 6) - 1));
-  const fieldMult = 1.0 + Math.max(0, mapBonus) / 100;
-
-  // Charge Strength S / M
-  if (skillName.includes('Charge Strength')) {
-    const strengthAmounts = mon.skill.strengthAmounts || mon.skill.RP || [400, 569, 785, 1083, 1496, 2066, 3000];
-    const amount = strengthAmounts[levelIdx] ?? 400;
-    return dailySkillProcs * amount * fieldMult;
-  }
-
-  // Ingredient Magnet S
-  if (skillName.includes('Ingredient Magnet')) {
-    const magnetAmounts = [6, 8, 11, 14, 17, 21];
-    const count = magnetAmounts[Math.min(levelIdx, magnetAmounts.length - 1)] ?? 6;
-    const avgIngredientEnergy = 115 * fieldMult;
-    return dailySkillProcs * count * avgIngredientEnergy;
-  }
-
-  // Cooking Power-Up S (allows bigger pot -> higher recipe/filler energy)
-  if (skillName.includes('Cooking Power-Up')) {
-    const potAmounts = [7, 10, 14, 18, 22, 27];
-    const potBoost = potAmounts[Math.min(levelIdx, potAmounts.length - 1)] ?? 7;
-    return dailySkillProcs * potBoost * 115 * fieldMult;
-  }
-
-  // Energy For Everyone S (heals team, in solo evaluation valued by energy maintenance)
-  if (skillName.includes('Energy For Everyone')) {
-    const healAmounts = [5, 7, 9, 11, 15, 18];
-    const heal = healAmounts[Math.min(levelIdx, healAmounts.length - 1)] ?? 5;
-    // Estimated equivalent energy contribution
-    return dailySkillProcs * heal * 150 * fieldMult;
-  }
-
-  // Default fallback estimation based on skill RP tier
-  const baseRp = mon.skill.RP?.[levelIdx] ?? 400;
-  return dailySkillProcs * baseRp * fieldMult;
+  const berryObj = GAME_DATA.berries.find(b => b.name.toUpperCase() === mon.berry.toUpperCase());
+  const berryStr = calculateBerryStrength({
+    baseValue: berryObj ? berryObj.value : 25,
+    level,
+    isFavored: isFavoredBerry,
+    mapBonus,
+  });
+  return evaluateSkillActivations({
+    mon,
+    level,
+    baseSkillLevel: mainSkillLevel,
+    skillLevelUpBonus: 0,
+    effectiveSkillLevel: mainSkillLevel,
+    baseTriggerRate: mon.skillPercentage / 100,
+    modifiedTriggerRate: mon.skillPercentage / 100,
+    effectiveTriggerRate: mon.skillPercentage / 100,
+    dailySkillProcs,
+    selfBerryFinalStrength: berryStr.finalStrength,
+    selfBerryBaseStrengthAtLevel: berryStr.baseStrengthAtLevel,
+    mapBonus,
+  }).dailySkillEnergy;
 }
 
 /**
@@ -202,11 +489,12 @@ export function estimateSkillEnergy(
 export function calculateDailyProduction(params: ProductionParams): ProductionResult {
   const {
     pokemon: rawPokemon,
-    level,
+    level: rawLevel,
     nature: rawNature,
     subskills: rawSubskills = [],
     ingredientSelection,
     mainSkillLevel = 1,
+    applySkillLevelUpSubskills = true,
     ribbonLevel = 0,
     goodCampTicket = false,
     nrOfTeamHelpingBonus = 0,
@@ -216,6 +504,8 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
     withPity = true,
   } = params;
 
+  const level = Math.max(1, Math.min(MAX_POKEMON_LEVEL, rawLevel));
+
   // Resolve Pokémon species
   const mon: PokemonSpecies | undefined =
     typeof rawPokemon === 'string'
@@ -223,7 +513,8 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
           p =>
             p.name.toUpperCase() === rawPokemon.toUpperCase() ||
             p.displayName.toLowerCase() === rawPokemon.toLowerCase() ||
-            p.translations['zh-CN'] === rawPokemon
+            p.translations['zh-CN'] === rawPokemon ||
+            p.translations['zh-TW'] === rawPokemon
         )
       : rawPokemon;
 
@@ -239,12 +530,13 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
         ? GAME_DATA.natures.find(
             n =>
               n.name.toLowerCase() === rawNature.toLowerCase() ||
-              n.translations['zh-CN'] === rawNature
+              n.translations['zh-CN'] === rawNature ||
+              n.translations['zh-TW'] === rawNature
           ) || null
         : rawNature;
   }
 
-  // 1. Filter active subskills for current level
+  // 1. Filter active subskills for current level ([10, 25, 50, 70, 80])
   const activeSubskills = getActiveSubskills(rawSubskills, level);
 
   // 2. Helping Frequency & Daily Helps
@@ -279,7 +571,7 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
   });
   const berryRate = 1.0 - ingredientRate;
 
-  // 5. Berries Production
+  // 5. Berries Production & Sneaky Snacking
   const hasBfs = activeSubskills.some(
     s => s.name.toLowerCase() === 'berry finding s' || s.shortName.toLowerCase() === 'bfs'
   );
@@ -299,6 +591,7 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
   const dailyBerryHelps = dailyHelps * berryRate;
   const dailyBerryCount = dailyBerryHelps * berriesPerDrop;
   const dailyBerryEnergy = dailyBerryCount * berryStrengthResult.finalStrength;
+  const sneakySnackingDailyEnergy = dailyHelps * berriesPerDrop * berryStrengthResult.finalStrength;
 
   // 6. Ingredients Production
   const resolvedSlots = resolveIngredientsForSlots(mon, ingredientSelection);
@@ -338,7 +631,19 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
     });
   }
 
-  // 7. Skill Procs & Skill Energy
+  // Average items per help -> hours to fill carry limit
+  const totalDailyItems = dailyBerryCount + dailyIngredientCount;
+  const itemsPerHour = totalDailyItems / 24;
+  const hoursToFullCarry = itemsPerHour > 0 ? carryResult.totalCarryLimit / itemsPerHour : 24;
+
+  // 7. Skill Procs, Skill Level Up S/M & Quantized Skill Activations
+  const skillLevelUpBonus = calculateSkillLevelUpBonus(activeSubskills);
+  const maxSkillLvl = mon.skill.maxLevel || (mon.skill.RP?.length || 6);
+  const effectiveMainSkillLevel = Math.max(
+    1,
+    Math.min(maxSkillLvl, mainSkillLevel + (applySkillLevelUpSubskills ? skillLevelUpBonus : 0))
+  );
+
   const skillProcResult = calculateSkillRate({
     baseSkillPercentage: mon.skillPercentage,
     pityProcThreshold: mon.pityProcThreshold,
@@ -348,10 +653,33 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
   });
 
   const dailySkillProcs = dailyHelps * skillProcResult.effectiveRate;
-  const dailySkillEnergy = estimateSkillEnergy(mon, dailySkillProcs, mainSkillLevel, mapBonus);
+  const skillEval = evaluateSkillActivations({
+    mon,
+    level,
+    baseSkillLevel: mainSkillLevel,
+    skillLevelUpBonus,
+    effectiveSkillLevel: effectiveMainSkillLevel,
+    baseTriggerRate: skillProcResult.baseRate,
+    modifiedTriggerRate: skillProcResult.rateWithoutPity,
+    effectiveTriggerRate: skillProcResult.effectiveRate,
+    dailySkillProcs,
+    selfBerryFinalStrength: berryStrengthResult.finalStrength,
+    selfBerryBaseStrengthAtLevel: berryStrengthResult.baseStrengthAtLevel,
+    mapBonus,
+  });
+  const dailySkillEnergy = skillEval.dailySkillEnergy;
 
-  // 8. Total Daily Energy
+  // 8. Total Daily Energy & RP
   const totalDailyEnergy = dailyBerryEnergy + dailyIngredientEnergy + dailySkillEnergy;
+  const rpResult = calculateRP({
+    pokemon: mon,
+    level,
+    skillLevel: effectiveMainSkillLevel,
+    nature,
+    activeSubskills,
+    unlockedIngredients: unlockedSlots,
+    ribbonLevel,
+  });
 
   return {
     pokemon: mon,
@@ -362,19 +690,26 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
     helpingFrequency: freqResult.frequency,
     dailyHelps,
     carryLimit: carryResult.totalCarryLimit,
+    hoursToFullCarry,
     ingredientRate,
     berryRate,
     berriesPerDrop,
     berryStrength: berryStrengthResult.finalStrength,
     dailyBerryCount,
     dailyBerryEnergy,
+    sneakySnackingDailyEnergy,
     dailyIngredients,
     dailyIngredientCount,
     dailyIngredientEnergy,
     skillRate: skillProcResult.effectiveRate,
+    baseSkillRate: skillProcResult.baseRate,
+    skillRateWithoutPity: skillProcResult.rateWithoutPity,
+    effectiveMainSkillLevel,
+    skillLevelUpBonus,
     dailySkillProcs,
     dailySkillEnergy,
+    skillActivationDetails: skillEval.summary,
     totalDailyEnergy,
+    rp: rpResult.rp,
   };
 }
-

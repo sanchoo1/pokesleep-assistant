@@ -224,6 +224,38 @@ export function getIslandByName(name: string): Island | undefined {
 }
 
 // -------------------------------------------------------------
+// Official Sprite / Asset URL Helpers
+// -------------------------------------------------------------
+
+export function getPokemonImageUrl(pokemonName: string): string {
+  return `/images/pokemon/${pokemonName.trim().toLowerCase()}.png`;
+}
+
+export function getBerryImageUrl(berryName: string): string {
+  return `/images/berries/${berryName.trim().toLowerCase()}.png`;
+}
+
+export function getIngredientImageUrl(ingredientName: string): string {
+  return `/images/ingredient/${ingredientName.trim().toLowerCase()}.png`;
+}
+
+export function getRecipeImageUrl(recipeName: string): string {
+  return `/images/recipe/${recipeName.trim().toLowerCase().replace(/_/g, '')}.png`;
+}
+
+export function getTypeImageUrl(typeName: string): string {
+  return `/images/type/${typeName.trim().toLowerCase()}.png`;
+}
+
+export function getSkillImageUrl(skillImageName: string): string {
+  return `/images/mainskill/${(skillImageName || 'strength').trim().toLowerCase()}.png`;
+}
+
+export function getIslandImageUrl(islandShortName: string): string {
+  return `/images/island/${islandShortName.trim().toLowerCase()}.png`;
+}
+
+// -------------------------------------------------------------
 // Fuzzy Search & OCR Error-Tolerant Resolution
 // -------------------------------------------------------------
 

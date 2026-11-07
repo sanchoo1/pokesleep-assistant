@@ -1,0 +1,1782 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedBy": "tools/etl/generate_golden_dataset.mjs",
+  "referenceSources": [
+    "Neroli's Lab (sleepapi-common RP, CarrySizeUtils, stat-utils, berry-utils, mainskills)",
+    "RaenonX Pokémon Sleep Wiki (F = floor(F_B * rounddown(M, 4)), Pity Proc & Specialty formulas)",
+    "In-game verified OCR screenshot (Lv.41 Sceptile SP=2119, Carry=33)"
+  ],
+  "gameRules": {
+    "subskillUnlockLevels": [
+      10,
+      25,
+      50,
+      70,
+      80
+    ],
+    "maxPokemonLevel": 70
+  },
+  "count": 30,
+  "cases": [
+    {
+      "id": "real_sceptile_lv41_ocr",
+      "description": "In-game screenshot Lv.41 Sceptile (SP=2119, Carry=33, Berry Burst Lv.3, Egg+Coffee)",
+      "category": "screenshot_verified",
+      "input": {
+        "pokemon": "SCEPTILE",
+        "specialty": "skill",
+        "level": 41,
+        "nature": "Relaxed",
+        "subskills": [
+          "Skill Trigger M",
+          "Inventory Up S",
+          "Berry Finding S",
+          "Helping Bonus",
+          "Helping Speed S"
+        ],
+        "ingredientCombo": "ABA",
+        "mainSkillLevel": 3,
+        "ribbonLevel": 0,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 0,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Skill Trigger M",
+          "Inventory Up S"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 3,
+        "rp": 2119,
+        "rpBreakdown": {
+          "helpFactor": 8.5,
+          "miscFactor": 1.15,
+          "ingredientFactor": 274.84,
+          "berryFactor": 614.83,
+          "skillFactor": 952.65
+        },
+        "carryLimit": 33,
+        "helpingFrequency": 952,
+        "neroliBaseHelpSpeed": 2116,
+        "ingredientRate": 0.107,
+        "skillRateWithoutPity": 0.0408,
+        "skillRateWithPity": 0.04398874,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 81,
+        "finalBerryStrength": 81,
+        "dailyHelps": 90.756303,
+        "dailyBerryCount": 81.0454,
+        "dailyBerryEnergy": 6564.68,
+        "dailyIngredientCount": 14.5664,
+        "dailyIngredientEnergy": 2044.15,
+        "dailySkillProcs": 3.992255,
+        "perProcSkillOutput": 29
+      }
+    },
+    {
+      "id": "real_pinsir_lv50_rp",
+      "description": "Neroli RP suite Lv.50 Pinsir (SP=2904, SLUS@70 & SLUM@80 still locked at Lv.50)",
+      "category": "neroli_rp_verified",
+      "input": {
+        "pokemon": "PINSIR",
+        "specialty": "ingredient",
+        "level": 50,
+        "nature": "Quiet",
+        "subskills": [
+          "Ingredient Finder M",
+          "Ingredient Finder S",
+          "Dream Shard Bonus",
+          "Skill Level Up S",
+          "Skill Level Up M"
+        ],
+        "ingredientCombo": "ABA",
+        "mainSkillLevel": 1,
+        "ribbonLevel": 0,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 0,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Ingredient Finder M",
+          "Ingredient Finder S",
+          "Dream Shard Bonus"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 1,
+        "rp": 2904,
+        "rpBreakdown": {
+          "helpFactor": 8.3,
+          "miscFactor": 1.22,
+          "ingredientFactor": 1754.81,
+          "berryFactor": 398.99,
+          "skillFactor": 226.42
+        },
+        "carryLimit": 24,
+        "helpingFrequency": 974,
+        "neroliBaseHelpSpeed": 2164,
+        "ingredientRate": 0.399168,
+        "skillRateWithoutPity": 0.031,
+        "skillRateWithPity": 0.03380942,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 80,
+        "finalBerryStrength": 80,
+        "dailyHelps": 88.706366,
+        "dailyBerryCount": 53.2976,
+        "dailyBerryEnergy": 4263.81,
+        "dailyIngredientCount": 123.9306,
+        "dailyIngredientEnergy": 11543.25,
+        "dailySkillProcs": 2.99911,
+        "perProcSkillOutput": 880
+      }
+    },
+    {
+      "id": "real_pinsir_lv70_sub4_unlock",
+      "description": "Same Pinsir at Lv.70 max cap: unlocks 4th subskill (Skill Level Up S -> Lv.2), 5th (Lv.80) stays locked",
+      "category": "lv70_cap_verified",
+      "input": {
+        "pokemon": "PINSIR",
+        "specialty": "ingredient",
+        "level": 70,
+        "nature": "Quiet",
+        "subskills": [
+          "Ingredient Finder M",
+          "Ingredient Finder S",
+          "Dream Shard Bonus",
+          "Skill Level Up S",
+          "Skill Level Up M"
+        ],
+        "ingredientCombo": "ABA",
+        "mainSkillLevel": 1,
+        "ribbonLevel": 0,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 0,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Ingredient Finder M",
+          "Ingredient Finder S",
+          "Dream Shard Bonus",
+          "Skill Level Up S"
+        ],
+        "skillLevelUpBonus": 1,
+        "effectiveMainSkillLevel": 2,
+        "rp": 5870,
+        "rpBreakdown": {
+          "helpFactor": 8.7,
+          "miscFactor": 1.22,
+          "ingredientFactor": 3784.38,
+          "berryFactor": 690.07,
+          "skillFactor": 337.39
+        },
+        "carryLimit": 24,
+        "helpingFrequency": 930,
+        "neroliBaseHelpSpeed": 2068,
+        "ingredientRate": 0.399168,
+        "skillRateWithoutPity": 0.031,
+        "skillRateWithPity": 0.03380942,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 132,
+        "finalBerryStrength": 132,
+        "dailyHelps": 92.903226,
+        "dailyBerryCount": 55.8192,
+        "dailyBerryEnergy": 7368.14,
+        "dailyIngredientCount": 173.0586,
+        "dailyIngredientEnergy": 16799.05,
+        "dailySkillProcs": 3.141004,
+        "perProcSkillOutput": 1251
+      }
+    },
+    {
+      "id": "real_espeon_lv60_rp",
+      "description": "Neroli RP suite Lv.60 Espeon (SP=5698, Charge Strength M Lv.7, BFS+STM+STS)",
+      "category": "neroli_rp_verified",
+      "input": {
+        "pokemon": "ESPEON",
+        "specialty": "skill",
+        "level": 60,
+        "nature": "Jolly",
+        "subskills": [
+          "Berry Finding S",
+          "Skill Trigger M",
+          "Skill Trigger S",
+          null,
+          null
+        ],
+        "ingredientCombo": "ABA",
+        "mainSkillLevel": 7,
+        "ribbonLevel": 0,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 0,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Berry Finding S",
+          "Skill Trigger M",
+          "Skill Trigger S"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 7,
+        "rp": 5698,
+        "rpBreakdown": {
+          "helpFactor": 8.5,
+          "miscFactor": 1,
+          "ingredientFactor": 446.57,
+          "berryFactor": 1654.19,
+          "skillFactor": 3597.71
+        },
+        "carryLimit": 21,
+        "helpingFrequency": 952,
+        "neroliBaseHelpSpeed": 2116,
+        "ingredientRate": 0.1312,
+        "skillRateWithoutPity": 0.06776,
+        "skillRateWithPity": 0.06871108,
+        "berriesPerDrop": 2,
+        "baseBerryStrength": 112,
+        "finalBerryStrength": 112,
+        "dailyHelps": 90.756303,
+        "dailyBerryCount": 157.6982,
+        "dailyBerryEnergy": 17662.19,
+        "dailyIngredientCount": 23.8145,
+        "dailyIngredientEnergy": 2544.18,
+        "dailySkillProcs": 6.235964,
+        "perProcSkillOutput": 6858
+      }
+    },
+    {
+      "id": "real_pupitar_lv33_ribbon2",
+      "description": "Neroli RP suite Lv.33 Pupitar with 500h Ribbon Lv.2 (SP=1350, -5% freq, +3 carry)",
+      "category": "neroli_rp_verified",
+      "input": {
+        "pokemon": "PUPITAR",
+        "specialty": "ingredient",
+        "level": 33,
+        "nature": "Mild",
+        "subskills": [
+          "Helping Bonus",
+          "Skill Trigger S",
+          null,
+          null,
+          null
+        ],
+        "ingredientCombo": "ABC",
+        "mainSkillLevel": 2,
+        "ribbonLevel": 2,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 0,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Helping Bonus",
+          "Skill Trigger S"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 2,
+        "rp": 1350,
+        "rpBreakdown": {
+          "helpFactor": 5.6,
+          "miscFactor": 1.12,
+          "ingredientFactor": 776.43,
+          "berryFactor": 260.05,
+          "skillFactor": 169.19
+        },
+        "carryLimit": 21,
+        "helpingFrequency": 1368,
+        "neroliBaseHelpSpeed": 3040,
+        "ingredientRate": 0.2964,
+        "skillRateWithoutPity": 0.0531,
+        "skillRateWithPity": 0.05382276,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 66,
+        "finalBerryStrength": 66,
+        "dailyHelps": 63.157895,
+        "dailyBerryCount": 44.4379,
+        "dailyBerryEnergy": 2932.9,
+        "dailyIngredientCount": 65.52,
+        "dailyIngredientEnergy": 6720.48,
+        "dailySkillProcs": 3.399332,
+        "perProcSkillOutput": 16.2
+      }
+    },
+    {
+      "id": "real_eevee_lv55_ribbon4",
+      "description": "Lv.55 Eevee with 2000h Ribbon Lv.4 (1 remaining evo: -12% freq, +8 carry)",
+      "category": "ribbon_unevolved",
+      "input": {
+        "pokemon": "EEVEE",
+        "specialty": "skill",
+        "level": 55,
+        "nature": "Sassy",
+        "subskills": [
+          "Skill Trigger M",
+          "Berry Finding S",
+          "Helping Bonus",
+          "Helping Speed M",
+          "Inventory Up L"
+        ],
+        "ingredientCombo": "ABA",
+        "mainSkillLevel": 5,
+        "ribbonLevel": 4,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 0,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Skill Trigger M",
+          "Berry Finding S",
+          "Helping Bonus"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 5,
+        "rp": 3811,
+        "rpBreakdown": {
+          "helpFactor": 6.15,
+          "miscFactor": 1.22,
+          "ingredientFactor": 255.5,
+          "berryFactor": 1053.47,
+          "skillFactor": 1814.94
+        },
+        "carryLimit": 20,
+        "helpingFrequency": 1241,
+        "neroliBaseHelpSpeed": 2759,
+        "ingredientRate": 0.192,
+        "skillRateWithoutPity": 0.08976,
+        "skillRateWithPity": 0.09211178,
+        "berriesPerDrop": 2,
+        "baseBerryStrength": 106,
+        "finalBerryStrength": 106,
+        "dailyHelps": 69.621273,
+        "dailyBerryCount": 112.508,
+        "dailyBerryEnergy": 11925.85,
+        "dailyIngredientCount": 13.3673,
+        "dailyIngredientEnergy": 1664.23,
+        "dailySkillProcs": 6.412939,
+        "perProcSkillOutput": 17
+      }
+    },
+    {
+      "id": "real_pichu_lv30_ribbon4_two_evos",
+      "description": "Lv.30 Pichu with 2000h Ribbon Lv.4 (2 remaining evos: -25% ribbon freq, +8 carry)",
+      "category": "ribbon_unevolved",
+      "input": {
+        "pokemon": "PICHU",
+        "specialty": "berry",
+        "level": 30,
+        "nature": "Adamant",
+        "subskills": [
+          "Berry Finding S",
+          "Helping Speed M",
+          "Helping Speed S",
+          null,
+          null
+        ],
+        "ingredientCombo": "AA",
+        "mainSkillLevel": 1,
+        "ribbonLevel": 4,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 0,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Berry Finding S",
+          "Helping Speed M"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 1,
+        "rp": 1320,
+        "rpBreakdown": {
+          "helpFactor": 7.65,
+          "miscFactor": 1,
+          "ingredientFactor": 218.43,
+          "berryFactor": 1031.09,
+          "skillFactor": 70.38
+        },
+        "carryLimit": 18,
+        "helpingFrequency": 1057,
+        "neroliBaseHelpSpeed": 2351,
+        "ingredientRate": 0.168,
+        "skillRateWithoutPity": 0.023,
+        "skillRateWithPity": 0.02735165,
+        "berriesPerDrop": 3,
+        "baseBerryStrength": 54,
+        "finalBerryStrength": 54,
+        "dailyHelps": 81.740776,
+        "dailyBerryCount": 204.025,
+        "dailyBerryEnergy": 11017.35,
+        "dailyIngredientCount": 20.5987,
+        "dailyIngredientEnergy": 1853.88,
+        "dailySkillProcs": 2.235745,
+        "perProcSkillOutput": 400
+      }
+    },
+    {
+      "id": "spec_skill_gardevoir_lv70_e4e",
+      "description": "Lv.70 Gardevoir E4E healer: base Lv.4 + SLUM@70 -> effective Lv.6 (18.1 team energy/proc)",
+      "category": "specialty_skill",
+      "input": {
+        "pokemon": "GARDEVOIR",
+        "specialty": "skill",
+        "level": 70,
+        "nature": "Calm",
+        "subskills": [
+          "Skill Trigger M",
+          "Skill Trigger S",
+          "Helping Speed M",
+          "Skill Level Up M",
+          "Ingredient Finder S"
+        ],
+        "ingredientCombo": "ABC",
+        "mainSkillLevel": 4,
+        "ribbonLevel": 0,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": true,
+        "mapBonus": 60,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Skill Trigger M",
+          "Skill Trigger S",
+          "Helping Speed M",
+          "Skill Level Up M"
+        ],
+        "skillLevelUpBonus": 2,
+        "effectiveMainSkillLevel": 6,
+        "rp": 6022,
+        "rpBreakdown": {
+          "helpFactor": 9.4,
+          "miscFactor": 1,
+          "ingredientFactor": 651.35,
+          "berryFactor": 1150.63,
+          "skillFactor": 4219.81
+        },
+        "carryLimit": 28,
+        "helpingFrequency": 860,
+        "neroliBaseHelpSpeed": 1912,
+        "ingredientRate": 0.144,
+        "skillRateWithoutPity": 0.077616,
+        "skillRateWithPity": 0.07818188,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 143,
+        "finalBerryStrength": 458,
+        "dailyHelps": 100.465116,
+        "dailyBerryCount": 85.9981,
+        "dailyBerryEnergy": 39387.15,
+        "dailyIngredientCount": 19.2893,
+        "dailyIngredientEnergy": 4629.43,
+        "dailySkillProcs": 7.854552,
+        "perProcSkillOutput": 18.1
+      }
+    },
+    {
+      "id": "spec_skill_golduck_lv50_range",
+      "description": "Lv.50 Golduck Charge Strength S Variable Range (verifies mean=[500..4015] without triple-counting low/high)",
+      "category": "specialty_skill",
+      "input": {
+        "pokemon": "GOLDUCK",
+        "specialty": "skill",
+        "level": 50,
+        "nature": "Sassy",
+        "subskills": [
+          "Skill Trigger M",
+          "Skill Trigger S",
+          "Skill Level Up M",
+          "Helping Speed M",
+          "Berry Finding S"
+        ],
+        "ingredientCombo": "ABA",
+        "mainSkillLevel": 5,
+        "ribbonLevel": 0,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 50,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Skill Trigger M",
+          "Skill Trigger S",
+          "Skill Level Up M"
+        ],
+        "skillLevelUpBonus": 2,
+        "effectiveMainSkillLevel": 7,
+        "rp": 4743,
+        "rpBreakdown": {
+          "helpFactor": 5.85,
+          "miscFactor": 1,
+          "ingredientFactor": 392.7,
+          "berryFactor": 509.83,
+          "skillFactor": 3840.53
+        },
+        "carryLimit": 19,
+        "helpingFrequency": 1380,
+        "neroliBaseHelpSpeed": 3066,
+        "ingredientRate": 0.162,
+        "skillRateWithoutPity": 0.231,
+        "skillRateWithPity": 0.23100287,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 104,
+        "finalBerryStrength": 156,
+        "dailyHelps": 62.608696,
+        "dailyBerryCount": 52.4661,
+        "dailyBerryEnergy": 8184.71,
+        "dailyIngredientCount": 25.3565,
+        "dailyIngredientEnergy": 3887.15,
+        "dailySkillProcs": 14.462789,
+        "perProcSkillOutput": 4015
+      }
+    },
+    {
+      "id": "spec_skill_dedenne_lv50_tasty",
+      "description": "Lv.50 Dedenne Tasty Chance S: base Lv.4 + SLUM -> Lv.6 (10% crit chance/proc)",
+      "category": "specialty_skill",
+      "input": {
+        "pokemon": "DEDENNE",
+        "specialty": "skill",
+        "level": 50,
+        "nature": "Careful",
+        "subskills": [
+          "Skill Trigger M",
+          "Skill Level Up M",
+          "Helping Speed M",
+          "Berry Finding S",
+          "Inventory Up L"
+        ],
+        "ingredientCombo": "ABB",
+        "mainSkillLevel": 4,
+        "ribbonLevel": 0,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 0,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Skill Trigger M",
+          "Skill Level Up M",
+          "Helping Speed M"
+        ],
+        "skillLevelUpBonus": 2,
+        "effectiveMainSkillLevel": 6,
+        "rp": 4009,
+        "rpBreakdown": {
+          "helpFactor": 9.25,
+          "miscFactor": 1,
+          "ingredientFactor": 255.41,
+          "berryFactor": 666.97,
+          "skillFactor": 3086.5
+        },
+        "carryLimit": 19,
+        "helpingFrequency": 872,
+        "neroliBaseHelpSpeed": 1939,
+        "ingredientRate": 0.1416,
+        "skillRateWithoutPity": 0.07344,
+        "skillRateWithPity": 0.07433091,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 84,
+        "finalBerryStrength": 84,
+        "dailyHelps": 99.082569,
+        "dailyBerryCount": 85.0525,
+        "dailyBerryEnergy": 7144.41,
+        "dailyIngredientCount": 14.0301,
+        "dailyIngredientEnergy": 1690.63,
+        "dailySkillProcs": 7.364898,
+        "perProcSkillOutput": 10
+      }
+    },
+    {
+      "id": "spec_skill_magnezone_lv60_pot_clamp",
+      "description": "Lv.60 Magnezone Cooking Power-Up S: base Lv.6 + SLUS + SLUM clamped at maxLevel=7 (31 pot/proc)",
+      "category": "specialty_skill",
+      "input": {
+        "pokemon": "MAGNEZONE",
+        "specialty": "skill",
+        "level": 60,
+        "nature": "Gentle",
+        "subskills": [
+          "Skill Trigger M",
+          "Skill Level Up M",
+          "Skill Level Up S",
+          "Helping Speed M",
+          "Skill Trigger S"
+        ],
+        "ingredientCombo": "ABB",
+        "mainSkillLevel": 6,
+        "ribbonLevel": 0,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 0,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Skill Trigger M",
+          "Skill Level Up M",
+          "Skill Level Up S"
+        ],
+        "skillLevelUpBonus": 3,
+        "effectiveMainSkillLevel": 7,
+        "rp": 4783,
+        "rpBreakdown": {
+          "helpFactor": 6.55,
+          "miscFactor": 0.92,
+          "ingredientFactor": 566.48,
+          "berryFactor": 763.61,
+          "skillFactor": 3869.26
+        },
+        "carryLimit": 23,
+        "helpingFrequency": 1230,
+        "neroliBaseHelpSpeed": 2734,
+        "ingredientRate": 0.179,
+        "skillRateWithoutPity": 0.101184,
+        "skillRateWithPity": 0.10186092,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 142,
+        "finalBerryStrength": 142,
+        "dailyHelps": 70.243902,
+        "dailyBerryCount": 57.6702,
+        "dailyBerryEnergy": 8189.17,
+        "dailyIngredientCount": 25.1473,
+        "dailyIngredientEnergy": 3231.43,
+        "dailySkillProcs": 7.155108,
+        "perProcSkillOutput": 31
+      }
+    },
+    {
+      "id": "spec_skill_cresselia_lv60_lunar",
+      "description": "Lv.60 Cresselia Lunar Blessing (multi-activation: team energy + selfBerries + teamBerries)",
+      "category": "specialty_skill",
+      "input": {
+        "pokemon": "CRESSELIA",
+        "specialty": "skill",
+        "level": 60,
+        "nature": "Calm",
+        "subskills": [
+          "Skill Trigger M",
+          "Berry Finding S",
+          "Helping Bonus",
+          "Helping Speed M",
+          "Skill Trigger S"
+        ],
+        "ingredientCombo": "ABA",
+        "mainSkillLevel": 6,
+        "ribbonLevel": 0,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": true,
+        "mapBonus": 60,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Skill Trigger M",
+          "Berry Finding S",
+          "Helping Bonus"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 6,
+        "rp": 7861,
+        "rpBreakdown": {
+          "helpFactor": 8.25,
+          "miscFactor": 1.22,
+          "ingredientFactor": 1045.34,
+          "berryFactor": 1406.32,
+          "skillFactor": 3991.52
+        },
+        "carryLimit": 22,
+        "helpingFrequency": 932,
+        "neroliBaseHelpSpeed": 2071,
+        "ingredientRate": 0.239,
+        "skillRateWithoutPity": 0.066912,
+        "skillRateWithPity": 0.06777537,
+        "berriesPerDrop": 2,
+        "baseBerryStrength": 112,
+        "finalBerryStrength": 359,
+        "dailyHelps": 92.703863,
+        "dailyBerryCount": 141.0953,
+        "dailyBerryEnergy": 50653.21,
+        "dailyIngredientCount": 51.6979,
+        "dailyIngredientEnergy": 10008.7,
+        "dailySkillProcs": 6.283038,
+        "perProcSkillOutput": 11
+      }
+    },
+    {
+      "id": "spec_berry_raichu_lv70_speedcap",
+      "description": "Lv.70 Raichu hitting 35% subskill speed cap (HSM+HSS+5xHB -> 0.65 floor) + GCT + Favored 2x",
+      "category": "specialty_berry",
+      "input": {
+        "pokemon": "RAICHU",
+        "specialty": "berry",
+        "level": 70,
+        "nature": "Adamant",
+        "subskills": [
+          "Berry Finding S",
+          "Helping Bonus",
+          "Helping Speed M",
+          "Helping Speed S",
+          "Inventory Up L"
+        ],
+        "ingredientCombo": "AAA",
+        "mainSkillLevel": 3,
+        "ribbonLevel": 0,
+        "goodCampTicket": true,
+        "nrOfTeamHelpingBonus": 4,
+        "isFavoredBerry": true,
+        "mapBonus": 75,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Berry Finding S",
+          "Helping Bonus",
+          "Helping Speed M",
+          "Helping Speed S"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 3,
+        "rp": 7378,
+        "rpBreakdown": {
+          "helpFactor": 13.35,
+          "miscFactor": 1.22,
+          "ingredientFactor": 1208.74,
+          "berryFactor": 4503.6,
+          "skillFactor": 335.35
+        },
+        "carryLimit": 38,
+        "helpingFrequency": 399,
+        "neroliBaseHelpSpeed": 924,
+        "ingredientRate": 0.1792,
+        "skillRateWithoutPity": 0.032,
+        "skillRateWithPity": 0.03465404,
+        "berriesPerDrop": 3,
+        "baseBerryStrength": 137,
+        "finalBerryStrength": 480,
+        "dailyHelps": 216.541353,
+        "dailyBerryCount": 533.2114,
+        "dailyBerryEnergy": 255941.49,
+        "dailyIngredientCount": 90.5432,
+        "dailyIngredientEnergy": 14260.55,
+        "dailySkillProcs": 7.504032,
+        "perProcSkillOutput": 785
+      }
+    },
+    {
+      "id": "spec_ing_dragonite_lv60_abc",
+      "description": "Lv.60 Dragonite ABC (Herb+Corn+Oil) with IFM+IFS+HSM+INVL",
+      "category": "specialty_ingredient",
+      "input": {
+        "pokemon": "DRAGONITE",
+        "specialty": "ingredient",
+        "level": 60,
+        "nature": "Quiet",
+        "subskills": [
+          "Ingredient Finder M",
+          "Ingredient Finder S",
+          "Helping Speed M",
+          "Inventory Up L",
+          "Berry Finding S"
+        ],
+        "ingredientCombo": "ABC",
+        "mainSkillLevel": 3,
+        "ribbonLevel": 0,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 60,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Ingredient Finder M",
+          "Ingredient Finder S",
+          "Helping Speed M"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 3,
+        "rp": 5859,
+        "rpBreakdown": {
+          "helpFactor": 9.1,
+          "miscFactor": 1,
+          "ingredientFactor": 4973.78,
+          "berryFactor": 699.15,
+          "skillFactor": 185.73
+        },
+        "carryLimit": 30,
+        "helpingFrequency": 887,
+        "neroliBaseHelpSpeed": 1972,
+        "ingredientRate": 0.487872,
+        "skillRateWithoutPity": 0.026,
+        "skillRateWithPity": 0.02970694,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 150,
+        "finalBerryStrength": 240,
+        "dailyHelps": 97.40699,
+        "dailyBerryCount": 49.8848,
+        "dailyBerryEnergy": 11972.36,
+        "dailyIngredientCount": 221.77,
+        "dailyIngredientEnergy": 45317.12,
+        "dailySkillProcs": 2.893664,
+        "perProcSkillOutput": 21.2
+      }
+    },
+    {
+      "id": "rand_seed_01_skeledirge_lv8",
+      "description": "Seeded random #1: Lv.8 Skeledirge (ingredient, Quirky, AAB)",
+      "category": "seeded_random",
+      "input": {
+        "pokemon": "SKELEDIRGE",
+        "specialty": "ingredient",
+        "level": 8,
+        "nature": "Quirky",
+        "subskills": [
+          "Skill Level Up M",
+          "Research EXP Bonus",
+          "Inventory Up S",
+          "Skill Level Up S",
+          "Inventory Up M"
+        ],
+        "ingredientCombo": "AAB",
+        "mainSkillLevel": 5,
+        "ribbonLevel": 4,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 75,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 5,
+        "rp": 1125,
+        "rpBreakdown": {
+          "helpFactor": 6.75,
+          "miscFactor": 1,
+          "ingredientFactor": 336.36,
+          "berryFactor": 163.05,
+          "skillFactor": 626.07
+        },
+        "carryLimit": 37,
+        "helpingFrequency": 1197,
+        "neroliBaseHelpSpeed": 2662,
+        "ingredientRate": 0.268,
+        "skillRateWithoutPity": 0.062,
+        "skillRateWithPity": 0.06239737,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 33,
+        "finalBerryStrength": 58,
+        "dailyHelps": 72.180451,
+        "dailyBerryCount": 52.8361,
+        "dailyBerryEnergy": 3064.49,
+        "dailyIngredientCount": 38.6887,
+        "dailyIngredientEnergy": 6093.47,
+        "dailySkillProcs": 4.50387,
+        "perProcSkillOutput": 33.6
+      }
+    },
+    {
+      "id": "rand_seed_02_fuecoco_lv12",
+      "description": "Seeded random #2: Lv.12 Fuecoco (ingredient, Hasty, AAB)",
+      "category": "seeded_random",
+      "input": {
+        "pokemon": "FUECOCO",
+        "specialty": "ingredient",
+        "level": 12,
+        "nature": "Hasty",
+        "subskills": [
+          "Helping Speed M",
+          "Helping Speed S",
+          "Inventory Up L",
+          "Sleep EXP Bonus",
+          "Skill Trigger M"
+        ],
+        "ingredientCombo": "AAB",
+        "mainSkillLevel": 6,
+        "ribbonLevel": 2,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 0,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Helping Speed M"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 6,
+        "rp": 977,
+        "rpBreakdown": {
+          "helpFactor": 5.7,
+          "miscFactor": 0.92,
+          "ingredientFactor": 276.5,
+          "berryFactor": 161.58,
+          "skillFactor": 624.13
+        },
+        "carryLimit": 14,
+        "helpingFrequency": 1414,
+        "neroliBaseHelpSpeed": 3144,
+        "ingredientRate": 0.254,
+        "skillRateWithoutPity": 0.053,
+        "skillRateWithPity": 0.05372752,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 38,
+        "finalBerryStrength": 38,
+        "dailyHelps": 61.103253,
+        "dailyBerryCount": 45.583,
+        "dailyBerryEnergy": 1732.16,
+        "dailyIngredientCount": 31.0405,
+        "dailyIngredientEnergy": 2793.64,
+        "dailySkillProcs": 3.282926,
+        "perProcSkillOutput": 43.4
+      }
+    },
+    {
+      "id": "rand_seed_03_bayleef_lv22",
+      "description": "Seeded random #3: Lv.22 Bayleef (berry, Docile, ABB)",
+      "category": "seeded_random",
+      "input": {
+        "pokemon": "BAYLEEF",
+        "specialty": "berry",
+        "level": 22,
+        "nature": "Docile",
+        "subskills": [
+          "Skill Level Up M",
+          "Sleep EXP Bonus",
+          "Inventory Up M",
+          "Helping Speed M",
+          "Berry Finding S"
+        ],
+        "ingredientCombo": "ABB",
+        "mainSkillLevel": 3,
+        "ribbonLevel": 2,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 35,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Skill Level Up M"
+        ],
+        "skillLevelUpBonus": 2,
+        "effectiveMainSkillLevel": 5,
+        "rp": 1018,
+        "rpBreakdown": {
+          "helpFactor": 5.95,
+          "miscFactor": 1,
+          "ingredientFactor": 174.48,
+          "berryFactor": 504.94,
+          "skillFactor": 338.24
+        },
+        "carryLimit": 25,
+        "helpingFrequency": 1351,
+        "neroliBaseHelpSpeed": 3003,
+        "ingredientRate": 0.168,
+        "skillRateWithoutPity": 0.038,
+        "skillRateWithPity": 0.03986835,
+        "berriesPerDrop": 2,
+        "baseBerryStrength": 51,
+        "finalBerryStrength": 69,
+        "dailyHelps": 63.952628,
+        "dailyBerryCount": 106.4172,
+        "dailyBerryEnergy": 7342.78,
+        "dailyIngredientCount": 10.744,
+        "dailyIngredientEnergy": 2190.17,
+        "dailySkillProcs": 2.549686,
+        "perProcSkillOutput": 1870
+      }
+    },
+    {
+      "id": "rand_seed_04_delibird_lv25",
+      "description": "Seeded random #4: Lv.25 Delibird (ingredient, Modest, AAC)",
+      "category": "seeded_random",
+      "input": {
+        "pokemon": "DELIBIRD",
+        "specialty": "ingredient",
+        "level": 25,
+        "nature": "Modest",
+        "subskills": [
+          "Ingredient Finder S",
+          "Dream Shard Bonus",
+          "Helping Speed M",
+          "Energy Recovery Bonus",
+          "Skill Trigger M"
+        ],
+        "ingredientCombo": "AAC",
+        "mainSkillLevel": 5,
+        "ribbonLevel": 4,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 60,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Ingredient Finder S",
+          "Dream Shard Bonus"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 5,
+        "rp": 1767,
+        "rpBreakdown": {
+          "helpFactor": 7,
+          "miscFactor": 1.22,
+          "ingredientFactor": 510.86,
+          "berryFactor": 246.55,
+          "skillFactor": 690.9
+        },
+        "carryLimit": 28,
+        "helpingFrequency": 1151,
+        "neroliBaseHelpSpeed": 2558,
+        "ingredientRate": 0.266208,
+        "skillRateWithoutPity": 0.03,
+        "skillRateWithPity": 0.03297248,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 48,
+        "finalBerryStrength": 77,
+        "dailyHelps": 75.065161,
+        "dailyBerryCount": 55.0822,
+        "dailyBerryEnergy": 4241.33,
+        "dailyIngredientCount": 39.9659,
+        "dailyIngredientEnergy": 7353.72,
+        "dailySkillProcs": 2.475084,
+        "perProcSkillOutput": 12
+      }
+    },
+    {
+      "id": "rand_seed_05_slowbro_lv30",
+      "description": "Seeded random #5: Lv.30 Slowbro (skill, Hardy, AAA)",
+      "category": "seeded_random",
+      "input": {
+        "pokemon": "SLOWBRO",
+        "specialty": "skill",
+        "level": 30,
+        "nature": "Hardy",
+        "subskills": [
+          "Research EXP Bonus",
+          "Dream Shard Bonus",
+          "Ingredient Finder S",
+          "Skill Level Up S",
+          "Helping Speed M"
+        ],
+        "ingredientCombo": "AAA",
+        "mainSkillLevel": 4,
+        "ribbonLevel": 1,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 1,
+        "isFavoredBerry": true,
+        "mapBonus": 50,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Research EXP Bonus",
+          "Dream Shard Bonus"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 4,
+        "rp": 1962,
+        "rpBreakdown": {
+          "helpFactor": 5,
+          "miscFactor": 1.44,
+          "ingredientFactor": 280.26,
+          "berryFactor": 252.94,
+          "skillFactor": 829.6
+        },
+        "carryLimit": 22,
+        "helpingFrequency": 1530,
+        "neroliBaseHelpSpeed": 3400,
+        "ingredientRate": 0.197,
+        "skillRateWithoutPity": 0.08,
+        "skillRateWithPity": 0.08351311,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 63,
+        "finalBerryStrength": 189,
+        "dailyHelps": 56.470588,
+        "dailyBerryCount": 45.3459,
+        "dailyBerryEnergy": 8570.37,
+        "dailyIngredientCount": 16.6871,
+        "dailyIngredientEnergy": 3779.62,
+        "dailySkillProcs": 4.716035,
+        "perProcSkillOutput": 25
+      }
+    },
+    {
+      "id": "rand_seed_06_togepi_lv35",
+      "description": "Seeded random #6: Lv.35 Togepi (skill, Lax, ABB)",
+      "category": "seeded_random",
+      "input": {
+        "pokemon": "TOGEPI",
+        "specialty": "skill",
+        "level": 35,
+        "nature": "Lax",
+        "subskills": [
+          "Helping Speed M",
+          "Ingredient Finder M",
+          "Energy Recovery Bonus",
+          "Berry Finding S",
+          "Dream Shard Bonus"
+        ],
+        "ingredientCombo": "ABB",
+        "mainSkillLevel": 2,
+        "ribbonLevel": 1,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 50,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Helping Speed M",
+          "Ingredient Finder M"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 2,
+        "rp": 714,
+        "rpBreakdown": {
+          "helpFactor": 4.65,
+          "miscFactor": 1.08,
+          "ingredientFactor": 211.55,
+          "berryFactor": 221.72,
+          "skillFactor": 228.03
+        },
+        "carryLimit": 9,
+        "helpingFrequency": 1730,
+        "neroliBaseHelpSpeed": 3847,
+        "ingredientRate": 0.20536,
+        "skillRateWithoutPity": 0.0392,
+        "skillRateWithPity": 0.05517108,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 60,
+        "finalBerryStrength": 90,
+        "dailyHelps": 49.942197,
+        "dailyBerryCount": 39.6861,
+        "dailyBerryEnergy": 3571.75,
+        "dailyIngredientCount": 15.3842,
+        "dailyIngredientEnergy": 2561.47,
+        "dailySkillProcs": 2.755365,
+        "perProcSkillOutput": 0
+      }
+    },
+    {
+      "id": "rand_seed_07_pawmo_lv42",
+      "description": "Seeded random #7: Lv.42 Pawmo (skill, Modest, ABC)",
+      "category": "seeded_random",
+      "input": {
+        "pokemon": "PAWMO",
+        "specialty": "skill",
+        "level": 42,
+        "nature": "Modest",
+        "subskills": [
+          "Sleep EXP Bonus",
+          "Helping Speed S",
+          "Skill Level Up S",
+          "Dream Shard Bonus",
+          "Inventory Up S"
+        ],
+        "ingredientCombo": "ABC",
+        "mainSkillLevel": 2,
+        "ribbonLevel": 4,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 1,
+        "isFavoredBerry": false,
+        "mapBonus": 75,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Sleep EXP Bonus",
+          "Helping Speed S"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 2,
+        "rp": 1315,
+        "rpBreakdown": {
+          "helpFactor": 6.75,
+          "miscFactor": 1.22,
+          "ingredientFactor": 285.57,
+          "berryFactor": 404.82,
+          "skillFactor": 387.09
+        },
+        "carryLimit": 25,
+        "helpingFrequency": 1134,
+        "neroliBaseHelpSpeed": 2521,
+        "ingredientRate": 0.1308,
+        "skillRateWithoutPity": 0.036,
+        "skillRateWithPity": 0.04495762,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 69,
+        "finalBerryStrength": 121,
+        "dailyHelps": 76.190476,
+        "dailyBerryCount": 66.2248,
+        "dailyBerryEnergy": 8013.2,
+        "dailyIngredientCount": 19.9314,
+        "dailyIngredientEnergy": 3880.4,
+        "dailySkillProcs": 3.425343,
+        "perProcSkillOutput": 7
+      }
+    },
+    {
+      "id": "rand_seed_08_walrein_lv50",
+      "description": "Seeded random #8: Lv.50 Walrein (berry, Timid, AAA)",
+      "category": "seeded_random",
+      "input": {
+        "pokemon": "WALREIN",
+        "specialty": "berry",
+        "level": 50,
+        "nature": "Timid",
+        "subskills": [
+          "Research EXP Bonus",
+          "Helping Speed S",
+          "Helping Bonus",
+          "Skill Level Up M",
+          "Dream Shard Bonus"
+        ],
+        "ingredientCombo": "AAA",
+        "mainSkillLevel": 6,
+        "ribbonLevel": 3,
+        "goodCampTicket": true,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 75,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Research EXP Bonus",
+          "Helping Speed S",
+          "Helping Bonus"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 6,
+        "rp": 3178,
+        "rpBreakdown": {
+          "helpFactor": 6.65,
+          "miscFactor": 1.44,
+          "ingredientFactor": 436.17,
+          "berryFactor": 1105.74,
+          "skillFactor": 665.07
+        },
+        "carryLimit": 41,
+        "helpingFrequency": 921,
+        "neroliBaseHelpSpeed": 2133,
+        "ingredientRate": 0.223,
+        "skillRateWithoutPity": 0.022,
+        "skillRateWithPity": 0.02658585,
+        "berriesPerDrop": 2,
+        "baseBerryStrength": 107,
+        "finalBerryStrength": 188,
+        "dailyHelps": 93.811075,
+        "dailyBerryCount": 145.7824,
+        "dailyBerryEnergy": 27407.09,
+        "dailyIngredientCount": 31.3798,
+        "dailyIngredientEnergy": 6644.67,
+        "dailySkillProcs": 2.494047,
+        "perProcSkillOutput": 21
+      }
+    },
+    {
+      "id": "rand_seed_09_cutiefly_lv54",
+      "description": "Seeded random #9: Lv.54 Cutiefly (ingredient, Calm, AAB)",
+      "category": "seeded_random",
+      "input": {
+        "pokemon": "CUTIEFLY",
+        "specialty": "ingredient",
+        "level": 54,
+        "nature": "Calm",
+        "subskills": [
+          "Skill Level Up M",
+          "Berry Finding S",
+          "Inventory Up M",
+          "Energy Recovery Bonus",
+          "Skill Trigger M"
+        ],
+        "ingredientCombo": "AAB",
+        "mainSkillLevel": 2,
+        "ribbonLevel": 3,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": true,
+        "mapBonus": 60,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Skill Level Up M",
+          "Berry Finding S",
+          "Inventory Up M"
+        ],
+        "skillLevelUpBonus": 2,
+        "effectiveMainSkillLevel": 4,
+        "rp": 1617,
+        "rpBreakdown": {
+          "helpFactor": 4.35,
+          "miscFactor": 1.13,
+          "ingredientFactor": 525.58,
+          "berryFactor": 668.99,
+          "skillFactor": 236.34
+        },
+        "carryLimit": 27,
+        "helpingFrequency": 1848,
+        "neroliBaseHelpSpeed": 4108,
+        "ingredientRate": 0.199,
+        "skillRateWithoutPity": 0.0228,
+        "skillRateWithPity": 0.0271977,
+        "berriesPerDrop": 2,
+        "baseBerryStrength": 96,
+        "finalBerryStrength": 308,
+        "dailyHelps": 46.753247,
+        "dailyBerryCount": 74.8987,
+        "dailyBerryEnergy": 23068.8,
+        "dailyIngredientCount": 32.5636,
+        "dailyIngredientEnergy": 5262.28,
+        "dailySkillProcs": 1.271581,
+        "perProcSkillOutput": 11
+      }
+    },
+    {
+      "id": "rand_seed_10_ivysaur_lv60",
+      "description": "Seeded random #10: Lv.60 Ivysaur (ingredient, Jolly, AAA)",
+      "category": "seeded_random",
+      "input": {
+        "pokemon": "IVYSAUR",
+        "specialty": "ingredient",
+        "level": 60,
+        "nature": "Jolly",
+        "subskills": [
+          "Helping Speed S",
+          "Inventory Up M",
+          "Ingredient Finder M",
+          "Inventory Up L",
+          "Helping Bonus"
+        ],
+        "ingredientCombo": "AAA",
+        "mainSkillLevel": 4,
+        "ribbonLevel": 3,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 50,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Helping Speed S",
+          "Inventory Up M",
+          "Ingredient Finder M"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 4,
+        "rp": 3038,
+        "rpBreakdown": {
+          "helpFactor": 7,
+          "miscFactor": 1.13,
+          "ingredientFactor": 1719.42,
+          "berryFactor": 652.5,
+          "skillFactor": 316.93
+        },
+        "carryLimit": 37,
+        "helpingFrequency": 1156,
+        "neroliBaseHelpSpeed": 2571,
+        "ingredientRate": 0.27744,
+        "skillRateWithoutPity": 0.019,
+        "skillRateWithPity": 0.02434995,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 129,
+        "finalBerryStrength": 194,
+        "dailyHelps": 74.740484,
+        "dailyBerryCount": 54.0045,
+        "dailyBerryEnergy": 10476.87,
+        "dailyIngredientCount": 96.768,
+        "dailyIngredientEnergy": 14660.35,
+        "dailySkillProcs": 1.819927,
+        "perProcSkillOutput": 14
+      }
+    },
+    {
+      "id": "rand_seed_11_spiritomb_lv63",
+      "description": "Seeded random #11: Lv.63 Spiritomb (ingredient, Mild, ABB)",
+      "category": "seeded_random",
+      "input": {
+        "pokemon": "SPIRITOMB",
+        "specialty": "ingredient",
+        "level": 63,
+        "nature": "Mild",
+        "subskills": [
+          "Energy Recovery Bonus",
+          "Inventory Up L",
+          "Berry Finding S",
+          "Ingredient Finder M",
+          "Skill Trigger S"
+        ],
+        "ingredientCombo": "ABB",
+        "mainSkillLevel": 6,
+        "ribbonLevel": 2,
+        "goodCampTicket": true,
+        "nrOfTeamHelpingBonus": 2,
+        "isFavoredBerry": true,
+        "mapBonus": 75,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Energy Recovery Bonus",
+          "Inventory Up L",
+          "Berry Finding S"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 6,
+        "rp": 5660,
+        "rpBreakdown": {
+          "helpFactor": 5.85,
+          "miscFactor": 1.28,
+          "ingredientFactor": 2188.73,
+          "berryFactor": 1275.57,
+          "skillFactor": 957.38
+        },
+        "carryLimit": 58,
+        "helpingFrequency": 993,
+        "neroliBaseHelpSpeed": 2299,
+        "ingredientRate": 0.2376,
+        "skillRateWithoutPity": 0.036,
+        "skillRateWithPity": 0.03810405,
+        "berriesPerDrop": 2,
+        "baseBerryStrength": 143,
+        "finalBerryStrength": 501,
+        "dailyHelps": 87.009063,
+        "dailyBerryCount": 132.6714,
+        "dailyBerryEnergy": 66468.38,
+        "dailyIngredientCount": 68.9112,
+        "dailyIngredientEnergy": 28146.77,
+        "dailySkillProcs": 3.315398,
+        "perProcSkillOutput": 11
+      }
+    },
+    {
+      "id": "rand_seed_12_geodude_lv68",
+      "description": "Seeded random #12: Lv.68 Geodude (ingredient, Rash, AAC)",
+      "category": "seeded_random",
+      "input": {
+        "pokemon": "GEODUDE",
+        "specialty": "ingredient",
+        "level": 68,
+        "nature": "Rash",
+        "subskills": [
+          "Energy Recovery Bonus",
+          "Skill Level Up S",
+          "Research EXP Bonus",
+          "Helping Bonus",
+          "Ingredient Finder M"
+        ],
+        "ingredientCombo": "AAC",
+        "mainSkillLevel": 2,
+        "ribbonLevel": 0,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 1,
+        "isFavoredBerry": true,
+        "mapBonus": 50,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Energy Recovery Bonus",
+          "Skill Level Up S",
+          "Research EXP Bonus"
+        ],
+        "skillLevelUpBonus": 1,
+        "effectiveMainSkillLevel": 3,
+        "rp": 2534,
+        "rpBreakdown": {
+          "helpFactor": 3.6,
+          "miscFactor": 1.44,
+          "ingredientFactor": 1267.62,
+          "berryFactor": 374.61,
+          "skillFactor": 117.56
+        },
+        "carryLimit": 9,
+        "helpingFrequency": 2110,
+        "neroliBaseHelpSpeed": 4689,
+        "ingredientRate": 0.3372,
+        "skillRateWithoutPity": 0.0416,
+        "skillRateWithPity": 0.04310209,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 157,
+        "finalBerryStrength": 471,
+        "dailyHelps": 40.947867,
+        "dailyBerryCount": 27.1402,
+        "dailyBerryEnergy": 12783.06,
+        "dailyIngredientCount": 50.6279,
+        "dailyIngredientEnergy": 9444.41,
+        "dailySkillProcs": 1.764939,
+        "perProcSkillOutput": 981.5
+      }
+    },
+    {
+      "id": "rand_seed_13_gulpin_lv70",
+      "description": "Seeded random #13: Lv.70 Gulpin (skill, Calm, ABA)",
+      "category": "seeded_random",
+      "input": {
+        "pokemon": "GULPIN",
+        "specialty": "skill",
+        "level": 70,
+        "nature": "Calm",
+        "subskills": [
+          "Helping Speed S",
+          "Skill Trigger M",
+          "Inventory Up S",
+          "Skill Trigger S",
+          "Research EXP Bonus"
+        ],
+        "ingredientCombo": "ABA",
+        "mainSkillLevel": 4,
+        "ribbonLevel": 2,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": false,
+        "mapBonus": 35,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Helping Speed S",
+          "Skill Trigger M",
+          "Inventory Up S",
+          "Skill Trigger S"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 4,
+        "rp": 2098,
+        "rpBreakdown": {
+          "helpFactor": 3.7,
+          "miscFactor": 1.07,
+          "ingredientFactor": 422.92,
+          "berryFactor": 511.84,
+          "skillFactor": 1026.31
+        },
+        "carryLimit": 17,
+        "helpingFrequency": 2173,
+        "neroliBaseHelpSpeed": 4830,
+        "ingredientRate": 0.214,
+        "skillRateWithoutPity": 0.116424,
+        "skillRateWithPity": 0.12194825,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 176,
+        "finalBerryStrength": 238,
+        "dailyHelps": 39.760699,
+        "dailyBerryCount": 31.2519,
+        "dailyBerryEnergy": 7437.95,
+        "dailyIngredientCount": 17.0176,
+        "dailyIngredientEnergy": 2553.91,
+        "dailySkillProcs": 4.848748,
+        "perProcSkillOutput": 837.5
+      }
+    },
+    {
+      "id": "rand_seed_14_prinplup_lv70",
+      "description": "Seeded random #14: Lv.70 Prinplup (berry, Impish, ABB)",
+      "category": "seeded_random",
+      "input": {
+        "pokemon": "PRINPLUP",
+        "specialty": "berry",
+        "level": 70,
+        "nature": "Impish",
+        "subskills": [
+          "Research EXP Bonus",
+          "Energy Recovery Bonus",
+          "Dream Shard Bonus",
+          "Inventory Up S",
+          "Ingredient Finder S"
+        ],
+        "ingredientCombo": "ABB",
+        "mainSkillLevel": 3,
+        "ribbonLevel": 0,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 2,
+        "isFavoredBerry": true,
+        "mapBonus": 35,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Research EXP Bonus",
+          "Energy Recovery Bonus",
+          "Dream Shard Bonus",
+          "Inventory Up S"
+        ],
+        "skillLevelUpBonus": 0,
+        "effectiveMainSkillLevel": 3,
+        "rp": 4461,
+        "rpBreakdown": {
+          "helpFactor": 5.6,
+          "miscFactor": 1.87,
+          "ingredientFactor": 391.8,
+          "berryFactor": 1655.71,
+          "skillFactor": 338.29
+        },
+        "carryLimit": 26,
+        "helpingFrequency": 1291,
+        "neroliBaseHelpSpeed": 2870,
+        "ingredientRate": 0.1304,
+        "skillRateWithoutPity": 0.035,
+        "skillRateWithPity": 0.03723134,
+        "berriesPerDrop": 2,
+        "baseBerryStrength": 170,
+        "finalBerryStrength": 460,
+        "dailyHelps": 66.924864,
+        "dailyBerryCount": 116.3957,
+        "dailyBerryEnergy": 53542.03,
+        "dailyIngredientCount": 11.636,
+        "dailyIngredientEnergy": 2631.19,
+        "dailySkillProcs": 2.491703,
+        "perProcSkillOutput": 8
+      }
+    },
+    {
+      "id": "rand_seed_15_murkrow_lv48",
+      "description": "Seeded random #15: Lv.48 Murkrow (skill, Quiet, AAB)",
+      "category": "seeded_random",
+      "input": {
+        "pokemon": "MURKROW",
+        "specialty": "skill",
+        "level": 48,
+        "nature": "Quiet",
+        "subskills": [
+          "Ingredient Finder M",
+          "Skill Level Up S",
+          "Dream Shard Bonus",
+          "Inventory Up M",
+          "Inventory Up S"
+        ],
+        "ingredientCombo": "AAB",
+        "mainSkillLevel": 1,
+        "ribbonLevel": 0,
+        "goodCampTicket": true,
+        "nrOfTeamHelpingBonus": 0,
+        "isFavoredBerry": true,
+        "mapBonus": 75,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Ingredient Finder M",
+          "Skill Level Up S"
+        ],
+        "skillLevelUpBonus": 1,
+        "effectiveMainSkillLevel": 2,
+        "rp": 1304,
+        "rpBreakdown": {
+          "helpFactor": 5.5,
+          "miscFactor": 1,
+          "ingredientFactor": 457.9,
+          "berryFactor": 419.21,
+          "skillFactor": 426.59
+        },
+        "carryLimit": 16,
+        "helpingFrequency": 1173,
+        "neroliBaseHelpSpeed": 2718,
+        "ingredientRate": 0.230112,
+        "skillRateWithoutPity": 0.062,
+        "skillRateWithPity": 0.0668461,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 99,
+        "finalBerryStrength": 347,
+        "dailyHelps": 73.657289,
+        "dailyBerryCount": 56.7079,
+        "dailyBerryEnergy": 19677.63,
+        "dailyIngredientCount": 25.4241,
+        "dailyIngredientEnergy": 6807.31,
+        "dailySkillProcs": 4.923703,
+        "perProcSkillOutput": 6
+      }
+    },
+    {
+      "id": "rand_seed_16_floragato_lv70",
+      "description": "Seeded random #16: Lv.70 Floragato (ingredient, Hardy, AAB)",
+      "category": "seeded_random",
+      "input": {
+        "pokemon": "FLORAGATO",
+        "specialty": "ingredient",
+        "level": 70,
+        "nature": "Hardy",
+        "subskills": [
+          "Skill Trigger S",
+          "Research EXP Bonus",
+          "Ingredient Finder S",
+          "Skill Level Up S",
+          "Sleep EXP Bonus"
+        ],
+        "ingredientCombo": "AAB",
+        "mainSkillLevel": 4,
+        "ribbonLevel": 4,
+        "goodCampTicket": false,
+        "nrOfTeamHelpingBonus": 2,
+        "isFavoredBerry": true,
+        "mapBonus": 60,
+        "energyMultiplier": 0.45
+      },
+      "expected": {
+        "activeSubskillNames": [
+          "Skill Trigger S",
+          "Research EXP Bonus",
+          "Ingredient Finder S",
+          "Skill Level Up S"
+        ],
+        "skillLevelUpBonus": 1,
+        "effectiveMainSkillLevel": 5,
+        "rp": 4606,
+        "rpBreakdown": {
+          "helpFactor": 6.75,
+          "miscFactor": 1.22,
+          "ingredientFactor": 2334.86,
+          "berryFactor": 839.09,
+          "skillFactor": 601.82
+        },
+        "carryLimit": 27,
+        "helpingFrequency": 1075,
+        "neroliBaseHelpSpeed": 2389,
+        "ingredientRate": 0.24662,
+        "skillRateWithoutPity": 0.02714,
+        "skillRateWithPity": 0.03062365,
+        "berriesPerDrop": 1,
+        "baseBerryStrength": 165,
+        "finalBerryStrength": 528,
+        "dailyHelps": 80.372093,
+        "dailyBerryCount": 60.5507,
+        "dailyBerryEnergy": 31970.78,
+        "dailyIngredientCount": 105.7139,
+        "dailyIngredientEnergy": 18499.94,
+        "dailySkillProcs": 2.461287,
+        "perProcSkillOutput": 22
+      }
+    }
+  ]
+}

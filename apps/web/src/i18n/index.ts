@@ -1,4 +1,4 @@
-import { SupportedLocale } from '@pokesleep/data';
+import { getLanguagePack, SupportedLocale } from '@pokesleep/data';
 
 export const UI_TRANSLATIONS: Record<SupportedLocale, Record<string, string>> = {
   'zh-CN': {
@@ -230,3 +230,50 @@ export function getEntityName(
   }
   return entity.displayName || entity.name;
 }
+
+export function getPokemonTypeLabel(typeKey: string, locale: SupportedLocale): string {
+  if (!typeKey) return '';
+  const pack = getLanguagePack(locale);
+  return pack.terms.pokemon_types?.[typeKey.toLowerCase()] || typeKey;
+}
+
+const NATURE_MOD_LABELS: Record<SupportedLocale, Record<string, string>> = {
+  'zh-CN': {
+    speed: '帮忙速度',
+    ingredient: '食材发现率',
+    skill: '主技能发动率',
+    energy: '活力回复量',
+    exp: 'EXP获得量',
+    neutral: '无修正',
+  },
+  'zh-TW': {
+    speed: '幫忙速度',
+    ingredient: '食材發現率',
+    skill: '主技能發動率',
+    energy: '活力回復量',
+    exp: 'EXP獲得量',
+    neutral: '無修正',
+  },
+  ja: {
+    speed: 'おてスピ',
+    ingredient: '食材確率',
+    skill: 'スキル確率',
+    energy: 'げんき回復',
+    exp: 'EXP獲得',
+    neutral: '補正なし',
+  },
+  en: {
+    speed: 'Speed',
+    ingredient: 'Ing Rate',
+    skill: 'Skill Rate',
+    energy: 'Energy',
+    exp: 'EXP',
+    neutral: 'Neutral',
+  },
+};
+
+export function getNatureModLabel(mod: string | undefined, locale: SupportedLocale): string {
+  if (!mod || mod === 'neutral') return '';
+  return NATURE_MOD_LABELS[locale]?.[mod] || NATURE_MOD_LABELS['zh-CN'][mod] || mod;
+}
+

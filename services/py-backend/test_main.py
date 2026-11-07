@@ -107,7 +107,7 @@ def test_ocr_scan_image_api():
     img.save(img_byte_arr, format="PNG")
     img_byte_arr.seek(0)
 
-    files = {"file": ("test_scan.png", img_byte_arr.getvalue(), "image/png")}
+    files = {"file": ("test_scan", img_byte_arr.getvalue(), "application/octet-stream")}
     res = client.post("/api/ocr/scan-image", files=files)
     assert res.status_code == 200
     data = res.json()
@@ -115,6 +115,127 @@ def test_ocr_scan_image_api():
     assert "boxes" in data
     assert data["parsed"]["level"] == 40
     assert data["parsed"]["nature"]["name"] == "Adamant"
+
+
+def test_ocr_lv70_lv80_and_real_screenshot():
+    from pathlib import Path
+
+    # 1. Verify Lv.70 and Lv.80 subskills parse cleanly
+    res = client.post(
+        "/api/ocr/parse-text",
+        json={
+            "lines": [
+                "Lv.50 蜥蜴王",
+                "SP 2500",
+                "树果遽增 Lv.4",
+                "Lv.10 技能几率提升M",
+                "Lv.25 持有上限提升S",
+                "Lv.50 树果数量S",
+                "Lv.70 帮手奖励",
+                "Lv.80 帮忙速度S",
+                "性格 悠闲",
+            ]
+        },
+    )
+    assert res.status_code == 200
+    parsed = res.json()
+    assert parsed["pokemon"]["name"] == "SCEPTILE"
+    assert parsed["level"] == 50
+    assert parsed["mainSkillLevel"] == 4
+    slots = {s["slot"]: s["name"] for s in parsed["subskills"]}
+    assert slots == {
+        "level10": "Skill Trigger M",
+        "level25": "Inventory Up S",
+        "level50": "Berry Finding S",
+        "level70": "Helping Bonus",
+        "level80": "Helping Speed S",
+    }
+
+    # 2. If local gitignored test_imgs/蜥蜴王 exists, verify end-to-end real screenshot OCR
+    real_img = Path(__file__).resolve().parents[2] / "test_imgs" / "蜥蜴王"
+    if real_img.exists():
+        res_img = client.post(
+            "/api/ocr/scan-image",
+            files={"file": ("蜥蜴王", real_img.read_bytes(), "application/octet-stream")},
+        )
+        assert res_img.status_code == 200
+        p = res_img.json()["parsed"]
+        assert p["pokemon"]["name"] == "SCEPTILE"
+        assert p["level"] == 41
+        assert p["rp"] == 2119
+        assert p["carryLimit"] == 33
+        assert p["mainSkillLevel"] == 3
+        assert p["nature"]["name"] == "Relaxed"
+        assert [s["name"] for s in p["subskills"]] == [
+            "Skill Trigger M",
+            "Inventory Up S",
+            "Berry Finding S",
+            "Helping Bonus",
+            "Helping Speed S",
+        ]
+        assert p["ingredients"][1]["name"] == "Coffee"
+
+
+def test_python_rp_cross_validation_against_golden():
+    import json
+    from pathlib import Path
+    from ocr.parser import ParsedSubskill, SUBSKILL_SLOTS_LEVELS, calculate_exact_rp_python
+
+    golden_path = (
+        Path(__file__).resolve().parents[2]
+        / "packages"
+        / "engine"
+        / "src"
+        / "__tests__"
+        / "fixtures"
+        / "golden-cross-validation.json"
+    )
+    golden = json.loads(golden_path.read_text("utf-8"))
+    checked = 0
+    for case in golden["cases"]:
+        inp = case["input"]
+        exp = case["expected"]
+        mon = DATA_LOADER.get_pokemon(inp["pokemon"])
+        assert mon is not None
+        # Python OCR RP deducer assumes 0 ribbon speed modifier on un-evolved stages
+        if inp["ribbonLevel"] >= 2 and mon.get("remainingEvolutions", 0) > 0:
+            continue
+        nat = DATA_LOADER.get_nature(inp["nature"])
+        subs = []
+        for idx, sub_name in enumerate(inp["subskills"]):
+            if not sub_name:
+                continue
+            slot_key, unlock_lvl = SUBSKILL_SLOTS_LEVELS[idx]
+            subs.append(
+                ParsedSubskill(
+                    slot=slot_key,
+                    level=unlock_lvl,
+                    name=sub_name,
+                    displayName=sub_name,
+                    rarity="silver",
+                )
+            )
+        combo = inp["ingredientCombo"]
+        unlocked_ings = [mon["ingredient0"][max(0, ord(combo[0]) - 65)]]
+        if inp["level"] >= 30:
+            valid30 = [i for i in mon["ingredient30"] if i["ingredient"] != "Locked"]
+            unlocked_ings.append(valid30[max(0, ord(combo[1]) - 65)])
+        if inp["level"] >= 60:
+            valid60 = [i for i in mon["ingredient60"] if i["ingredient"] != "Locked"]
+            unlocked_ings.append(valid60[max(0, ord(combo[2]) - 65)])
+
+        py_rp = calculate_exact_rp_python(
+            pokemon=mon,
+            level=inp["level"],
+            skill_level=exp["effectiveMainSkillLevel"],
+            nature=nat,
+            subskills=subs,
+            unlocked_ingredients=unlocked_ings,
+        )
+        assert py_rp == exp["rp"], f"Mismatch on {case['id']}: {py_rp} != {exp['rp']}"
+        checked += 1
+
+    assert checked >= 20
 
 
 def test_optimizer_weekly_meals():

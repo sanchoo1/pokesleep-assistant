@@ -168,15 +168,72 @@ console.log('[ETL] Transforming and cross-referencing entities...');
 
 const pokemonList = neroliData.pokemon.map(mon => {
   const translations = getPokemonTranslations(mon);
+  const maxSkillLvl = mon.skill.maxLevel || (mon.skill.RP ? mon.skill.RP.length : 6);
+  const baseSkillName = mon.skill.baseSkill ? mon.skill.baseSkill.name : mon.skill.name;
+  const skillConf = sleepLocales.mainskills?.[mon.skill.name] || sleepLocales.mainskills?.[baseSkillName] || {};
+
+  const skillActivations = {};
+  for (const [actKey, actVal] of Object.entries(mon.skill.activations || {})) {
+    const amounts = [];
+    const teamAmounts = [];
+    const critAmounts = [];
+    for (let lvl = 1; lvl <= maxSkillLvl; lvl++) {
+      try {
+        amounts.push(typeof actVal.amount === 'function' ? actVal.amount({ skillLevel: lvl, extra: 1 }) : 0);
+      } catch {
+        amounts.push(0);
+      }
+      if (typeof actVal.teamAmount === 'function') {
+        try {
+          teamAmounts.push(actVal.teamAmount({ skillLevel: lvl, extra: 1 }));
+        } catch {
+          teamAmounts.push(0);
+        }
+      }
+      if (typeof actVal.critAmount === 'function') {
+        try {
+          critAmounts.push(actVal.critAmount({ skillLevel: lvl, extra: 1 }));
+        } catch {
+          critAmounts.push(0);
+        }
+      }
+    }
+    const entry = {
+      unit: actVal.unit,
+      amounts,
+    };
+    if (teamAmounts.length > 0) entry.teamAmounts = teamAmounts;
+    if (critAmounts.length > 0) entry.critAmounts = critAmounts;
+    skillActivations[actKey] = entry;
+  }
+
+  const descriptions = [];
+  for (let lvl = 1; lvl <= maxSkillLvl; lvl++) {
+    try {
+      descriptions.push(typeof mon.skill.description === 'function' ? mon.skill.description({ skillLevel: lvl }) : '');
+    } catch {
+      descriptions.push('');
+    }
+  }
 
   const skillInfo = {
     name: mon.skill.name,
     modifierName: mon.skill.modifierName || null,
-    baseSkillName: mon.skill.baseSkill ? mon.skill.baseSkill.name : mon.skill.name,
-    maxLevel: mon.skill.maxLevel || (mon.skill.RP ? mon.skill.RP.length : 6),
+    baseSkillName,
+    maxLevel: maxSkillLvl,
     RP: mon.skill.RP || [],
     strengthAmounts: mon.skill.strengthAmounts || [],
     image: mon.skill.image || '',
+    activations: skillActivations,
+    descriptions,
+    ...(typeof mon.skill.critChance === 'number' ? { critChance: mon.skill.critChance } : {}),
+    ...(typeof mon.skill.critMultiplier === 'number' ? { critMultiplier: mon.skill.critMultiplier } : {}),
+    translations: {
+      'zh-CN': skillConf['zh-CN'] || mon.skill.name,
+      'zh-TW': skillConf['zh-TW'] || mon.skill.name,
+      ja: skillConf['ja'] || mon.skill.name,
+      en: skillConf['en'] || mon.skill.name,
+    },
   };
 
   return {
@@ -184,6 +241,7 @@ const pokemonList = neroliData.pokemon.map(mon => {
     displayName: mon.displayName,
     pokedexNumber: mon.pokedexNumber,
     specialty: mon.specialty,
+    type: mon.berry.type,
     frequency: mon.frequency,
     ingredientPercentage: mon.ingredientPercentage,
     skillPercentage: mon.skillPercentage,
@@ -408,6 +466,12 @@ for (const lang of languages) {
         salad: sleepLocales.terms?.recipe_types?.salad?.[lang] || 'Salads',
         dessert: sleepLocales.terms?.recipe_types?.dessert?.[lang] || 'Desserts',
       },
+      pokemon_types: Object.fromEntries(
+        Object.entries(sleepLocales.terms?.pokemon_types || {}).map(([typeKey, val]) => [
+          typeKey,
+          val?.[lang] || typeKey,
+        ])
+      ),
     },
     pokemon: {},
     berries: {},

@@ -1,7 +1,9 @@
 """FastAPI router for OCR endpoints."""
 
+import io
 from typing import List, Optional
 from fastapi import APIRouter, File, HTTPException, UploadFile
+from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel
 
 from ocr.parser import ParsedPokemonResult, parse_ocr_text
@@ -37,17 +39,22 @@ async def api_parse_text(request: ParseTextRequest):
 
 @router.post("/scan-image", response_model=ScanImageResponse)
 async def api_scan_image(file: UploadFile = File(...)):
-    """Accept an uploaded image file, run RapidOCR, and return parsed Pokemon data."""
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Uploaded file must be an image.")
-
+    """
+    Accept an uploaded image file (even without a file extension / with octet-stream MIME),
+    validate via PIL, run RapidOCR, and return parsed Pokemon data.
+    """
     content = await file.read()
     if not content:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
+    try:
+        with Image.open(io.BytesIO(content)) as im:
+            im.verify()
+    except (UnidentifiedImageError, Exception):
+        raise HTTPException(status_code=400, detail="Uploaded file is not a valid image.")
 
     try:
         parsed_result, boxes = scan_pokemon_image(content)
         return ScanImageResponse(parsed=parsed_result, boxes=boxes)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"OCR scan failed: {str(e)}")
-
