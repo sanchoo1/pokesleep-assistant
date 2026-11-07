@@ -5,15 +5,20 @@
   "description": "A high-performance Pokémon Sleep companion and calculation toolkit",
   "packageManager": "pnpm@12.17.0",
   "scripts": {
+    "dev": "concurrently -k -p \"[{name}]\" -n \"web,api\" -c \"cyan.bold,yellow.bold\" \"pnpm --filter @pokesleep/web dev\" \"uv run --directory services/py-backend uvicorn main:app --reload --port 8000\"",
+    "web:dev": "pnpm --filter @pokesleep/web dev",
+    "py:dev": "uv run --directory services/py-backend uvicorn main:app --reload --port 8000",
+    "py:install": "uv pip install -r services/py-backend/requirements.txt",
     "data:etl": "pnpm --filter \"@pokesleep/etl\" run build-data",
     "build": "pnpm --filter \"./packages/*\" --filter \"./apps/*\" run build",
     "test": "vitest run",
-    "lint": "pnpm --filter \"./packages/*\" --filter \"./apps/*\" run lint",
-    "py:install": "uv pip install -r services/py-backend/requirements.txt",
-    "py:dev": "uv run --directory services/py-backend uvicorn main:app --reload --port 8000"
+    "test:py": "PYTHONPATH=services/py-backend .venv/bin/pytest services/py-backend/test_main.py",
+    "test:all": "vitest run && PYTHONPATH=services/py-backend .venv/bin/pytest services/py-backend/test_main.py",
+    "lint": "pnpm --filter \"./packages/*\" --filter \"./apps/*\" run lint"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
+    "concurrently": "^10.0.6",
     "typescript": "^5.8.0",
     "vitest": "^3.0.0"
   }

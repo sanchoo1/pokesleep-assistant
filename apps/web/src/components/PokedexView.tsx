@@ -260,3 +260,4 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ locale }) => {
     </div>
   );
 };
+

@@ -132,3 +132,4 @@ class DataLoader:
 
 # Global singleton
 DATA_LOADER = DataLoader()
+

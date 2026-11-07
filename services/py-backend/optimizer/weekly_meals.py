@@ -343,3 +343,4 @@ def solve_weekly_meal_schedule(request: WeeklyMealRequest) -> WeeklyMealPlanResp
         solveTimeMs=round(solve_time, 2),
         status="optimal" if sol.success else sol.message,
     )
+

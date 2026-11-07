@@ -18,3 +18,4 @@ async def api_weekly_meals(request: WeeklyMealRequest):
     under ingredient cumulative inflow and pot capacity constraints.
     """
     return solve_weekly_meal_schedule(request)
+

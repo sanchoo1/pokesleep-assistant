@@ -434,3 +434,4 @@ def parse_ocr_text(lines: List[str]) -> ParsedPokemonResult:
         matchedFields=matched_fields,
         rawLines=cleaned_lines,
     )
+

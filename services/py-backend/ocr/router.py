@@ -50,3 +50,4 @@ async def api_scan_image(file: UploadFile = File(...)):
         return ScanImageResponse(parsed=parsed_result, boxes=boxes)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"OCR scan failed: {str(e)}")
+

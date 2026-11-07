@@ -53,3 +53,4 @@ def scan_pokemon_image(
 
     parsed_result = parse_ocr_text(lines)
     return parsed_result, boxes
+

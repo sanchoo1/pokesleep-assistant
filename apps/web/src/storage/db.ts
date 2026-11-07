@@ -105,3 +105,4 @@ export async function clearBox(): Promise<void> {
     req.onerror = () => reject(req.error);
   });
 }
+
