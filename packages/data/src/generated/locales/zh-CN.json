@@ -474,9 +474,9 @@
     "Extra Helpful S": "帮手支援S",
     "Helper Boost": "帮手鼓舞",
     "Metronome": "挥指",
-    "Tasty Chance S": "美味机会S",
+    "Tasty Chance S": "料理成功S",
     "Cooking Assist S": "料理协助S",
-    "Cooking Advance S": "料理推进S",
+    "Cooking Advance S": "料理跃进S",
     "Berry Burst": "树果遽增",
     "Disguise (Berry Burst)": "画皮（树果遽增）",
     "Draco Meteor (Berry Burst)": "流星群（树果遽增）",
@@ -488,7 +488,7 @@
     "Skill Copy": "技能复制",
     "Transform (Skill Copy)": "变身（技能复制）",
     "Mimic (Skill Copy)": "模仿（技能复制）",
-    "Versatile": "写生全能",
+    "Versatile": "十项全能",
     "Bad Dreams (Charge Strength M)": "梦魇（能量填充M）",
     "Stockpile (Charge Strength S)": "蓄力（能量填充S）",
     "Lunar Blessing (Energy For Everyone S)": "新月祈祷（活力疗愈S）",
@@ -501,7 +501,7 @@
     "Minus (Cooking Power-Up S)": "负电（料理强化S）",
     "Aura Sphere (Dream Shard Magnet S)": "波导弹（梦之碎片获取S）",
     "Bulk Up (Cooking Assist S)": "健美（料理协助S）",
-    "Mystical Fire (Cooking Advance S)": "魔法火焰（料理推进S）"
+    "Mystical Fire (Cooking Advance S)": "魔法火焰（料理跃进S）"
   },
   "aliases": {
     "苹果": {
@@ -1200,7 +1200,15 @@
       "type": "mainskill",
       "key": "Metronome"
     },
-    "暴击s": {
+    "美味机会s": {
+      "type": "mainskill",
+      "key": "Tasty Chance S"
+    },
+    "美味機會s": {
+      "type": "mainskill",
+      "key": "Tasty Chance S"
+    },
+    "料理机会s": {
       "type": "mainskill",
       "key": "Tasty Chance S"
     },
@@ -1208,15 +1216,19 @@
       "type": "mainskill",
       "key": "Tasty Chance S"
     },
+    "おいしさアップs": {
+      "type": "mainskill",
+      "key": "Tasty Chance S"
+    },
     "协助s": {
       "type": "mainskill",
       "key": "Cooking Assist S"
     },
-    "料理加速": {
+    "料理推进s": {
       "type": "mainskill",
       "key": "Cooking Advance S"
     },
-    "做饭加速": {
+    "料理推進s": {
       "type": "mainskill",
       "key": "Cooking Advance S"
     },
@@ -1296,7 +1308,23 @@
       "type": "mainskill",
       "key": "Mimic (Skill Copy)"
     },
-    "写生": {
+    "十项全能": {
+      "type": "mainskill",
+      "key": "Versatile"
+    },
+    "十項全能": {
+      "type": "mainskill",
+      "key": "Versatile"
+    },
+    "全能": {
+      "type": "mainskill",
+      "key": "Versatile"
+    },
+    "写生全能": {
+      "type": "mainskill",
+      "key": "Versatile"
+    },
+    "寫生全能": {
       "type": "mainskill",
       "key": "Versatile"
     },

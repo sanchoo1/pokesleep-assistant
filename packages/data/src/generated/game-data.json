@@ -2,7 +2,7 @@
   "metadata": {
     "version": "1.0.0",
     "schemaVersion": "1.0.0",
-    "generatedAt": "2026-11-07T14:06:48.999Z",
+    "generatedAt": "2026-11-07T17:54:31.820Z",
     "attribution": {
       "nerolisLab": "Apache License 2.0 (Copyright The Neroli's Lab Authors)",
       "pokeapi": "BSD 3-Clause License (Copyright PokéAPI)",
@@ -365,9 +365,9 @@
           "Gets either 1 or 4 candies for one Pokémon on your team. This skill is not yet implemented due to unknown rates."
         ],
         "translations": {
-          "zh-CN": "写生全能",
-          "zh-TW": "寫生全能",
-          "ja": "スケッチ",
+          "zh-CN": "十项全能",
+          "zh-TW": "十項全能",
+          "ja": "オールマイティ",
           "en": "Versatile"
         }
       },
@@ -3197,9 +3197,9 @@
           "Raises your Extra Tasty rate by 10%. The effect lasts until you cook an Extra Tasty dish or change sites."
         ],
         "translations": {
-          "zh-CN": "美味机会S",
-          "zh-TW": "美味機會S",
-          "ja": "おいしさアップS",
+          "zh-CN": "料理成功S",
+          "zh-TW": "料理成功S",
+          "ja": "料理チャンスS",
           "en": "Tasty Chance S"
         }
       },
@@ -3522,9 +3522,9 @@
           "Raises your Extra Tasty rate by 10%. The effect lasts until you cook an Extra Tasty dish or change sites."
         ],
         "translations": {
-          "zh-CN": "美味机会S",
-          "zh-TW": "美味機會S",
-          "ja": "おいしさアップS",
+          "zh-CN": "料理成功S",
+          "zh-TW": "料理成功S",
+          "ja": "料理チャンスS",
           "en": "Tasty Chance S"
         }
       },
@@ -6116,9 +6116,9 @@
           "Raises your Extra Tasty rate by 10%. The effect lasts until you cook an Extra Tasty dish or change sites."
         ],
         "translations": {
-          "zh-CN": "美味机会S",
-          "zh-TW": "美味機會S",
-          "ja": "おいしさアップS",
+          "zh-CN": "料理成功S",
+          "zh-TW": "料理成功S",
+          "ja": "料理チャンスS",
           "en": "Tasty Chance S"
         }
       },
@@ -6514,9 +6514,9 @@
           "Raises your Extra Tasty rate by 10%. The effect lasts until you cook an Extra Tasty dish or change sites."
         ],
         "translations": {
-          "zh-CN": "美味机会S",
-          "zh-TW": "美味機會S",
-          "ja": "おいしさアップS",
+          "zh-CN": "料理成功S",
+          "zh-TW": "料理成功S",
+          "ja": "料理チャンスS",
           "en": "Tasty Chance S"
         }
       },
@@ -7889,9 +7889,9 @@
           "Raises your Extra Tasty rate by 10%. The effect lasts until you cook an Extra Tasty dish or change sites."
         ],
         "translations": {
-          "zh-CN": "美味机会S",
-          "zh-TW": "美味機會S",
-          "ja": "おいしさアップS",
+          "zh-CN": "料理成功S",
+          "zh-TW": "料理成功S",
+          "ja": "料理チャンスS",
           "en": "Tasty Chance S"
         }
       },
@@ -10047,9 +10047,9 @@
           "Raises your Extra Tasty rate by 10%. The effect lasts until you cook an Extra Tasty dish or change sites."
         ],
         "translations": {
-          "zh-CN": "美味机会S",
-          "zh-TW": "美味機會S",
-          "ja": "おいしさアップS",
+          "zh-CN": "料理成功S",
+          "zh-TW": "料理成功S",
+          "ja": "料理チャンスS",
           "en": "Tasty Chance S"
         }
       },
@@ -10956,9 +10956,9 @@
           "Raises your Extra Tasty rate by 10%. The effect lasts until you cook an Extra Tasty dish or change sites."
         ],
         "translations": {
-          "zh-CN": "美味机会S",
-          "zh-TW": "美味機會S",
-          "ja": "おいしさアップS",
+          "zh-CN": "料理成功S",
+          "zh-TW": "料理成功S",
+          "ja": "料理チャンスS",
           "en": "Tasty Chance S"
         }
       },
@@ -17964,9 +17964,9 @@
           "Raises your Extra Tasty rate by 10%. The effect lasts until you cook an Extra Tasty dish or change sites."
         ],
         "translations": {
-          "zh-CN": "美味机会S",
-          "zh-TW": "美味機會S",
-          "ja": "おいしさアップS",
+          "zh-CN": "料理成功S",
+          "zh-TW": "料理成功S",
+          "ja": "料理チャンスS",
           "en": "Tasty Chance S"
         }
       },
@@ -22098,8 +22098,8 @@
           "Gives your pot room for 31 more ingredients the next time you cook. Also raises your Extra Tasty rate by 5%."
         ],
         "translations": {
-          "zh-CN": "魔法火焰（料理推进S）",
-          "zh-TW": "魔法火焰（料理推進S）",
+          "zh-CN": "魔法火焰（料理跃进S）",
+          "zh-TW": "魔法火焰（料理躍進S）",
           "ja": "マジカルフレイム（りょうり時短）",
           "en": "Mystical Fire (Cooking Advance S)"
         }
@@ -24624,9 +24624,9 @@
           "Raises your Extra Tasty rate by 10%. The effect lasts until you cook an Extra Tasty dish or change sites."
         ],
         "translations": {
-          "zh-CN": "美味机会S",
-          "zh-TW": "美味機會S",
-          "ja": "おいしさアップS",
+          "zh-CN": "料理成功S",
+          "zh-TW": "料理成功S",
+          "ja": "料理チャンスS",
           "en": "Tasty Chance S"
         }
       },

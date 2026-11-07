@@ -14,12 +14,15 @@
     "validate:generate": "pnpm --filter \"@pokesleep/etl\" run generate-golden",
     "build": "pnpm --filter \"./packages/*\" --filter \"./apps/*\" run build",
     "test": "vitest run",
+    "test:ui": "vitest --ui",
+    "test:report": "vitest run --reporter=html",
     "test:py": "PYTHONPATH=services/py-backend .venv/bin/pytest services/py-backend/test_main.py",
     "test:all": "vitest run && PYTHONPATH=services/py-backend .venv/bin/pytest services/py-backend/test_main.py",
     "lint": "pnpm --filter \"./packages/*\" --filter \"./apps/*\" run lint"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
+    "@vitest/ui": "^3.2.7",
     "concurrently": "^10.0.6",
     "typescript": "^5.8.0",
     "vitest": "^3.0.0"

@@ -492,11 +492,11 @@ mainskills:
     en: "Metronome"
     aliases: ["摇手指"]
   "Tasty Chance S":
-    zh-CN: "美味机会S"
-    zh-TW: "美味機會S"
-    ja: "おいしさアップS"
+    zh-CN: "料理成功S"
+    zh-TW: "料理成功S"
+    ja: "料理チャンスS"
     en: "Tasty Chance S"
-    aliases: ["暴击S", "大成功S"]
+    aliases: ["美味机会S", "美味機會S", "料理机会S", "大成功S", "おいしさアップS"]
   "Cooking Assist S":
     zh-CN: "料理协助S"
     zh-TW: "料理協助S"
@@ -504,11 +504,11 @@ mainskills:
     en: "Cooking Assist S"
     aliases: ["协助S"]
   "Cooking Advance S":
-    zh-CN: "料理推进S"
-    zh-TW: "料理推進S"
-    ja: "りょうり時短"
+    zh-CN: "料理跃进S"
+    zh-TW: "料理躍進S"
+    ja: "料理時短"
     en: "Cooking Advance S"
-    aliases: ["料理加速", "做饭加速"]
+    aliases: ["料理推进S", "料理推進S"]
   "Berry Burst":
     zh-CN: "树果遽增"
     zh-TW: "樹果遽增"
@@ -576,11 +576,11 @@ mainskills:
     en: "Mimic (Skill Copy)"
     aliases: ["模仿"]
   "Versatile":
-    zh-CN: "写生全能"
-    zh-TW: "寫生全能"
-    ja: "スケッチ"
+    zh-CN: "十项全能"
+    zh-TW: "十項全能"
+    ja: "オールマイティ"
     en: "Versatile"
-    aliases: ["写生"]
+    aliases: ["十项全能", "十項全能", "全能", "写生全能", "寫生全能"]
   "Bad Dreams (Charge Strength M)":
     zh-CN: "梦魇（能量填充M）"
     zh-TW: "夢魘（能量填充M）"
@@ -654,8 +654,8 @@ mainskills:
     en: "Bulk Up (Cooking Assist S)"
     aliases: ["健美"]
   "Mystical Fire (Cooking Advance S)":
-    zh-CN: "魔法火焰（料理推进S）"
-    zh-TW: "魔法火焰（料理推進S）"
+    zh-CN: "魔法火焰（料理跃进S）"
+    zh-TW: "魔法火焰（料理躍進S）"
     ja: "マジカルフレイム（りょうり時短）"
     en: "Mystical Fire (Cooking Advance S)"
     aliases: ["魔法火焰"]

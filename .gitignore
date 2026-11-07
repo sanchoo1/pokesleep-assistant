@@ -13,6 +13,8 @@ __pycache__/
 # Build outputs
 dist/
 build/
+html/
+.vitest-attachments/
 .turbo/
 *.tsbuildinfo
 

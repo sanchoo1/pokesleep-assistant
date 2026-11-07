@@ -1200,7 +1200,15 @@
       "type": "mainskill",
       "key": "Metronome"
     },
-    "暴击s": {
+    "美味机会s": {
+      "type": "mainskill",
+      "key": "Tasty Chance S"
+    },
+    "美味機會s": {
+      "type": "mainskill",
+      "key": "Tasty Chance S"
+    },
+    "料理机会s": {
       "type": "mainskill",
       "key": "Tasty Chance S"
     },
@@ -1208,15 +1216,19 @@
       "type": "mainskill",
       "key": "Tasty Chance S"
     },
+    "おいしさアップs": {
+      "type": "mainskill",
+      "key": "Tasty Chance S"
+    },
     "协助s": {
       "type": "mainskill",
       "key": "Cooking Assist S"
     },
-    "料理加速": {
+    "料理推进s": {
       "type": "mainskill",
       "key": "Cooking Advance S"
     },
-    "做饭加速": {
+    "料理推進s": {
       "type": "mainskill",
       "key": "Cooking Advance S"
     },
@@ -1296,7 +1308,23 @@
       "type": "mainskill",
       "key": "Mimic (Skill Copy)"
     },
-    "写生": {
+    "十项全能": {
+      "type": "mainskill",
+      "key": "Versatile"
+    },
+    "十項全能": {
+      "type": "mainskill",
+      "key": "Versatile"
+    },
+    "全能": {
+      "type": "mainskill",
+      "key": "Versatile"
+    },
+    "写生全能": {
+      "type": "mainskill",
+      "key": "Versatile"
+    },
+    "寫生全能": {
       "type": "mainskill",
       "key": "Versatile"
     },
