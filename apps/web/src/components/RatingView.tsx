@@ -778,9 +778,13 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
               >
                 <Utensils className="w-3.5 h-3.5" />
                 <span>食材效率与食谱覆盖</span>
-                {species.specialty === 'ingredient' && (
+                {species.specialty === 'ingredient' ? (
                   <span className="w-2 h-2 rounded-full bg-amber-500" />
-                )}
+                ) : (focusedProd?.skillDailyIngredientCount ?? 0) > 0 ? (
+                  <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 font-semibold border border-amber-200">
+                    含技能产食材
+                  </span>
+                ) : null}
               </button>
 
               <button
@@ -876,6 +880,30 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                   );
                 })()}
               </div>
+
+              {/* Skill Ingredient acquisition callout if skill produces ingredients */}
+              {(focusedProd.skillDailyIngredientCount ?? 0) > 0 && (
+                <div className="p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl text-xs flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center space-x-2 text-amber-900">
+                    <Utensils className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>
+                      主技能【<strong>{species.skill.translations?.[locale] || species.skill.name}</strong>】预计每日获取约{' '}
+                      <strong>{focusedProd.skillDailyIngredientCount.toFixed(1)} 个食材</strong>
+                      {species.name === 'SANDSHREW' || species.name === 'SANDSLASH'
+                        ? '（从南瓜 / 玉米 / 土豆专属池抽选）'
+                        : '（从全品类食材中随机获取）'}
+                      ，已全量计入食谱覆盖率分析！
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveDeepTab('ingredient')}
+                    className="px-2.5 py-1 text-2xs font-bold rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-colors cursor-pointer"
+                  >
+                    查看食谱自给率 →
+                  </button>
+                </div>
+              )}
 
               {/* Multi-Stage Skill Trigger & Effect Progression Table */}
               <div className="overflow-x-auto border border-slate-200 rounded-xl">
@@ -1079,11 +1107,19 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                     Lv.{focusedLevel} 每日总食材产出
                   </div>
                   <div className="text-2xl font-black text-slate-900 mt-1">
-                    {focusedProd.dailyIngredientCount.toFixed(1)}{' '}
+                    {focusedRecipeCoverage.totalCombinedDailyCount.toFixed(1)}{' '}
                     <span className="text-xs font-normal text-slate-500">个 / 天</span>
                   </div>
-                  <div className="text-2xs text-slate-500 mt-1">
-                    直塞基础能量: {Math.round(focusedProd.dailyIngredientEnergy).toLocaleString()} / 天
+                  <div className="text-2xs mt-1">
+                    {focusedRecipeCoverage.hasSkillIngredients ? (
+                      <span className="text-amber-800 font-medium">
+                        掉落 {focusedRecipeCoverage.totalDirectDailyCount.toFixed(1)} + 技能 {focusedRecipeCoverage.totalSkillDailyCount.toFixed(1)}
+                      </span>
+                    ) : (
+                      <span className="text-slate-500">
+                        直塞基础能量: {Math.round(focusedProd.dailyIngredientEnergy).toLocaleString()} / 天
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -1116,6 +1152,23 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                 </div>
               </div>
 
+              {/* Skill Ingredient acquisition callout */}
+              {focusedRecipeCoverage.hasSkillIngredients && (
+                <div className="p-3.5 bg-indigo-50/70 border border-indigo-200 rounded-xl text-xs text-indigo-900 flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Zap className="w-4 h-4 text-indigo-600 shrink-0" />
+                    <span>
+                      已计入主技能<strong>【{species.skill.translations?.[locale] || species.skill.name}】</strong>
+                      每日预计获取的 <strong>{focusedRecipeCoverage.totalSkillDailyCount.toFixed(1)} 个食材</strong>
+                      {species.name === 'SANDSHREW' || species.name === 'SANDSLASH'
+                        ? '（从本宠自属的南瓜 / 玉米 / 土豆专属池中抽选）'
+                        : '（从全品类食材中随机获取）'}
+                      ，有效提升食谱自给率与一日三餐覆盖率！
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* Multi-Stage Ingredient Daily Yield Breakdown */}
               <div>
                 <div className="text-xs font-bold text-slate-800 mb-2">
@@ -1139,13 +1192,16 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                           <div className="flex items-center justify-between text-xs font-bold text-slate-800 mb-2">
                             <span>Lv.{m.level}</span>
                             <span className="text-2xs text-amber-700">
-                              共 {p.dailyIngredientCount.toFixed(1)}/天
+                              共 {(p.combinedDailyIngredientCount ?? p.dailyIngredientCount).toFixed(1)}/天
                             </span>
                           </div>
                           <div className="space-y-1.5">
-                            {p.dailyIngredients.map((ing) => {
+                            {(p.combinedDailyIngredients || p.dailyIngredients).map((ing) => {
                               const ingObj = GAME_DATA.ingredients.find(
                                 (i) => i.name.toLowerCase() === ing.ingredient.toLowerCase()
+                              );
+                              const skillItem = p.skillDailyIngredients?.find(
+                                (s) => s.ingredient.toLowerCase() === ing.ingredient.toLowerCase()
                               );
                               return (
                                 <div
@@ -1162,8 +1218,13 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                                       {ingObj ? getEntityName(ingObj, locale) : ing.ingredient}
                                     </span>
                                   </span>
-                                  <span className="font-bold text-amber-800 ml-1">
-                                    {ing.amount.toFixed(1)}
+                                  <span className="font-bold text-amber-800 ml-1 inline-flex items-center space-x-1">
+                                    <span>{ing.amount.toFixed(1)}</span>
+                                    {skillItem && skillItem.amount > 0 && (
+                                      <span className="text-[9px] font-normal text-indigo-600 bg-indigo-50 px-1 rounded">
+                                        技能
+                                      </span>
+                                    )}
                                   </span>
                                 </div>
                               );
@@ -1292,7 +1353,13 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                                               : 'text-amber-700'
                                           }`}
                                         >
-                                          日产 {mItem.dailyProduced} / 三餐需 {mItem.threeMealRequired}
+                                          日产 {mItem.dailyProduced}
+                                          {mItem.skillProduced > 0 && (
+                                            <span className="text-[10px] font-normal text-indigo-600 ml-0.5">
+                                              (含技能 {mItem.skillProduced})
+                                            </span>
+                                          )}{' '}
+                                          / 三餐需 {mItem.threeMealRequired}
                                         </span>
                                       ) : (
                                         <span className="text-slate-400">需队友搭配 (三餐 {req.amount * 3})</span>

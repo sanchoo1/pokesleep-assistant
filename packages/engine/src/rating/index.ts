@@ -72,6 +72,8 @@ export interface IndividualRecipeMatch {
   matchedIngredients: Array<{
     ingredient: string;
     dailyProduced: number;
+    directProduced: number;
+    skillProduced: number;
     perMealRequired: number;
     threeMealRequired: number;
     threeMealCoveragePct: number; // 0..100+
@@ -85,7 +87,17 @@ export interface IndividualRecipeMatch {
 }
 
 export interface IndividualRecipeCoverageReport {
-  producedIngredients: Array<{ ingredient: string; dailyAmount: number; dailyEnergy: number }>;
+  producedIngredients: Array<{
+    ingredient: string;
+    dailyAmount: number;
+    directAmount: number;
+    skillAmount: number;
+    dailyEnergy: number;
+  }>;
+  hasSkillIngredients: boolean;
+  totalDirectDailyCount: number;
+  totalSkillDailyCount: number;
+  totalCombinedDailyCount: number;
   relevantRecipesTotal: number;
   threeMealPartnerReadyCount: number; // Dishes where this mon's slots cover 3 meals/day completely
   soloCookable1MealCount: number;
@@ -484,21 +496,84 @@ export function ratePokemon(params: RatingParams): RatingResult {
  */
 export function analyzeIndividualRecipeCoverage(
   prod: ProductionResult,
-  potCapacity: number = 69
+  potCapacity: number = 69,
+  options?: { includeSkillIngredients?: boolean }
 ): IndividualRecipeCoverageReport {
-  const dailyMap = new Map<string, { amount: number; energy: number }>();
-  for (const item of prod.dailyIngredients) {
-    dailyMap.set(item.ingredient.toLowerCase(), {
+  const includeSkill = options?.includeSkillIngredients ?? true;
+
+  // Direct helping map
+  const directMap = new Map<string, number>();
+  for (const item of prod.dailyIngredients || []) {
+    directMap.set(item.ingredient.toLowerCase(), item.amount);
+  }
+
+  // Skill acquisition map
+  const skillMap = new Map<string, number>();
+  if (includeSkill && prod.skillDailyIngredients) {
+    for (const item of prod.skillDailyIngredients) {
+      skillMap.set(item.ingredient.toLowerCase(), item.amount);
+    }
+  }
+
+  // Combined daily ingredient map (amount, directAmount, skillAmount, energy)
+  const combinedMap = new Map<
+    string,
+    { amount: number; directAmount: number; skillAmount: number; energy: number }
+  >();
+
+  const activeIngredients =
+    includeSkill && prod.combinedDailyIngredients
+      ? prod.combinedDailyIngredients
+      : prod.dailyIngredients || [];
+
+  for (const item of activeIngredients) {
+    const key = item.ingredient.toLowerCase();
+    const dAmt = directMap.get(key) || 0;
+    const sAmt = skillMap.get(key) || 0;
+    combinedMap.set(key, {
       amount: item.amount,
+      directAmount: dAmt,
+      skillAmount: sAmt,
       energy: item.energy,
     });
   }
 
-  const producedList = prod.dailyIngredients.map(i => ({
-    ingredient: i.ingredient,
-    dailyAmount: round(i.amount, 1),
-    dailyEnergy: round(i.energy, 0),
-  }));
+  // Build producedList:
+  // 1. Direct ingredients in their original unlocked slots order
+  const producedList: IndividualRecipeCoverageReport['producedIngredients'] = [];
+  const seenIngs = new Set<string>();
+
+  for (const item of prod.dailyIngredients || []) {
+    const key = item.ingredient.toLowerCase();
+    const data = combinedMap.get(key);
+    if (!data || seenIngs.has(key)) continue;
+    seenIngs.add(key);
+    producedList.push({
+      ingredient: item.ingredient,
+      dailyAmount: round(data.amount, 1),
+      directAmount: round(data.directAmount, 1),
+      skillAmount: round(data.skillAmount, 1),
+      dailyEnergy: round(data.energy, 0),
+    });
+  }
+
+  // 2. Skill-only acquired ingredients (sorted by daily amount descending)
+  const skillOnlyItems: IndividualRecipeCoverageReport['producedIngredients'] = [];
+  for (const [key, data] of combinedMap.entries()) {
+    if (seenIngs.has(key)) continue;
+    seenIngs.add(key);
+    const ingObj = GAME_DATA.ingredients.find(i => i.name.toLowerCase() === key);
+    const ingName = ingObj ? ingObj.name : key;
+    skillOnlyItems.push({
+      ingredient: ingName,
+      dailyAmount: round(data.amount, 1),
+      directAmount: round(data.directAmount, 1),
+      skillAmount: round(data.skillAmount, 1),
+      dailyEnergy: round(data.energy, 0),
+    });
+  }
+  skillOnlyItems.sort((a, b) => b.dailyAmount - a.dailyAmount);
+  producedList.push(...skillOnlyItems);
 
   const byType: IndividualRecipeCoverageReport['byType'] = {
     curry: { relevantCount: 0, threeMealReadyCount: 0, topDishes: [] },
@@ -530,14 +605,18 @@ export function analyzeIndividualRecipeCoverage(
     let allRecipeIngredientsCovered3 = true;
 
     for (const req of recipe.ingredients) {
-      const produced = dailyMap.get(req.ingredient.toLowerCase())?.amount ?? 0;
+      const data = combinedMap.get(req.ingredient.toLowerCase());
+      const produced = data?.amount ?? 0;
+      const directProduced = data?.directAmount ?? 0;
+      const skillProduced = data?.skillAmount ?? 0;
       const threeReq = req.amount * 3;
       totalCovered1Meal += Math.min(produced, req.amount);
 
       if (produced < req.amount) allRecipeIngredientsCovered1 = false;
       if (produced < threeReq) allRecipeIngredientsCovered3 = false;
 
-      if (produced > 0) {
+      // Meaningful threshold for match (>= 0.05 / day)
+      if (produced >= 0.05) {
         const pct3 = threeReq > 0 ? (produced / threeReq) * 100 : 100;
         const mealsDay = req.amount > 0 ? produced / req.amount : 0;
         if (pct3 < minMatchedThreeMealPct) minMatchedThreeMealPct = pct3;
@@ -546,6 +625,8 @@ export function analyzeIndividualRecipeCoverage(
         matchedIngredients.push({
           ingredient: req.ingredient,
           dailyProduced: round(produced, 1),
+          directProduced: round(directProduced, 1),
+          skillProduced: round(skillProduced, 1),
           perMealRequired: req.amount,
           threeMealRequired: threeReq,
           threeMealCoveragePct: round(pct3, 1),
@@ -585,11 +666,11 @@ export function analyzeIndividualRecipeCoverage(
     allMatchesByType[rType].sort((a, b) => {
       // Rank high-value dishes where matched ingredients are well-supplied at the top
       const scoreA =
-        (a.isSoloCookable3Meals ? 2.0 : a.threeMealSelfSufficientForMatched ? 1.35 : a.totalMatchedDailyRatio / 100) *
+        (a.isSoloCookable3Meals ? 2.5 : a.threeMealSelfSufficientForMatched ? 1.4 : a.totalMatchedDailyRatio / 100) *
         Math.pow(a.recipe.valueMax || a.recipe.value, 0.65) *
         (0.5 + 0.5 * (a.matchedIngredients.length / a.recipe.ingredients.length));
       const scoreB =
-        (b.isSoloCookable3Meals ? 2.0 : b.threeMealSelfSufficientForMatched ? 1.35 : b.totalMatchedDailyRatio / 100) *
+        (b.isSoloCookable3Meals ? 2.5 : b.threeMealSelfSufficientForMatched ? 1.4 : b.totalMatchedDailyRatio / 100) *
         Math.pow(b.recipe.valueMax || b.recipe.value, 0.65) *
         (0.5 + 0.5 * (b.matchedIngredients.length / b.recipe.ingredients.length));
       return scoreB - scoreA;
@@ -599,6 +680,10 @@ export function analyzeIndividualRecipeCoverage(
 
   return {
     producedIngredients: producedList,
+    hasSkillIngredients: (prod.skillDailyIngredientCount ?? 0) > 0,
+    totalDirectDailyCount: round(prod.dailyIngredientCount ?? 0, 1),
+    totalSkillDailyCount: round(prod.skillDailyIngredientCount ?? 0, 1),
+    totalCombinedDailyCount: round(prod.combinedDailyIngredientCount ?? prod.dailyIngredientCount ?? 0, 1),
     relevantRecipesTotal,
     threeMealPartnerReadyCount,
     soloCookable1MealCount,

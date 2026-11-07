@@ -117,6 +117,11 @@ export interface ProductionResult {
   dailyIngredients: DailyIngredientProduce[];
   dailyIngredientCount: number;
   dailyIngredientEnergy: number;
+  skillDailyIngredients: DailyIngredientProduce[];
+  skillDailyIngredientCount: number;
+  skillDailyIngredientEnergy: number;
+  combinedDailyIngredients: DailyIngredientProduce[];
+  combinedDailyIngredientCount: number;
   skillRate: number;
   baseSkillRate: number;
   skillRateWithoutPity: number;
@@ -249,6 +254,144 @@ export function resolveIngredientsForSlots(
   }
 
   return { slot0: s0, slot30: s30, slot60: s60 };
+}
+
+/**
+ * Extract distinct native ingredient species for a Pokémon (across slots 0, 30, and 60).
+ * Used for skills like Ingredient Draw S that draw randomly from the species' own 3 ingredient types.
+ */
+export function getSpeciesNativeIngredientPool(mon: PokemonSpecies): string[] {
+  const pool = new Set<string>();
+  for (const item of mon.ingredient0 || []) {
+    if (item.ingredient && item.ingredient !== 'Locked') pool.add(item.ingredient);
+  }
+  for (const item of mon.ingredient30 || []) {
+    if (item.ingredient && item.ingredient !== 'Locked') pool.add(item.ingredient);
+  }
+  for (const item of mon.ingredient60 || []) {
+    if (item.ingredient && item.ingredient !== 'Locked') pool.add(item.ingredient);
+  }
+  return pool.size > 0 ? Array.from(pool) : ['Apple'];
+}
+
+/**
+ * Calculates concrete daily ingredient quantities acquired through main skills:
+ * - Ingredient Draw S family (Sandshrew, Sandslash, Dwebble, Crustle, Hawlucha, Cutiefly, Ribombee, Mawile, Murkrow, Honchkrow):
+ *   draws randomly from the species' own 3 native ingredients.
+ * - Ingredient Magnet S family (Vaporeon, Eevee, Slaking, Butterfree, Blastoise, Charizard, Venusaur, Delibird, Heracross, Plusle, Toxtricity):
+ *   draws randomly from all 19 unlocked ingredients in Pokémon Sleep.
+ */
+export function calculateSkillIngredientProduce(params: {
+  mon: PokemonSpecies;
+  dailySkillProcs: number;
+  effectiveSkillLevel: number;
+  mapBonus?: number;
+}): DailyIngredientProduce[] {
+  const { mon, dailySkillProcs, effectiveSkillLevel, mapBonus = 0 } = params;
+  if (dailySkillProcs <= 0) return [];
+
+  const skillName = mon.skill.name;
+  const baseSkillName = mon.skill.baseSkillName || mon.skill.name;
+  const activationsRaw = mon.skill.activations || {};
+  const maxSkillLvl = mon.skill.maxLevel || (mon.skill.RP?.length || 6);
+  const clampedLvl = Math.max(1, Math.min(effectiveSkillLevel, maxSkillLvl));
+  const lvlIdx = clampedLvl - 1;
+  const mapMult = 1.0 + Math.max(0, mapBonus) / 100;
+
+  // Expected crit multiplier if skill has crit chance
+  const critBoost =
+    typeof mon.skill.critChance === 'number' && typeof mon.skill.critMultiplier === 'number'
+      ? 1 + mon.skill.critChance * (mon.skill.critMultiplier - 1)
+      : 1.0;
+
+  // 1. Ingredient Draw S family (Sandshrew/Sandslash, Dwebble/Crustle, Hawlucha, Cutiefly/Ribombee, Mawile, Murkrow/Honchkrow)
+  if (
+    baseSkillName.includes('Ingredient Draw') ||
+    skillName.includes('Ingredient Draw') ||
+    skillName.includes('Hyper Cutter') ||
+    skillName.includes('Super Luck')
+  ) {
+    const act = activationsRaw.ingredients;
+    if (!act) return [];
+    const baseAmt = act.amounts?.[lvlIdx] ?? act.amounts?.[act.amounts.length - 1] ?? 5;
+    let expectedAmtPerProc = baseAmt * critBoost;
+    if (act.critAmounts?.[lvlIdx] && typeof mon.skill.critChance === 'number') {
+      const critVal = act.critAmounts[lvlIdx];
+      const pCrit = mon.skill.critChance;
+      expectedAmtPerProc = (1 - pCrit) * baseAmt + pCrit * critVal;
+    }
+
+    const poolList = getSpeciesNativeIngredientPool(mon);
+    const perIngAmount = (dailySkillProcs * expectedAmtPerProc) / poolList.length;
+
+    return poolList.map((ingName) => {
+      const ingObj = GAME_DATA.ingredients.find((i) => i.name.toLowerCase() === ingName.toLowerCase());
+      const ingVal = ingObj ? ingObj.value : 100;
+      const longName = ingObj ? ingObj.longName : ingName;
+      return {
+        ingredient: ingName,
+        longName,
+        amount: perIngAmount,
+        energy: perIngAmount * ingVal * mapMult,
+      };
+    });
+  }
+
+  // 2. Ingredient Magnet S family (Vaporeon, Eevee, Slaking, Butterfree, Blastoise, Charizard, Venusaur, Delibird, Heracross, Plusle, etc.)
+  const ingAct = activationsRaw.ingredients || activationsRaw.solo;
+  if (
+    ingAct &&
+    (baseSkillName.includes('Ingredient Magnet') ||
+      skillName.includes('Ingredient Magnet') ||
+      skillName.includes('Present') ||
+      skillName.includes('Bulk Up') ||
+      skillName.includes('Plus'))
+  ) {
+    const baseAmt = ingAct.amounts?.[lvlIdx] ?? ingAct.amounts?.[ingAct.amounts.length - 1] ?? 6;
+    const expectedAmtPerProc = baseAmt * critBoost;
+    const totalDailySkillIngs = dailySkillProcs * expectedAmtPerProc;
+    const allIngredients = GAME_DATA.ingredients;
+    const perIngAmount = totalDailySkillIngs / allIngredients.length;
+
+    const list: DailyIngredientProduce[] = allIngredients.map((ing) => ({
+      ingredient: ing.name,
+      longName: ing.longName,
+      amount: perIngAmount,
+      energy: perIngAmount * ing.value * mapMult,
+    }));
+
+    // If Plus skill has paired bonus Coffee:
+    if (skillName.includes('Plus') && activationsRaw.paired?.amounts?.[lvlIdx]) {
+      const pairedAmt = activationsRaw.paired.amounts[lvlIdx];
+      const coffeeItem = list.find((i) => i.ingredient.toLowerCase() === 'coffee');
+      if (coffeeItem) {
+        const extraCoffee = dailySkillProcs * pairedAmt;
+        coffeeItem.amount += extraCoffee;
+        const coffeeObj = GAME_DATA.ingredients.find((i) => i.name.toLowerCase() === 'coffee');
+        coffeeItem.energy += extraCoffee * (coffeeObj ? coffeeObj.value : 120) * mapMult;
+      }
+    }
+
+    return list;
+  }
+
+  // 3. Fallback for any other skill activation specifying unit === 'ingredients'
+  for (const act of Object.values(activationsRaw)) {
+    if (act.unit === 'ingredients') {
+      const baseAmt = act.amounts?.[lvlIdx] ?? act.amounts?.[act.amounts.length - 1] ?? 5;
+      const totalDailySkillIngs = dailySkillProcs * baseAmt * critBoost;
+      const allIngredients = GAME_DATA.ingredients;
+      const perIngAmount = totalDailySkillIngs / allIngredients.length;
+      return allIngredients.map((ing) => ({
+        ingredient: ing.name,
+        longName: ing.longName,
+        amount: perIngAmount,
+        energy: perIngAmount * ing.value * mapMult,
+      }));
+    }
+  }
+
+  return [];
 }
 
 /**
@@ -669,6 +812,39 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
   });
   const dailySkillEnergy = skillEval.dailySkillEnergy;
 
+  // Concrete ingredients acquired from main skill (Ingredient Magnet S, Ingredient Draw S, etc.)
+  const skillDailyIngredients = calculateSkillIngredientProduce({
+    mon,
+    dailySkillProcs,
+    effectiveSkillLevel: effectiveMainSkillLevel,
+    mapBonus,
+  });
+
+  let skillDailyIngredientCount = 0;
+  let skillDailyIngredientEnergy = 0;
+  for (const s of skillDailyIngredients) {
+    skillDailyIngredientCount += s.amount;
+    skillDailyIngredientEnergy += s.energy;
+  }
+
+  // Merged direct + skill ingredients map
+  const combinedMap = new Map<string, DailyIngredientProduce>();
+  for (const d of dailyIngredients) {
+    combinedMap.set(d.ingredient.toLowerCase(), { ...d });
+  }
+  for (const s of skillDailyIngredients) {
+    const key = s.ingredient.toLowerCase();
+    const existing = combinedMap.get(key);
+    if (existing) {
+      existing.amount += s.amount;
+      existing.energy += s.energy;
+    } else {
+      combinedMap.set(key, { ...s });
+    }
+  }
+  const combinedDailyIngredients = Array.from(combinedMap.values());
+  const combinedDailyIngredientCount = dailyIngredientCount + skillDailyIngredientCount;
+
   // 8. Total Daily Energy & RP
   const totalDailyEnergy = dailyBerryEnergy + dailyIngredientEnergy + dailySkillEnergy;
   const rpResult = calculateRP({
@@ -701,6 +877,11 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
     dailyIngredients,
     dailyIngredientCount,
     dailyIngredientEnergy,
+    skillDailyIngredients,
+    skillDailyIngredientCount,
+    skillDailyIngredientEnergy,
+    combinedDailyIngredients,
+    combinedDailyIngredientCount,
     skillRate: skillProcResult.effectiveRate,
     baseSkillRate: skillProcResult.baseRate,
     skillRateWithoutPity: skillProcResult.rateWithoutPity,

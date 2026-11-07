@@ -89,7 +89,7 @@ export const TeamAndCookingView: React.FC<TeamAndCookingViewProps> = ({
         ingredientEnergy += prod.dailyIngredientEnergy;
         skillEnergy += prod.dailySkillEnergy;
 
-        for (const ing of prod.dailyIngredients) {
+        for (const ing of prod.combinedDailyIngredients || prod.dailyIngredients) {
           dailyIngs[ing.ingredient] = (dailyIngs[ing.ingredient] || 0) + ing.amount;
         }
       } catch {

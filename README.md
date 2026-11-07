@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/FastAPI-0.110+-009688?logo=fastapi" alt="FastAPI" />
   <img src="https://img.shields.io/badge/SciPy-HiGHS%20MILP-8CAAE6?logo=scipy" alt="SciPy" />
   <img src="https://img.shields.io/badge/RapidOCR-ONNX-orange" alt="RapidOCR" />
-  <img src="https://img.shields.io/badge/Vitest-74%20passed-green?logo=vitest" alt="Vitest" />
+  <img src="https://img.shields.io/badge/Vitest-76%20passed-green?logo=vitest" alt="Vitest" />
   <img src="https://img.shields.io/badge/pytest-7%20passed-brightgreen?logo=pytest" alt="pytest" />
   <img src="https://img.shields.io/badge/License-MIT%20%2F%20Apache--2.0-blue.svg" alt="License" />
 </p>
@@ -41,7 +41,7 @@
   - **三大专长专属深度分析面板**：
     - **技能型专长**：分析每日期望技能触发次数、基础/修正/保底后触发率、有效主技能等级（自动计入解锁的 `技能等级提升S/M`）及每次/每日具体量化收益（树果遽增、活力全开、能量填充、料理强化、食材获取等）。
     - **树果型专长**：分析树果日能量与总能量、单次掉落数、卡比兽喜好树果（2×）与岛屿加成对比、满包偷吃（Sneaky Snacking）纯树果日能量及装满携带上限所需时长。
-    - **食材型专长**：分析各槽位食材日产量/能量获取效率，以及**单宠食谱覆盖率（咖喱 / 沙拉 / 甜点三大类一日三餐自给率与高阶食谱契合度排名）**。
+    - **食材型与技能产食材专长**：分析各槽位食材日产量/能量获取效率，并将**主技能获取食材（如水伊布的食材获取S、穿山鼠的食材抽选S等）全量同步计入单宠食谱覆盖率**（咖喱 / 沙拉 / 甜点三大类一日三餐自给率与高阶食谱契合度排名）。
 
 - 🍲 **队伍能量与料理规划 (Team Energy & Cooking Planner)**
   - 支持配置 5 宠出阵队伍，自动计算每日树果、食材、主技能期望产出及每日卡比兽总能量贡献。
