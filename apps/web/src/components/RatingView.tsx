@@ -72,7 +72,7 @@ const COOKING_SCENARIOS: Array<{
 }> = [
   {
     id: 'standard',
-    name: '通用标准基线 (单餐 3.5万 / 扩锅每格+135)',
+    name: '通用标准基线',
     dishEnergyBaseline: 35000,
     fillerEnergyPerSlot: 135,
     recipeMultiplier: 1.0,
@@ -81,7 +81,7 @@ const COOKING_SCENARIOS: Array<{
   },
   {
     id: 'mid',
-    name: '日常中阶食谱 (单餐 2.2万 / 填充+144)',
+    name: '日常中阶食谱',
     dishEnergyBaseline: 22000,
     fillerEnergyPerSlot: 115,
     recipeMultiplier: 1.25,
@@ -90,7 +90,7 @@ const COOKING_SCENARIOS: Array<{
   },
   {
     id: 'tier77',
-    name: '顶级 77/80格食谱 (单餐 5.5万 / 填充+207)',
+    name: '顶级高阶食谱',
     dishEnergyBaseline: 55000,
     fillerEnergyPerSlot: 140,
     recipeMultiplier: 1.48,
@@ -99,7 +99,7 @@ const COOKING_SCENARIOS: Array<{
   },
   {
     id: 'mega_tail',
-    name: '极限尾巴扩锅核弹 (单餐 8.5万 / 尾巴+506)',
+    name: '极限尾巴扩锅核弹',
     dishEnergyBaseline: 85000,
     fillerEnergyPerSlot: 342,
     recipeMultiplier: 1.48,
@@ -756,7 +756,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
           <div className="lg:col-span-4 space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                选择宝可梦 (支持属性 / 专长 / 食材多维筛选)
+                选择宝可梦
               </label>
               <PokemonSelector
                 value={selectedSpecies}
@@ -807,7 +807,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                   onChange={(e) => setMetric(e.target.value as EvaluationMetric)}
                   className="input-field text-xs py-1.5"
                 >
-                  <option value="auto">自动匹配专长 (推荐)</option>
+                  <option value="auto">自动匹配专长</option>
                   <option value="total_energy">每日综合总能量</option>
                   <option value="berry_energy">纯树果能量</option>
                   <option value="ingredient_energy">食材能量产出</option>
@@ -850,7 +850,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
             {/* 5 Subskills: Lv.10, 25, 50, 70, 80 */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                副技能配置 (Lv.10 / 25 / 50 / 70，Lv.80 暂未开放上限)
+                副技能配置
               </label>
               <div className="space-y-1.5">
                 {(
@@ -901,7 +901,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
             {/* Ingredients A / B / C with Official Icons */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                食材槽配置 (A: Lv.1 / B: Lv.30 / C: Lv.60)
+                食材槽配置
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {[
@@ -1013,7 +1013,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                     onChange={(e) => setIsFavoredBerry(e.target.checked)}
                     className="rounded text-emerald-600"
                   />
-                  <span>适性树果 (能量 ×2)</span>
+                  <span>适性喜好树果</span>
                 </label>
 
                 <div className="flex items-center space-x-1">
@@ -1404,7 +1404,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-100">
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
-                <span>专项深度分析 (Lv.{focusedLevel} 焦点阶段 & 全阶段对比)</span>
+                <span>专项深度分析 · Lv.{focusedLevel}</span>
                 <span className={`badge badge-${species.specialty} text-2xs`}>
                   本宠专长：{species.specialty === 'berry' ? '树果型' : species.specialty === 'ingredient' ? '食材型' : species.specialty === 'skill' ? '技能型' : '全能型'}
                 </span>
@@ -1493,7 +1493,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                 <div className="flex items-center space-x-2">
                   <SlidersHorizontal className="w-4 h-4 text-indigo-600 shrink-0" />
                   <div>
-                    <span className="font-bold text-slate-800">料理做饭强度场景配置（精准折算扩锅与暴击）：</span>
+                    <span className="font-bold text-slate-800">料理场景强度：</span>
                     <span className="text-slate-500 ml-1 hidden sm:inline">
                       {activeCookingContext.scenarioName}
                     </span>
@@ -2164,14 +2164,14 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5">
                       {energyRankingScope === 'all_berry_mon'
-                        ? '横向对比全游不同专长宝可梦在各自最佳适性环境下的全天能量实力排行（大竺葵与蜥蜴王等跨专长同台较量）'
+                        ? '横向对比全游不同专长宝可梦在各自最佳适性环境下的全天能量实力排行'
                         : `横向对比全游不同宝可梦在 ${
                             energyRankingResult.targetIsland
                               ? getEntityName(energyRankingResult.targetIsland, locale)
                               : berryObj
                               ? getEntityName(berryObj, locale)
                               : '对应环境'
-                          } 的能量产出实力排行（大竺葵与蜥蜴王等跨专长同台较量）`}
+                          } 的能量产出实力排行`}
                     </p>
                   </div>
 
@@ -2285,7 +2285,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                             : 'text-slate-500 hover:text-slate-900'
                         }`}
                       >
-                        全天总能量 (含技能/食材)
+                        全天总能量
                       </button>
                     </div>
                   </div>
@@ -2333,7 +2333,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                     </span>
                     {(
                       [
-                        { id: 'all', label: '全部专长 (跨专长PK：大竺葵 vs 蜥蜴王)' },
+                        { id: 'all', label: '全部专长' },
                         { id: 'berry', label: '仅树果型' },
                         { id: 'skill', label: '仅技能型' },
                         { id: 'ingredient', label: '仅食材型' },
@@ -2687,7 +2687,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                           }`}
                         >
                           <div className="text-2xs font-bold text-slate-500 mb-0.5">
-                            {m.level === 80 ? 'Lv.80 (前瞻)' : `Lv.${m.level}`}
+                            {m.level === 80 ? 'Lv.80 前瞻' : `Lv.${m.level}`}
                           </div>
                           <div className="text-sm font-black text-amber-900">
                             {mYield.dailyYield.toFixed(1)}{' '}
@@ -2748,7 +2748,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                       </span>
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      量化对比全游不同食材宠、不同食材槽搭配（AAA/ABB 等）与进化阶段在 Lv.{rankingLevel} 的产出实力排行
+                      量化对比全游不同食材宠、不同食材槽搭配与进化阶段在 Lv.{rankingLevel} 的产出实力排行
                     </p>
                   </div>
 
@@ -2792,7 +2792,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                           : 'bg-slate-50 text-slate-600 border-slate-200'
                       }`}
                     >
-                      {rankingOnlyAAA ? '✓ 仅纯产(AAA)' : '全部组合'}
+                      {rankingOnlyAAA ? '✓ 仅纯产' : '全部组合'}
                     </button>
                   </div>
                 </div>

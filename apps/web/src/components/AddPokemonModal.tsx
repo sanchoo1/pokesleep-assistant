@@ -839,7 +839,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-xs font-semibold text-[var(--text-main)]">
-                  {getUIText('ingredients', locale)} (A: Lv.1 / B: Lv.30 / C: Lv.60)
+                  {getUIText('ingredients', locale)}
                 </label>
                 {lowConfidenceFields.includes('ingredients') && (
                   <span className="text-2xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-300 animate-pulse">

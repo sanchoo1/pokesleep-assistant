@@ -475,7 +475,7 @@ export const TeamAndCookingView: React.FC<TeamAndCookingViewProps> = ({
               className="rounded text-blue-600"
             />
             <label htmlFor="gct" className="text-xs font-medium text-slate-700 cursor-pointer">
-              {getUIText('goodCampTicket', locale)} (锅容量 ×1.5)
+              {getUIText('goodCampTicket', locale)}
             </label>
           </div>
 
