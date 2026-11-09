@@ -30,14 +30,87 @@ def get_profile_path(username: str) -> Path:
     return PROFILES_DIR / f"{safe}.json"
 
 
+DEFAULT_SEED_POKEMON = [
+    {
+        "id": "seed_pikachu_01",
+        "pokemonName": "PIKACHU",
+        "nickname": "雷电先锋",
+        "level": 30,
+        "nature": "Adamant",
+        "subskills": {
+            "level10": "Berry Finding S",
+            "level25": "Helping Speed M",
+            "level50": "Helping Bonus",
+            "level70": "Helping Speed S",
+            "level80": "Inventory Up L",
+        },
+        "ingredients": {
+            "slotA": "Apple",
+            "slotB": "Apple",
+            "slotC": "Apple",
+        },
+        "mainSkillLevel": 2,
+        "ribbonLevel": 1,
+        "createdAt": 1700000000000,
+        "userId": "hxc",
+    },
+    {
+        "id": "seed_charizard_02",
+        "pokemonName": "CHARIZARD",
+        "nickname": "火龙大厨",
+        "level": 50,
+        "nature": "Quiet",
+        "subskills": {
+            "level10": "Helping Bonus",
+            "level25": "Ingredient Finder M",
+            "level50": "Inventory Up L",
+            "level70": "Ingredient Finder S",
+            "level80": "Helping Speed M",
+        },
+        "ingredients": {
+            "slotA": "Sausage",
+            "slotB": "Ginger",
+            "slotC": "Herb",
+        },
+        "mainSkillLevel": 3,
+        "ribbonLevel": 2,
+        "createdAt": 1700000050000,
+        "userId": "hxc",
+    },
+    {
+        "id": "seed_gardevoir_03",
+        "pokemonName": "GARDEVOIR",
+        "nickname": "奶妈女王",
+        "level": 50,
+        "nature": "Calm",
+        "subskills": {
+            "level10": "Skill Trigger M",
+            "level25": "Helping Speed M",
+            "level50": "Skill Trigger S",
+            "level70": "Skill Level Up M",
+            "level80": "Berry Finding S",
+        },
+        "ingredients": {
+            "slotA": "Apple",
+            "slotB": "Corn",
+            "slotC": "Leek",
+        },
+        "mainSkillLevel": 4,
+        "ribbonLevel": 0,
+        "createdAt": 1700000080000,
+        "userId": "hxc",
+    },
+]
+
+
 def ensure_hxc_profile():
     hxc_path = PROFILES_DIR / "hxc.json"
     if not hxc_path.exists():
         initial_data = {
             "username": "hxc",
             "displayName": "hxc",
-            "pokemonList": [],
-            "teamIds": [],
+            "pokemonList": DEFAULT_SEED_POKEMON,
+            "teamIds": ["seed_pikachu_01", "seed_charizard_02", "seed_gardevoir_03"],
             "inventory": {
                 "Apple": 0,
             },

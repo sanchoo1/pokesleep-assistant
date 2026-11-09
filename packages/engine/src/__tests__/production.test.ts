@@ -257,8 +257,8 @@ describe('Production: L1 Single-Pokemon Daily Calculator', () => {
     expect(mewHealer.pokemon.name).toBe('MEW');
     expect(mewHealer.skillActivationDetails.skillName).toContain('Energy For Everyone S');
     // Dual activations: candy + learned skill
-    const candyEntry = mewHealer.skillActivationDetails.breakdown.find((b) => b.key === 'candy');
-    const energyEntry = mewHealer.skillActivationDetails.breakdown.find((b) => b.key.includes('energy'));
+    const candyEntry = mewHealer.skillActivationDetails.activations.find((b) => b.key === 'candy');
+    const energyEntry = mewHealer.skillActivationDetails.activations.find((b) => b.key.includes('energy'));
     expect(candyEntry).toBeDefined();
     expect(energyEntry).toBeDefined();
     expect(candyEntry!.dailySelf).toBeGreaterThan(0);

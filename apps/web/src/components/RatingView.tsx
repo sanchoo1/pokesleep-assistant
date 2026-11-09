@@ -36,6 +36,8 @@ import {
   Clock,
   Package,
   BedDouble,
+  Info,
+  Lock,
 } from 'lucide-react';
 
 interface RatingViewProps {
@@ -427,7 +429,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
       const skillEnergy = prod.dailySkillEnergy;
       const totalEnergy = prod.totalDailyEnergy;
       const dailyProcs = prod.dailySkillProcs;
-      const candyItem = prod.skillActivationDetails.breakdown.find((b) => b.key === 'candy');
+      const candyItem = prod.skillActivationDetails.activations.find((b) => b.key === 'candy');
       const dailyCandies = candyItem?.dailySelf || dailyProcs;
 
       let keyOutputText = '';

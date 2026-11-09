@@ -790,9 +790,10 @@ export function evaluateSkillActivations(params: {
         primaryUnit: primary.unit,
         perProcOutput: perProcTotalPrimary,
         dailyOutput: dailyTotalPrimary,
-        estimatedDailyEnergy: totalEstimatedEnergy,
+        perProcTeamTotalOutput: primary.perProcTeamEach > 0 ? 4 * primary.perProcTeamEach : 0,
+        dailyTeamTotalOutput: primary.dailyTeamTotal,
         description: `十项全能（已习得「${effectiveLearned}」+ 附赠队伍糖果）`,
-        breakdown,
+        activations: breakdown,
       },
     };
   }
