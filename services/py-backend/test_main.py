@@ -456,4 +456,55 @@ def test_honchkrow_debug_scan_regression():
     assert ing_map.get("slotB") == ("Soybean", 3)
 
 
+def test_wigglytuff_nickname_evolution_regression():
+    """
+    Verify scan_20261109_144315_7cd32b:
+    Player named evolved Wigglytuff '宝宝丁99'.
+    The engine should use exact RP (4522), carry limit (38), main skill Lv.6,
+    level 53, and Sassy nature to disambiguate the true evolved species as
+    WIGGLYTUFF (胖可丁) instead of pre-evolution IGGLYBUFF (宝宝丁),
+    and successfully recover the player's custom nickname '寶寶丁99'.
+    """
+    import os, json
+    scan_json_path = "data-sources/debug_scans/scan_20261109_144315_7cd32b.json"
+    if not os.path.exists(scan_json_path):
+        pytest.skip("Debug scan file not found")
+
+    with open(scan_json_path) as f:
+        data = json.load(f)
+
+    res = parse_ocr_text(
+        lines=data["parsed"]["rawLines"],
+        boxes=data["rawBoxes"],
+        image_size=(1170, 2532),
+    )
+
+    # Species disambiguated from exact RP=4522
+    assert res.pokemon["name"] == "WIGGLYTUFF"
+    assert res.pokemon["displayName"] == "胖可丁"
+    # Player's custom nickname recovered
+    assert res.nickname == "寶寶丁99"
+    assert res.level == 53
+    assert res.rp == 4522
+    assert res.nature["name"] == "Sassy"
+    assert res.nature["displayName"] == "自大"
+    assert res.carryLimit == 38
+    assert res.mainSkillLevel == 6
+
+    # Subskills
+    slots_map = {s.slot: s.name for s in res.subskills}
+    assert slots_map.get("level10") == "Helping Bonus"
+    assert slots_map.get("level25") == "Skill Trigger M"
+    assert slots_map.get("level50") == "Ingredient Finder S"
+    assert slots_map.get("level70") == "Helping Speed S"
+    assert slots_map.get("level80") == "Skill Level Up S"
+
+    # Ingredients
+    ing_map = {i.slot: (i.name, i.amount) for i in res.ingredients}
+    assert ing_map.get("slotA") == ("Honey", 1)
+    assert ing_map.get("slotB") == ("Honey", 2)
+    assert ing_map.get("slotC") == ("Cacao", 2)
+
+
+
 

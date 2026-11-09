@@ -925,6 +925,147 @@ def extract_main_skill_level(lines: List[str], row_lines: Optional[List[str]] = 
     return None
 
 
+def get_evolution_family(pokemon_name: str) -> List[Dict[str, Any]]:
+    """Return the full evolution family (root down to all branching leaves) for a given Pokémon name."""
+    root = pokemon_name.upper()
+    visited = set()
+    curr = DATA_LOADER.get_pokemon(root)
+    while curr and curr.get("evolvesFrom"):
+        prev = DATA_LOADER.get_pokemon(curr["evolvesFrom"])
+        if not prev or prev["name"] in visited:
+            break
+        visited.add(prev["name"])
+        curr = prev
+
+    family = []
+    queue = [curr["name"] if curr else root]
+    seen = set()
+    while queue:
+        p_name = queue.pop(0)
+        if p_name in seen:
+            continue
+        seen.add(p_name)
+        pk = DATA_LOADER.get_pokemon(p_name)
+        if pk:
+            family.append(pk)
+            for child in pk.get("evolvesInto", []):
+                if child not in seen:
+                    queue.append(child)
+    return family
+
+
+def disambiguate_pokemon_by_rp_and_stats(
+    pokemon: Optional[Dict[str, Any]],
+    rp: Optional[int],
+    level: Optional[int],
+    nature: Optional[Dict[str, Any]],
+    subskills: Optional[List[ParsedSubskill]],
+    main_skill_level: Optional[int] = None,
+    carry_limit: Optional[int] = None,
+    ingredients: Optional[List[ParsedIngredient]] = None,
+    raw_name_cand: Optional[str] = None,
+    lines: Optional[List[str]] = None,
+) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """
+    Disambiguate Pokémon species within its evolution family using exact RP, level, nature,
+    subskills, carry limit, and main skill level. When a player gives a Pokémon a custom
+    nickname (e.g. naming an evolved Wigglytuff '宝宝丁99' or '胖丁99'), OCR only sees the nickname
+    and mistakes it for the pre-evolution. This function uses mathematically exact RP matching to:
+      1. Determine the true evolved form (e.g. Wigglytuff with RP=4522 diff=0 vs Igglybuff diff=2243).
+      2. Recover the player's custom nickname (e.g. '宝宝丁99') without losing it.
+    """
+    if not pokemon or not rp or not level or not nature:
+        return pokemon, None
+
+    pk_full = DATA_LOADER.get_pokemon(pokemon["name"]) or pokemon
+    family = get_evolution_family(pk_full["name"])
+    if len(family) <= 1:
+        return pk_full, None
+
+    unlocked_ings = []
+    if ingredients:
+        for ing in ingredients:
+            ing_lvl = getattr(ing, "level", 1)
+            if ing_lvl <= level:
+                unlocked_ings.append({
+                    "ingredient": getattr(ing, "name", ""),
+                    "amount": getattr(ing, "amount", 1),
+                })
+
+    scored_candidates = []
+    for pk in family:
+        max_sl = pk["skill"]["maxLevel"]
+        if main_skill_level and 1 <= main_skill_level <= max_sl:
+            sl_list = [main_skill_level]
+        else:
+            base_sl = 1 + int(pk.get("previousEvolutions", 0))
+            sl_list = list(range(base_sl, max_sl + 1))
+
+        # Carry limit feasibility:
+        carry_pen = 0
+        if carry_limit:
+            base_carry = pk["carrySize"] + (5 * int(pk.get("previousEvolutions", 0)))
+            # Max possible carry: base_carry + ribbon(6) + Inventory subskills(up to 42)
+            if carry_limit < base_carry - 2 or carry_limit > base_carry + 45:
+                carry_pen = 50000
+
+        best_diff = 999999
+        for sl in sl_list:
+            try:
+                calc_rp = calculate_exact_rp_python(
+                    pokemon=pk,
+                    level=level,
+                    skill_level=sl,
+                    nature=nature,
+                    subskills=subskills or [],
+                    unlocked_ingredients=unlocked_ings,
+                )
+                diff = abs(calc_rp - rp) + carry_pen
+                if diff < best_diff:
+                    best_diff = diff
+            except Exception:
+                pass
+        scored_candidates.append((pk, best_diff))
+
+    scored_candidates.sort(key=lambda x: x[1])
+    best_pk, best_diff = scored_candidates[0]
+
+    orig_diff = next((d for p, d in scored_candidates if p["name"] == pk_full["name"]), 999999)
+
+    # If best candidate is different from original, has a clean match (diff <= 5 or diff <= 2% of RP),
+    # and is substantially better than the original candidate:
+    if best_pk["name"] != pk_full["name"] and best_diff <= max(5, int(rp * 0.02)) and best_diff < orig_diff:
+        recovered_nick = None
+        if raw_name_cand:
+            cleaned = re.sub(r"(?i)(?:lv|1v|等级|等級|レベル)[\.:\s]*\d{1,3}", "", raw_name_cand).strip()
+            tokens = [t.strip() for t in re.split(r"[\s\(\)\[\]（）]+", cleaned) if t.strip()]
+            deduped = []
+            for t in tokens:
+                if not deduped or t != deduped[-1]:
+                    deduped.append(t)
+
+            pk_names = {best_pk["name"].lower(), best_pk.get("displayName", "").lower()}
+            for tr in best_pk.get("translations", {}).values():
+                if tr:
+                    pk_names.add(tr.lower())
+
+            custom = []
+            for t in deduped:
+                tl = t.lower()
+                norm_tl = tl.replace("鷄", "鴉").replace("鸡", "鸦")
+                if tl in pk_names or norm_tl in pk_names:
+                    continue
+                if re.search(r"^\d{1,2}[:：]\d{2}", t):
+                    continue
+                custom.append(t)
+            if custom:
+                recovered_nick = " ".join(custom)
+
+        return best_pk, recovered_nick
+
+    return pk_full, None
+
+
 def parse_ocr_text(
     lines: List[str],
     boxes: Optional[List[Dict[str, Any]]] = None,
@@ -946,6 +1087,24 @@ def parse_ocr_text(
     carry_limit = extract_carry_limit(cleaned_lines, row_lines=row_lines)
     main_skill_level = extract_main_skill_level(cleaned_lines, row_lines=row_lines)
 
+    # Extract possible raw name line from row_lines or cleaned_lines (e.g. "LV.20扁鷄頭頭 烏鷄頭頭" or "LV.53寶寶丁99 寶寶丁99")
+    raw_name_cand = None
+    for rl in (row_lines or []):
+        tokens = rl.split()
+        if any(DATA_LOADER.get_pokemon(re.sub(r"(?i)(?:lv|1v|等级|等級|レベル)[\.:\s]*\d{1,2}", "", t).strip()) is not None for t in tokens):
+            raw_name_cand = re.sub(r"(?i)(?:lv|1v|等级|等級|レベル)[\.:\s]*\d{1,2}", "", rl).strip()
+            break
+
+    if not raw_name_cand:
+        name_search_pool = (row_lines or []) + cleaned_lines
+        for cl in name_search_pool[:10]:
+            if re.search(r"^\d{1,2}[:：]\d{2}", cl) and not any(k in cl for k in ("lv", "LV", "sp", "SP", "等级")):
+                continue
+            m_sub = re.sub(r"(?i)(?:lv|1v|等级|等級|レベル)[\.:\s]*\d{1,2}", "", cl).strip()
+            if m_sub and len(m_sub) >= 2 and not any(noise in m_sub.lower() for noise in NOISE_KEYWORDS):
+                raw_name_cand = m_sub
+                break
+
     # 2. High-performance visual intelligence (when image array is available)
     nickname = None
     is_shiny = False
@@ -957,24 +1116,6 @@ def parse_ocr_text(
     if image_np is not None:
         vm = VisionMatcher.get_instance()
         img_bgr = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR) if image_np.shape[2] == 3 else image_np
-
-        # Extract possible raw name line from row_lines or cleaned_lines (e.g. "LV.20扁鷄頭頭 烏鷄頭頭")
-        raw_name_cand = None
-        for rl in (row_lines or []):
-            tokens = rl.split()
-            if any(DATA_LOADER.get_pokemon(re.sub(r"(?i)(?:lv|1v|等级|等級|レベル)[\.:\s]*\d{1,2}", "", t).strip()) is not None for t in tokens):
-                raw_name_cand = re.sub(r"(?i)(?:lv|1v|等级|等級|レベル)[\.:\s]*\d{1,2}", "", rl).strip()
-                break
-
-        if not raw_name_cand:
-            name_search_pool = (row_lines or []) + cleaned_lines
-            for cl in name_search_pool[:10]:
-                if re.search(r"^\d{1,2}[:：]\d{2}", cl) and not any(k in cl for k in ("lv", "LV", "sp", "SP", "等级")):
-                    continue
-                m_sub = re.sub(r"(?i)(?:lv|1v|等级|等級|レベル)[\.:\s]*\d{1,2}", "", cl).strip()
-                if m_sub and len(m_sub) >= 2 and not any(noise in m_sub.lower() for noise in NOISE_KEYWORDS):
-                    raw_name_cand = m_sub
-                    break
 
         # (a) Visual Pokémon ID & Shiny discrimination
         vis_pkmn = vm.identify_pokemon_and_shiny(
@@ -1085,6 +1226,40 @@ def parse_ocr_text(
             if has_species and custom_parts:
                 nickname = " ".join(custom_parts)
                 break
+
+    # 2.5 Evolution Family Cross-Validation & Disambiguation via exact RP / SP and physical stats
+    if pokemon and rp and level and nature:
+        disambiguated_pk, recovered_nick = disambiguate_pokemon_by_rp_and_stats(
+            pokemon=pokemon,
+            rp=rp,
+            level=level,
+            nature=nature,
+            subskills=subskills,
+            main_skill_level=main_skill_level,
+            carry_limit=carry_limit,
+            ingredients=ingredients,
+            raw_name_cand=raw_name_cand,
+            lines=cleaned_lines,
+        )
+        if disambiguated_pk and disambiguated_pk["name"] != pokemon["name"]:
+            pokemon = disambiguated_pk
+            conf_pokemon = 0.98
+            if recovered_nick:
+                nickname = recovered_nick
+            # Re-check ingredients with the correct evolved pokemon species if needed
+            if not ingredients or conf_ing < 0.85:
+                re_ings = extract_ingredients(
+                    row_lines or cleaned_lines,
+                    pokemon,
+                    level=level,
+                    rp=rp,
+                    nature=nature,
+                    subskills=subskills,
+                    main_skill_level=main_skill_level,
+                )
+                if re_ings:
+                    ingredients = re_ings
+                    conf_ing = 0.92
 
     # 3. Match flags and confidence calculation
     matched_fields = []
