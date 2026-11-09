@@ -2,14 +2,31 @@ import { describe, it, expect } from 'vitest';
 import {
   getAvailableSilverSeedUpgrades,
   applyResourceInvestment,
-  getRecommendedMintNature,
+  isNatureNeutral,
+  shouldNeutralizeNature,
 } from '../rating/resourceSimulation';
 
-describe('Resource Simulation (Gold Seeds, Silver Seeds, Nature Mints)', () => {
-  it('should recommend correct mint nature based on specialty', () => {
-    expect(getRecommendedMintNature('berry')).toBe('Adamant');
-    expect(getRecommendedMintNature('skill')).toBe('Careful');
-    expect(getRecommendedMintNature('ingredient')).toBe('Quiet');
+describe('Resource Simulation (Gold Seeds, Silver Seeds, Neutralizing Mint)', () => {
+  it('should correctly identify neutral natures and recommendation for neutralizing mint', () => {
+    expect(isNatureNeutral('Bashful')).toBe(true);
+    expect(isNatureNeutral('Hardy')).toBe(true);
+    expect(isNatureNeutral('Adamant')).toBe(false);
+    expect(isNatureNeutral('Quiet')).toBe(false);
+
+    // Berry specialist: Calm has negative speed -> should neutralize!
+    expect(shouldNeutralizeNature('berry', 'energy', 'speed')).toBe(true);
+    // Berry specialist: Adamant has positive speed -> keep it!
+    expect(shouldNeutralizeNature('berry', 'speed', 'ingredient')).toBe(false);
+
+    // Skill specialist: Naughty has negative skill -> should neutralize!
+    expect(shouldNeutralizeNature('skill', 'speed', 'skill')).toBe(true);
+    // Skill specialist: Careful has positive skill -> keep it!
+    expect(shouldNeutralizeNature('skill', 'skill', 'ingredient')).toBe(false);
+
+    // Ingredient specialist: Jolly has negative ingredient -> should neutralize!
+    expect(shouldNeutralizeNature('ingredient', 'speed', 'ingredient')).toBe(true);
+    // Ingredient specialist: Quiet has positive ingredient -> keep it!
+    expect(shouldNeutralizeNature('ingredient', 'ingredient', 'exp')).toBe(false);
   });
 
   it('should identify upgradeable subskills in priority order for skill specialists', () => {
@@ -53,10 +70,10 @@ describe('Resource Simulation (Gold Seeds, Silver Seeds, Nature Mints)', () => {
     expect(steps.length).toBe(0);
   });
 
-  it('should correctly apply partial resource investment', () => {
+  it('should correctly apply partial resource investment and neutralize nature with mint', () => {
     const config = {
       speciesSpecialty: 'skill',
-      rawNature: 'Quiet',
+      rawNature: 'Quiet', // -speed for skill mon
       rawMainSkillLevel: 2,
       maxSkillLevel: 6,
       rawSubskills: {
@@ -72,12 +89,14 @@ describe('Resource Simulation (Gold Seeds, Silver Seeds, Nature Mints)', () => {
       goldSeeds: 2,
       silverSeeds: 1,
       useMint: true,
-      mintNature: 'Careful',
     });
 
     expect(result.effectiveMainSkillLevel).toBe(4);
     expect(result.appliedGoldSeeds).toBe(2);
-    expect(result.effectiveNature).toBe('Careful');
+    // Retains rawNature as Quiet, but effectiveNature is neutralized to Bashful
+    expect(result.rawNature).toBe('Quiet');
+    expect(result.effectiveNature).toBe('Bashful');
+    expect(result.isNatureNeutralized).toBe(true);
     expect(result.appliedMint).toBe(true);
     expect(result.appliedSilverSeeds).toBe(1);
     expect(result.effectiveSubskills.level25).toBe('Skill Trigger M');
@@ -85,10 +104,31 @@ describe('Resource Simulation (Gold Seeds, Silver Seeds, Nature Mints)', () => {
     expect(result.isInvested).toBe(true);
   });
 
+  it('should not apply mint if nature is already neutral', () => {
+    const config = {
+      speciesSpecialty: 'ingredient',
+      rawNature: 'Bashful',
+      rawMainSkillLevel: 1,
+      maxSkillLevel: 6,
+      rawSubskills: {},
+    };
+
+    const result = applyResourceInvestment(config, {
+      goldSeeds: 0,
+      silverSeeds: 0,
+      useMint: true,
+    });
+
+    expect(result.appliedMint).toBe(false);
+    expect(result.isNatureNeutralized).toBe(false);
+    expect(result.effectiveNature).toBe('Bashful');
+    expect(result.isInvested).toBe(false);
+  });
+
   it('should correctly apply full resource investment (Max Benchmark)', () => {
     const config = {
       speciesSpecialty: 'ingredient',
-      rawNature: 'Rash',
+      rawNature: 'Jolly', // -ingredient on ingredient mon!
       rawMainSkillLevel: 1,
       maxSkillLevel: 6,
       rawSubskills: {
@@ -104,12 +144,13 @@ describe('Resource Simulation (Gold Seeds, Silver Seeds, Nature Mints)', () => {
       goldSeeds: 99,
       silverSeeds: 99,
       useMint: true,
-      mintNature: 'Quiet',
     });
 
     expect(result.effectiveMainSkillLevel).toBe(6);
     expect(result.appliedGoldSeeds).toBe(5);
-    expect(result.effectiveNature).toBe('Quiet');
+    expect(result.rawNature).toBe('Jolly');
+    expect(result.effectiveNature).toBe('Bashful'); // neutralized!
+    expect(result.isNatureNeutralized).toBe(true);
     expect(result.effectiveSubskills.level10).toBe('Ingredient Finder M');
     expect(result.effectiveSubskills.level25).toBe('Inventory Up L');
     expect(result.effectiveSubskills.level50).toBe('Helping Speed M');

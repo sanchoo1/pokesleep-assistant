@@ -23,7 +23,8 @@ import {
   SKILL_CATEGORY_META,
   findIslandForBerry,
   applyResourceInvestment,
-  getRecommendedMintNature,
+  isNatureNeutral,
+  shouldNeutralizeNature,
   type AppliedResourceInvestment,
   type ResourceSimulationConfig,
   type SkillRankingCategory,
@@ -173,7 +174,6 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
   const [investGoldSeeds, setInvestGoldSeeds] = useState<number>(0);
   const [investSilverSeeds, setInvestSilverSeeds] = useState<number>(0);
   const [useMint, setUseMint] = useState<boolean>(false);
-  const [mintNature, setMintNature] = useState<string>('Adamant');
   const [isFullResourceBenchmark, setIsFullResourceBenchmark] = useState<boolean>(false);
 
   const species = useMemo(() => {
@@ -269,7 +269,6 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     setInvestSilverSeeds(0);
     setUseMint(false);
     setIsFullResourceBenchmark(false);
-    setMintNature(getRecommendedMintNature(sp.specialty));
   }, [initialPokemon]);
 
   const handleSpeciesChange = (newSpeciesName: string) => {
@@ -283,7 +282,6 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
       (p) => p.name.toUpperCase() === newSpeciesName.toUpperCase()
     );
     if (sp) {
-      setMintNature(getRecommendedMintNature(sp.specialty));
       if (isFixedNaturePokemon(sp.name)) {
         setNatureName('Bashful');
       }
@@ -348,6 +346,12 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
   const maxSkillLvl = species.skill?.maxLevel || 6;
   const rawBaseNature = isMythicalFixed ? 'Bashful' : natureName;
 
+  const rawNatureObj = useMemo(() => {
+    return GAME_DATA.natures.find(
+      (n) => n.name.toLowerCase() === rawBaseNature.toLowerCase()
+    );
+  }, [rawBaseNature]);
+
   const appliedInvestment: AppliedResourceInvestment = useMemo(() => {
     const config: ResourceSimulationConfig = {
       speciesSpecialty: species.specialty,
@@ -357,12 +361,17 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
       rawSubskills: subskills,
     };
 
+    const benchmarkShouldMint = shouldNeutralizeNature(
+      species.specialty,
+      rawNatureObj?.positiveModifier,
+      rawNatureObj?.negativeModifier
+    );
+
     if (isFullResourceBenchmark) {
       return applyResourceInvestment(config, {
         goldSeeds: 999,
         silverSeeds: 999,
-        useMint: true,
-        mintNature: mintNature || getRecommendedMintNature(species.specialty),
+        useMint: benchmarkShouldMint,
       });
     }
 
@@ -370,7 +379,6 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
       goldSeeds: investGoldSeeds,
       silverSeeds: investSilverSeeds,
       useMint,
-      mintNature: mintNature || getRecommendedMintNature(species.specialty),
     });
   }, [
     species.specialty,
@@ -382,7 +390,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     investGoldSeeds,
     investSilverSeeds,
     useMint,
-    mintNature,
+    rawNatureObj,
   ]);
 
   // 1. Raw Baseline Evaluation (0 Investment / Unmodified State)
@@ -895,11 +903,17 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
             {/* Nature & Evaluation Metric */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {getUIText('nature', locale)}
+                <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                  <span>{getUIText('nature', locale)}</span>
+                  {appliedInvestment.isNatureNeutralized && (
+                    <span className="text-2xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded flex items-center space-x-0.5">
+                      <Leaf className="w-2.5 h-2.5 text-emerald-600" />
+                      <span>纯白薄荷已中和</span>
+                    </span>
+                  )}
                 </label>
                 <select
-                  value={effectiveNature}
+                  value={rawBaseNature}
                   disabled={isMythicalFixed}
                   onChange={(e) => setNatureName(e.target.value)}
                   className={`input-field text-xs py-1.5 ${
@@ -917,18 +931,17 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                     </option>
                   ))}
                 </select>
-                {appliedInvestment.appliedMint && (
-                  <div className="mt-1 flex items-center space-x-1 text-2xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-medium">
-                    <Leaf className="w-3 h-3 text-emerald-600 shrink-0" />
-                    <span>薄荷推演为: <strong>{getEntityName(GAME_DATA.natures.find(n => n.name === appliedInvestment.effectiveNature) || { name: appliedInvestment.effectiveNature }, locale)}</strong></span>
-                  </div>
-                )}
-                {isMythicalFixed && (
+                {appliedInvestment.isNatureNeutralized ? (
+                  <p className="text-[10px] text-emerald-700 mt-1 flex items-center font-medium">
+                    <Leaf className="w-3 h-3 text-emerald-600 mr-1 shrink-0" />
+                    已使用纯白薄荷消除性格加成与惩罚（保留性格名）
+                  </p>
+                ) : isMythicalFixed ? (
                   <p className="text-[10px] text-blue-700 mt-1 flex items-center font-medium">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1 shrink-0" />
                     幻之宝可梦固定性格：害羞（Bashful）
                   </p>
-                )}
+                ) : null}
               </div>
 
               <div>
@@ -1338,54 +1351,74 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                   )}
                 </div>
 
-                {/* 3. Nature Mint (薄荷) */}
+                {/* 3. Neutralizing Mint (纯白薄荷) */}
                 <div className="pt-2 border-t border-slate-200/70">
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="inline-flex items-center space-x-1.5 cursor-pointer font-semibold text-slate-700">
                       <input
                         type="checkbox"
-                        disabled={isFullResourceBenchmark || isMythicalFixed}
-                        checked={isFullResourceBenchmark || useMint}
+                        disabled={isFullResourceBenchmark || isMythicalFixed || isNatureNeutral(rawBaseNature)}
+                        checked={appliedInvestment.isNatureNeutralized}
                         onChange={(e) => setUseMint(e.target.checked)}
-                        className="rounded text-indigo-600"
+                        className="rounded text-indigo-600 disabled:opacity-40"
                       />
                       <span className="flex items-center space-x-1">
                         <Leaf className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>薄荷更换性格</span>
+                        <span>纯白薄荷</span>
                       </span>
                     </label>
-                    <button
-                      type="button"
-                      disabled={isFullResourceBenchmark || isMythicalFixed}
-                      onClick={() => {
-                        setUseMint(true);
-                        setMintNature(getRecommendedMintNature(species.specialty));
-                      }}
-                      className="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer disabled:opacity-40"
-                    >
-                      推荐最优性格
-                    </button>
+
+                    {isNatureNeutral(rawBaseNature) ? (
+                      <span className="text-[10px] text-slate-400">中性性格无需使用</span>
+                    ) : (
+                      <span
+                        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                          appliedInvestment.isNatureNeutralized
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'text-slate-500'
+                        }`}
+                      >
+                        {appliedInvestment.isNatureNeutralized ? '已消除性格修正' : '未投入'}
+                      </span>
+                    )}
                   </div>
 
-                  {(isFullResourceBenchmark || useMint) && (
-                    <div className="mt-1">
-                      <select
-                        value={mintNature}
-                        disabled={isFullResourceBenchmark || isMythicalFixed}
-                        onChange={(e) => setMintNature(e.target.value)}
-                        className="input-field text-xs py-1 bg-white w-full"
-                      >
-                        {GAME_DATA.natures.map((n) => (
-                          <option key={n.name} value={n.name}>
-                            {getEntityName(n, locale)}
-                            {n.positiveModifier && n.positiveModifier !== 'neutral'
-                              ? ` (▲${getNatureModLabel(n.positiveModifier, locale)} ▼${getNatureModLabel(n.negativeModifier, locale)})`
-                              : ' (中性)'}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
+                  <div className="text-[11px] text-slate-500 bg-white/70 rounded-lg p-2 border border-slate-200/70">
+                    {isNatureNeutral(rawBaseNature) ? (
+                      <span>该个体当前性格本就是中性（无加成与惩罚），无需使用纯白薄荷。</span>
+                    ) : appliedInvestment.isNatureNeutralized ? (
+                      <div className="space-y-0.5">
+                        <div className="text-emerald-800 font-medium flex items-center space-x-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                          <span>
+                            已附加薄荷标：【
+                            {rawNatureObj ? getEntityName(rawNatureObj, locale) : rawBaseNature} 🍃】
+                          </span>
+                        </div>
+                        <div className="text-slate-500 text-2xs">
+                          原修正（▲
+                          {getNatureModLabel(rawNatureObj?.positiveModifier, locale)} ▼
+                          {getNatureModLabel(rawNatureObj?.negativeModifier, locale)}
+                          ）已中和为 1.0× 无修正
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <span>
+                          原性格【
+                          {rawNatureObj ? getEntityName(rawNatureObj, locale) : rawBaseNature}
+                          】修正：
+                        </span>
+                        <span className="font-semibold text-slate-700 ml-1">
+                          ▲{getNatureModLabel(rawNatureObj?.positiveModifier, locale)} ▼
+                          {getNatureModLabel(rawNatureObj?.negativeModifier, locale)}
+                        </span>
+                        <div className="text-2xs text-slate-400 mt-0.5">
+                          投入纯白薄荷可消除此修正，保留原性格名字并附加薄荷标。
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Investment Active Summary & Reset */}
@@ -1394,7 +1427,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                     <div className="text-2xs text-indigo-700 font-medium">
                       已启用推演: +{appliedInvestment.appliedGoldSeeds}金 / +
                       {appliedInvestment.appliedSilverSeeds}银{' '}
-                      {appliedInvestment.appliedMint ? '+薄荷' : ''}
+                      {appliedInvestment.appliedMint ? '+纯白薄荷' : ''}
                     </div>
                     <button
                       type="button"

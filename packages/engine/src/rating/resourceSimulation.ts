@@ -1,6 +1,6 @@
 /**
  * Resource Investment & Cultivation Simulator for Pokémon Sleep
- * Supports Main Skill Seeds (金瓜子), Sub Skill Seeds (银瓜子), and Nature Mints (薄荷)
+ * Supports Main Skill Seeds (金瓜子), Sub Skill Seeds (银瓜子), and Neutralizing Mint (纯白薄荷)
  */
 
 export interface SilverSeedUpgradeStep {
@@ -13,7 +13,6 @@ export interface ResourceInvestmentOptions {
   goldSeeds: number;
   silverSeeds: number;
   useMint: boolean;
-  mintNature?: string;
 }
 
 export interface ResourceSimulationConfig {
@@ -25,13 +24,14 @@ export interface ResourceSimulationConfig {
 }
 
 export interface AppliedResourceInvestment {
+  rawNature: string;
   effectiveNature: string;
+  isNatureNeutralized: boolean;
   effectiveMainSkillLevel: number;
   effectiveSubskills: Record<string, string>;
   appliedGoldSeeds: number;
   appliedSilverSeeds: number;
   appliedMint: boolean;
-  mintNature?: string;
   appliedSilverSteps: SilverSeedUpgradeStep[];
   maxGold: number;
   maxSilver: number;
@@ -48,20 +48,58 @@ export const SUB_SKILL_UPGRADE_MAP: Record<string, string> = {
   'Skill Level Up S': 'Skill Level Up M',
 };
 
+export const NEUTRAL_NATURES = new Set([
+  'Bashful',
+  'Hardy',
+  'Docile',
+  'Quirky',
+  'Serious',
+]);
+
 /**
- * Returns recommended competitive nature for a specialty
+ * Returns whether a nature has neutral modifiers
  */
-export function getRecommendedMintNature(specialty: string): string {
-  switch (specialty) {
-    case 'berry':
-      return 'Adamant'; // 固执 (+Speed, -Ingredient)
-    case 'skill':
-      return 'Careful'; // 慎重 (+Skill, -Ingredient)
-    case 'ingredient':
-      return 'Quiet'; // 冷静 (+Ingredient, -EXP)
-    default:
-      return 'Adamant';
+export function isNatureNeutral(natureName: string): boolean {
+  if (!natureName) return true;
+  return NEUTRAL_NATURES.has(natureName);
+}
+
+/**
+ * Determines whether using a Neutralizing Mint would benefit a Pokémon based on its specialty
+ * and whether its current nature's negative modifier hinders its primary role.
+ */
+export function shouldNeutralizeNature(
+  specialty: string,
+  positiveModifier?: string,
+  negativeModifier?: string
+): boolean {
+  if (!positiveModifier || positiveModifier === 'neutral') return false;
+
+  if (specialty === 'berry') {
+    // Retain +speed (Adamant, Brave, Lonely, Naughty)
+    if (positiveModifier === 'speed') return false;
+    // Neutralize negative speed or positive ingredient
+    if (negativeModifier === 'speed' || positiveModifier === 'ingredient') return true;
+    return false;
   }
+
+  if (specialty === 'skill') {
+    // Retain +skill (Careful, Calm, Gentle, Sassy)
+    if (positiveModifier === 'skill') return false;
+    // Neutralize negative skill or negative speed
+    if (negativeModifier === 'skill' || negativeModifier === 'speed') return true;
+    return false;
+  }
+
+  if (specialty === 'ingredient') {
+    // Retain +ingredient (Quiet, Modest, Mild, Rash)
+    if (positiveModifier === 'ingredient') return false;
+    // Neutralize negative ingredient or negative speed
+    if (negativeModifier === 'ingredient' || negativeModifier === 'speed') return true;
+    return false;
+  }
+
+  return false;
 }
 
 /**
@@ -144,7 +182,7 @@ export function getAvailableSilverSeedUpgrades(
 }
 
 /**
- * Applies gold seeds, silver seeds, and mint to compute the effective Pokémon configuration.
+ * Applies gold seeds, silver seeds, and neutralizing mint to compute the effective Pokémon configuration.
  */
 export function applyResourceInvestment(
   config: ResourceSimulationConfig,
@@ -170,21 +208,22 @@ export function applyResourceInvestment(
     effectiveSubskills[step.slotKey] = step.toSkill;
   }
 
-  const appliedMint = Boolean(
-    options.useMint && options.mintNature && options.mintNature !== config.rawNature
-  );
-  const effectiveNature = appliedMint && options.mintNature ? options.mintNature : config.rawNature;
+  const canNeutralize = !isNatureNeutral(config.rawNature);
+  const appliedMint = Boolean(options.useMint && canNeutralize);
+  const effectiveNature = appliedMint ? 'Bashful' : config.rawNature;
+  const isNatureNeutralized = appliedMint;
 
   const isInvested = appliedGoldSeeds > 0 || appliedSilverSeeds > 0 || appliedMint;
 
   return {
+    rawNature: config.rawNature,
     effectiveNature,
+    isNatureNeutralized,
     effectiveMainSkillLevel,
     effectiveSubskills,
     appliedGoldSeeds,
     appliedSilverSeeds,
     appliedMint,
-    mintNature: options.mintNature,
     appliedSilverSteps,
     maxGold,
     maxSilver: allAvailableSteps.length,
