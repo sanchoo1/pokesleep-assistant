@@ -22,6 +22,10 @@ import {
   detectSkillCategory,
   SKILL_CATEGORY_META,
   findIslandForBerry,
+  applyResourceInvestment,
+  getRecommendedMintNature,
+  type AppliedResourceInvestment,
+  type ResourceSimulationConfig,
   type SkillRankingCategory,
   type SkillRankingMetric,
   type EnergyRankingScope,
@@ -53,6 +57,11 @@ import {
   Lock,
   BarChart3,
   Compass,
+  Plus,
+  Minus,
+  RotateCcw,
+  TrendingUp,
+  Leaf,
 } from 'lucide-react';
 
 interface RatingViewProps {
@@ -153,13 +162,19 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
   });
   const [mainSkillLevel, setMainSkillLevel] = useState(initialPokemon?.mainSkillLevel || 1);
   const [ribbonLevel, setRibbonLevel] = useState(initialPokemon?.ribbonLevel || 0);
-  const [simulateMaxSkillSeed, setSimulateMaxSkillSeed] = useState(false);
   const [isFavoredBerry, setIsFavoredBerry] = useState(true);
   const [mapBonus, setMapBonus] = useState(0);
   const [metric, setMetric] = useState<EvaluationMetric>('auto');
   const [mewLearnedSkill, setMewLearnedSkill] = useState<string>(
     initialPokemon?.mewLearnedSkill || 'Metronome'
   );
+
+  // Resource Investment & Cultivation Simulator states (金瓜子 / 银瓜子 / 薄荷 / 满资源对比)
+  const [investGoldSeeds, setInvestGoldSeeds] = useState<number>(0);
+  const [investSilverSeeds, setInvestSilverSeeds] = useState<number>(0);
+  const [useMint, setUseMint] = useState<boolean>(false);
+  const [mintNature, setMintNature] = useState<string>('Adamant');
+  const [isFullResourceBenchmark, setIsFullResourceBenchmark] = useState<boolean>(false);
 
   const species = useMemo(() => {
     return (
@@ -250,15 +265,25 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     setFocusedLevel(sp.specialty === 'ingredient' ? 60 : 50);
     setSkillRankingCategory(detectSkillCategory(sp));
     setEnergyRankingIsland(null);
+    setInvestGoldSeeds(0);
+    setInvestSilverSeeds(0);
+    setUseMint(false);
+    setIsFullResourceBenchmark(false);
+    setMintNature(getRecommendedMintNature(sp.specialty));
   }, [initialPokemon]);
 
   const handleSpeciesChange = (newSpeciesName: string) => {
     setSelectedSpecies(newSpeciesName);
     setEnergyRankingIsland(null);
+    setInvestGoldSeeds(0);
+    setInvestSilverSeeds(0);
+    setUseMint(false);
+    setIsFullResourceBenchmark(false);
     const sp = GAME_DATA.pokemon.find(
       (p) => p.name.toUpperCase() === newSpeciesName.toUpperCase()
     );
     if (sp) {
+      setMintNature(getRecommendedMintNature(sp.specialty));
       if (isFixedNaturePokemon(sp.name)) {
         setNatureName('Bashful');
       }
@@ -320,23 +345,59 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     });
   }, [validSlotA, validSlotB, validSlotC]);
 
-  const effectiveInputSkillLevel = simulateMaxSkillSeed
-    ? species.skill.maxLevel || 6
-    : mainSkillLevel;
+  const maxSkillLvl = species.skill?.maxLevel || 6;
+  const rawBaseNature = isMythicalFixed ? 'Bashful' : natureName;
 
-  // Automatic Multi-Stage Evaluation across [10, 25, 30, 50, 60, 70, 80]
-  const multiReport = useMemo(() => {
+  const appliedInvestment: AppliedResourceInvestment = useMemo(() => {
+    const config: ResourceSimulationConfig = {
+      speciesSpecialty: species.specialty,
+      rawNature: rawBaseNature,
+      rawMainSkillLevel: mainSkillLevel,
+      maxSkillLevel: maxSkillLvl,
+      rawSubskills: subskills,
+    };
+
+    if (isFullResourceBenchmark) {
+      return applyResourceInvestment(config, {
+        goldSeeds: 999,
+        silverSeeds: 999,
+        useMint: true,
+        mintNature: mintNature || getRecommendedMintNature(species.specialty),
+      });
+    }
+
+    return applyResourceInvestment(config, {
+      goldSeeds: investGoldSeeds,
+      silverSeeds: investSilverSeeds,
+      useMint,
+      mintNature: mintNature || getRecommendedMintNature(species.specialty),
+    });
+  }, [
+    species.specialty,
+    rawBaseNature,
+    mainSkillLevel,
+    maxSkillLvl,
+    subskills,
+    isFullResourceBenchmark,
+    investGoldSeeds,
+    investSilverSeeds,
+    useMint,
+    mintNature,
+  ]);
+
+  // 1. Raw Baseline Evaluation (0 Investment / Unmodified State)
+  const rawMultiReport = useMemo(() => {
     try {
       return evaluatePokemonMilestones({
         pokemon: species,
-        nature: effectiveNature,
+        nature: rawBaseNature,
         subskills,
         ingredientSelection: {
           slot0: ingredients.slotA,
           slot30: ingredients.slotB,
           slot60: ingredients.slotC,
         },
-        mainSkillLevel: effectiveInputSkillLevel,
+        mainSkillLevel,
         ribbonLevel,
         metric,
         isFavoredBerry,
@@ -352,10 +413,53 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     }
   }, [
     species,
-    effectiveNature,
+    rawBaseNature,
     subskills,
     ingredients,
-    effectiveInputSkillLevel,
+    mainSkillLevel,
+    ribbonLevel,
+    metric,
+    isFavoredBerry,
+    mapBonus,
+    activeCookingContext,
+    sleepDurationHours,
+    mewLearnedSkill,
+  ]);
+
+  // 2. Multi-Stage Evaluation (Active Investment or Fallback to Raw)
+  const multiReport = useMemo(() => {
+    if (!appliedInvestment.isInvested) {
+      return rawMultiReport;
+    }
+    try {
+      return evaluatePokemonMilestones({
+        pokemon: species,
+        nature: appliedInvestment.effectiveNature,
+        subskills: appliedInvestment.effectiveSubskills,
+        ingredientSelection: {
+          slot0: ingredients.slotA,
+          slot30: ingredients.slotB,
+          slot60: ingredients.slotC,
+        },
+        mainSkillLevel: appliedInvestment.effectiveMainSkillLevel,
+        ribbonLevel,
+        metric,
+        isFavoredBerry,
+        mapBonus,
+        previewLv80: true,
+        cookingContext: activeCookingContext,
+        sleepHours: sleepDurationHours,
+        mewLearnedSkill: species.name === 'MEW' ? mewLearnedSkill : undefined,
+      });
+    } catch (e) {
+      console.error(e);
+      return rawMultiReport;
+    }
+  }, [
+    appliedInvestment,
+    rawMultiReport,
+    species,
+    ingredients,
     ribbonLevel,
     metric,
     isFavoredBerry,
@@ -369,11 +473,21 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     return (multiReport?.milestones || []).filter((m) => m.level <= 70);
   }, [multiReport]);
 
+  const rawStandardMilestones = useMemo(() => {
+    return (rawMultiReport?.milestones || []).filter((m) => m.level <= 70);
+  }, [rawMultiReport]);
+
   const standardAveragePercentile = useMemo(() => {
     if (!standardMilestones.length) return 0;
     const sum = standardMilestones.reduce((acc, m) => acc + m.rating.percentile, 0);
     return Math.round((sum / standardMilestones.length) * 10) / 10;
   }, [standardMilestones]);
+
+  const rawStandardAveragePercentile = useMemo(() => {
+    if (!rawStandardMilestones.length) return 0;
+    const sum = rawStandardMilestones.reduce((acc, m) => acc + m.rating.percentile, 0);
+    return Math.round((sum / rawStandardMilestones.length) * 10) / 10;
+  }, [rawStandardMilestones]);
 
   const standardPeakStage = useMemo(() => {
     if (!standardMilestones.length) return multiReport?.peakStage || null;
@@ -386,6 +500,17 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     return peak;
   }, [standardMilestones, multiReport]);
 
+  const rawStandardPeakStage = useMemo(() => {
+    if (!rawStandardMilestones.length) return rawMultiReport?.peakStage || null;
+    let peak = rawStandardMilestones[0];
+    for (const m of rawStandardMilestones) {
+      if (m.rating.percentile >= peak.rating.percentile) {
+        peak = m;
+      }
+    }
+    return peak;
+  }, [rawStandardMilestones, rawMultiReport]);
+
   const focusedStage = useMemo(() => {
     if (!multiReport) return null;
     return (
@@ -394,7 +519,16 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     );
   }, [multiReport, focusedLevel]);
 
+  const rawFocusedStage = useMemo(() => {
+    if (!rawMultiReport) return null;
+    return (
+      rawMultiReport.milestones.find((m) => m.level === focusedLevel) ||
+      rawMultiReport.milestones[rawMultiReport.milestones.length - 1]
+    );
+  }, [rawMultiReport, focusedLevel]);
+
   const focusedProd = focusedStage?.rating.currentProduction || null;
+  const rawProd = rawFocusedStage?.rating.currentProduction || null;
 
   // Compare favored vs unfavored berry production at focusedLevel for Berry Deep-Dive
   const berryComparison = useMemo(() => {
@@ -402,14 +536,14 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     const favored = calculateDailyProduction({
       pokemon: species,
       level: focusedLevel,
-      nature: effectiveNature,
-      subskills,
+      nature: appliedInvestment.effectiveNature,
+      subskills: Object.values(appliedInvestment.effectiveSubskills).filter(Boolean),
       ingredientSelection: {
         slot0: ingredients.slotA,
         slot30: ingredients.slotB,
         slot60: ingredients.slotC,
       },
-      mainSkillLevel: effectiveInputSkillLevel,
+      mainSkillLevel: appliedInvestment.effectiveMainSkillLevel,
       ribbonLevel,
       isFavoredBerry: true,
       mapBonus,
@@ -418,14 +552,14 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     const unfavored = calculateDailyProduction({
       pokemon: species,
       level: focusedLevel,
-      nature: effectiveNature,
-      subskills,
+      nature: appliedInvestment.effectiveNature,
+      subskills: Object.values(appliedInvestment.effectiveSubskills).filter(Boolean),
       ingredientSelection: {
         slot0: ingredients.slotA,
         slot30: ingredients.slotB,
         slot60: ingredients.slotC,
       },
-      mainSkillLevel: effectiveInputSkillLevel,
+      mainSkillLevel: appliedInvestment.effectiveMainSkillLevel,
       ribbonLevel,
       isFavoredBerry: false,
       mapBonus,
@@ -436,10 +570,8 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     focusedProd,
     species,
     focusedLevel,
-    effectiveNature,
-    subskills,
+    appliedInvestment,
     ingredients,
-    effectiveInputSkillLevel,
     ribbonLevel,
     mapBonus,
     mewLearnedSkill,
@@ -448,18 +580,20 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
   // Memoized comparison of all 12 learned skills for Mew at focusedLevel
   const mewSkillComparison = useMemo(() => {
     if (species.name !== 'MEW') return [];
+    const effSubskills = Object.values(appliedInvestment.effectiveSubskills).filter(Boolean);
+    const effSkillLvl = appliedInvestment.effectiveMainSkillLevel;
     return MEW_LEARNED_SKILLS.map((sk) => {
       const prod = calculateDailyProduction({
         pokemon: species,
         level: focusedLevel,
         nature: 'Bashful',
-        subskills,
+        subskills: effSubskills,
         ingredientSelection: {
           slot0: ingredients.slotA,
           slot30: ingredients.slotB,
           slot60: ingredients.slotC,
         },
-        mainSkillLevel: effectiveInputSkillLevel,
+        mainSkillLevel: effSkillLvl,
         ribbonLevel,
         isFavoredBerry,
         mapBonus,
@@ -478,22 +612,22 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
       switch (sk.roleType) {
         case 'healer':
           if (sk.id.includes('Everyone')) {
-            keyOutputText = `全队回体约 ${(dailyProcs * (11 + effectiveInputSkillLevel)).toFixed(0)} 点/天`;
+            keyOutputText = `全队回体约 ${(dailyProcs * (11 + effSkillLvl)).toFixed(0)} 点/天`;
           } else {
             keyOutputText = `单体急救约 ${(dailyProcs * 25).toFixed(0)} 活力/天`;
           }
           break;
         case 'ingredient':
-          keyOutputText = `食材补给约 +${(dailyProcs * (6 + effectiveInputSkillLevel * 3)).toFixed(1)} 个/天`;
+          keyOutputText = `食材补给约 +${(dailyProcs * (6 + effSkillLvl * 3)).toFixed(1)} 个/天`;
           break;
         case 'strength':
           keyOutputText = `技能能量约 +${Math.round(skillEnergy).toLocaleString()} /天`;
           break;
         case 'pot':
-          keyOutputText = `单餐扩锅 +${7 + effectiveInputSkillLevel * 3} 容量`;
+          keyOutputText = `单餐扩锅 +${7 + effSkillLvl * 3} 容量`;
           break;
         case 'crit':
-          keyOutputText = `料理暴击率 +${(4 + effectiveInputSkillLevel * 1.5).toFixed(1)}% /次`;
+          keyOutputText = `料理暴击率 +${(4 + effSkillLvl * 1.5).toFixed(1)}% /次`;
           break;
         case 'helps':
           keyOutputText = `日助攻队友 +${(dailyProcs * 4).toFixed(1)} 次瞬间帮忙`;
@@ -522,9 +656,8 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
   }, [
     species,
     focusedLevel,
-    subskills,
+    appliedInvestment,
     ingredients,
-    effectiveInputSkillLevel,
     ribbonLevel,
     isFavoredBerry,
     mapBonus,
@@ -630,9 +763,9 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
       currentPokemon: {
         pokemonName: species.name,
         level: focusedLevel,
-        nature: effectiveNature,
-        subskills: Object.values(subskills).filter(Boolean),
-        mainSkillLevel,
+        nature: appliedInvestment.effectiveNature,
+        subskills: Object.values(appliedInvestment.effectiveSubskills).filter(Boolean),
+        mainSkillLevel: appliedInvestment.effectiveMainSkillLevel,
         ribbonLevel,
         ingredientSelection: `${ingredients.slotA}${ingredients.slotB}${ingredients.slotC}`,
         mewLearnedSkill: species.name === 'MEW' ? mewLearnedSkill : undefined,
@@ -645,9 +778,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     skillRankingOnlyFinalEvolution,
     species.name,
     focusedLevel,
-    effectiveNature,
-    subskills,
-    mainSkillLevel,
+    appliedInvestment,
     ribbonLevel,
     ingredients,
     mewLearnedSkill,
@@ -669,10 +800,10 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
       currentPokemon: {
         pokemonName: species.name,
         level: focusedLevel,
-        nature: effectiveNature,
-        subskills: Object.values(subskills).filter(Boolean),
+        nature: appliedInvestment.effectiveNature,
+        subskills: Object.values(appliedInvestment.effectiveSubskills).filter(Boolean),
         ingredientSelection: `${ingredients.slotA}${ingredients.slotB}${ingredients.slotC}`,
-        mainSkillLevel,
+        mainSkillLevel: appliedInvestment.effectiveMainSkillLevel,
         ribbonLevel,
         mewLearnedSkill: species.name === 'MEW' ? mewLearnedSkill : undefined,
       },
@@ -687,10 +818,8 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     energyRankingLevel,
     energyRankingOnlyFinalEvolution,
     focusedLevel,
-    effectiveNature,
-    subskills,
+    appliedInvestment,
     ingredients,
-    mainSkillLevel,
     ribbonLevel,
     mewLearnedSkill,
   ]);
@@ -732,8 +861,6 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
         return '每日综合总能量';
     }
   };
-
-  const maxSkillLvl = species.skill.maxLevel || 6;
 
   return (
     <div className="space-y-6">
@@ -790,6 +917,12 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                     </option>
                   ))}
                 </select>
+                {appliedInvestment.appliedMint && (
+                  <div className="mt-1 flex items-center space-x-1 text-2xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-medium">
+                    <Leaf className="w-3 h-3 text-emerald-600 shrink-0" />
+                    <span>薄荷推演为: <strong>{getEntityName(GAME_DATA.natures.find(n => n.name === appliedInvestment.effectiveNature) || { name: appliedInvestment.effectiveNature }, locale)}</strong></span>
+                  </div>
+                )}
                 {isMythicalFixed && (
                   <p className="text-[10px] text-blue-700 mt-1 flex items-center font-medium">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1 shrink-0" />
@@ -861,40 +994,54 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                     { lvl: 70, key: 'level70' as const, capLocked: false },
                     { lvl: 80, key: 'level80' as const, capLocked: true },
                   ]
-                ).map(({ lvl, key, capLocked }) => (
-                  <div key={key} className="flex items-center space-x-2">
-                    <span
-                      className={`text-xs font-bold w-16 shrink-0 ${
-                        capLocked
-                          ? focusedLevel === 80
-                            ? 'text-blue-600'
-                            : 'text-slate-400'
-                          : lvl <= focusedLevel
-                            ? 'text-blue-600'
-                            : 'text-slate-600'
-                      }`}
-                    >
-                      {capLocked ? 'Lv.80' : `Lv.${lvl}`}
-                    </span>
-                    <select
-                      value={subskills[key]}
-                      onChange={(e) => setSubskills({ ...subskills, [key]: e.target.value })}
-                      className={`input-field text-xs py-1 ${capLocked ? 'bg-slate-50 text-slate-500' : ''}`}
-                    >
-                      <option value="">(无 / 未设置)</option>
-                      {GAME_DATA.subskills.map((s) => {
-                        const isUsedInOtherSlot = Object.entries(subskills).some(
-                          ([k, v]) => k !== key && v === s.name
-                        );
-                        return (
-                          <option key={s.name} value={s.name} disabled={isUsedInOtherSlot}>
-                            [{s.rarity === 'gold' ? '金' : s.rarity === 'silver' ? '银' : '白'}] {getEntityName(s, locale)}{isUsedInOtherSlot ? (locale === 'en' ? ' (Selected)' : ' (已选)') : ''}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-                ))}
+                ).map(({ lvl, key, capLocked }) => {
+                  const rawSkill = subskills[key];
+                  const effSkill = appliedInvestment.effectiveSubskills[key];
+                  const isUpgraded = appliedInvestment.isInvested && rawSkill && effSkill && effSkill !== rawSkill;
+                  const effSkillObj = isUpgraded ? GAME_DATA.subskills.find((s) => s.name === effSkill) : null;
+                  return (
+                    <div key={key} className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <span
+                          className={`text-xs font-bold w-16 shrink-0 ${
+                            capLocked
+                              ? focusedLevel === 80
+                                ? 'text-blue-600'
+                                : 'text-slate-400'
+                              : lvl <= focusedLevel
+                                ? 'text-blue-600'
+                                : 'text-slate-600'
+                          }`}
+                        >
+                          {capLocked ? 'Lv.80' : `Lv.${lvl}`}
+                        </span>
+                        <select
+                          value={subskills[key]}
+                          onChange={(e) => setSubskills({ ...subskills, [key]: e.target.value })}
+                          className={`input-field text-xs py-1 flex-1 ${capLocked ? 'bg-slate-50 text-slate-500' : ''}`}
+                        >
+                          <option value="">(无 / 未设置)</option>
+                          {GAME_DATA.subskills.map((s) => {
+                            const isUsedInOtherSlot = Object.entries(subskills).some(
+                              ([k, v]) => k !== key && v === s.name
+                            );
+                            return (
+                              <option key={s.name} value={s.name} disabled={isUsedInOtherSlot}>
+                                [{s.rarity === 'gold' ? '金' : s.rarity === 'silver' ? '银' : '白'}] {getEntityName(s, locale)}{isUsedInOtherSlot ? (locale === 'en' ? ' (Selected)' : ' (已选)') : ''}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+                      {isUpgraded && effSkillObj && (
+                        <div className="ml-18 flex items-center space-x-1.5 text-2xs text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                          <span>➔ 银瓜子升阶:</span>
+                          <span className="font-bold">[{effSkillObj.rarity === 'gold' ? '金' : effSkillObj.rarity === 'silver' ? '银' : '白'}] {getEntityName(effSkillObj, locale)}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -966,7 +1113,6 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                 <div className="flex items-center space-x-2">
                   <select
                     value={mainSkillLevel}
-                    disabled={simulateMaxSkillSeed}
                     onChange={(e) => setMainSkillLevel(Number(e.target.value))}
                     className="input-field text-xs py-0.5 w-20 bg-white"
                   >
@@ -976,15 +1122,11 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                       </option>
                     ))}
                   </select>
-                  <label className="inline-flex items-center space-x-1 cursor-pointer text-indigo-700 font-medium">
-                    <input
-                      type="checkbox"
-                      checked={simulateMaxSkillSeed}
-                      onChange={(e) => setSimulateMaxSkillSeed(e.target.checked)}
-                      className="rounded text-indigo-600"
-                    />
-                    <span>满级金瓜子</span>
-                  </label>
+                  {appliedInvestment.appliedGoldSeeds > 0 && (
+                    <span className="text-2xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                      ➔ 推演 Lv.{appliedInvestment.effectiveMainSkillLevel}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -1031,6 +1173,246 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                 </div>
               </div>
             </div>
+
+            {/* Resource Investment & Cultivation Simulator (金瓜子 / 银瓜子 / 薄荷 / 满资源对比) */}
+            <div
+              className={`p-3.5 rounded-xl border transition-all ${
+                appliedInvestment.isInvested
+                  ? 'bg-gradient-to-b from-indigo-50/60 to-purple-50/30 border-indigo-200 shadow-xs'
+                  : 'bg-slate-50/90 border-slate-200'
+              }`}
+            >
+              <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-200/80">
+                <div className="flex items-center space-x-1.5">
+                  <TrendingUp
+                    className={`w-4 h-4 ${
+                      appliedInvestment.isInvested ? 'text-indigo-600' : 'text-slate-500'
+                    }`}
+                  />
+                  <span className="text-xs font-bold text-slate-800">资源投入与培养推演</span>
+                </div>
+                {/* One-click Full Resource Benchmark Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsFullResourceBenchmark(!isFullResourceBenchmark)}
+                  className={`text-2xs font-bold px-2.5 py-1 rounded-md transition-all flex items-center space-x-1 cursor-pointer ${
+                    isFullResourceBenchmark
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'bg-white text-indigo-700 border border-indigo-200 hover:bg-indigo-50'
+                  }`}
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>{isFullResourceBenchmark ? '已拉满资源' : '一键满资源对比'}</span>
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                {/* 1. Main Skill Seed (金瓜子) */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-semibold text-slate-700 flex items-center space-x-1">
+                      <span>🟡 金瓜子</span>
+                      <span className="text-2xs text-slate-400 font-normal">
+                        ({appliedInvestment.appliedGoldSeeds}/{appliedInvestment.maxGold} 颗可用)
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-500">
+                      主技能: Lv.{mainSkillLevel} ➔{' '}
+                      <span
+                        className={
+                          appliedInvestment.appliedGoldSeeds > 0
+                            ? 'font-bold text-amber-600'
+                            : ''
+                        }
+                      >
+                        Lv.{appliedInvestment.effectiveMainSkillLevel}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-1 bg-white border border-slate-200 rounded-lg p-0.5">
+                    <button
+                      type="button"
+                      disabled={isFullResourceBenchmark || investGoldSeeds <= 0}
+                      onClick={() => setInvestGoldSeeds(Math.max(0, investGoldSeeds - 1))}
+                      className="w-6 h-6 flex items-center justify-center rounded text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                      <Minus className="w-3 h-3" />
+                    </button>
+                    <span className="w-6 text-center font-bold text-xs">
+                      {appliedInvestment.appliedGoldSeeds}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={
+                        isFullResourceBenchmark ||
+                        investGoldSeeds >= appliedInvestment.maxGold
+                      }
+                      onClick={() =>
+                        setInvestGoldSeeds(
+                          Math.min(appliedInvestment.maxGold, investGoldSeeds + 1)
+                        )
+                      }
+                      className="w-6 h-6 flex items-center justify-center rounded text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. Sub Skill Seed (银瓜子) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <div>
+                      <div className="font-semibold text-slate-700 flex items-center space-x-1">
+                        <span>⚪ 银瓜子</span>
+                        <span className="text-2xs text-slate-400 font-normal">
+                          ({appliedInvestment.appliedSilverSeeds}/
+                          {appliedInvestment.maxSilver} 颗可用)
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500">
+                        {appliedInvestment.maxSilver === 0
+                          ? '副技能当前无可升阶空间'
+                          : '按专长优先级依次升阶白/蓝副技能'}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-1 bg-white border border-slate-200 rounded-lg p-0.5">
+                      <button
+                        type="button"
+                        disabled={isFullResourceBenchmark || investSilverSeeds <= 0}
+                        onClick={() =>
+                          setInvestSilverSeeds(Math.max(0, investSilverSeeds - 1))
+                        }
+                        className="w-6 h-6 flex items-center justify-center rounded text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <span className="w-6 text-center font-bold text-xs">
+                        {appliedInvestment.appliedSilverSeeds}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={
+                          isFullResourceBenchmark ||
+                          investSilverSeeds >= appliedInvestment.maxSilver
+                        }
+                        onClick={() =>
+                          setInvestSilverSeeds(
+                            Math.min(appliedInvestment.maxSilver, investSilverSeeds + 1)
+                          )
+                        }
+                        className="w-6 h-6 flex items-center justify-center rounded text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Silver seed upgrade preview pills */}
+                  {appliedInvestment.allAvailableSteps.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {appliedInvestment.allAvailableSteps.map((step, idx) => {
+                        const isApplied = idx < appliedInvestment.appliedSilverSeeds;
+                        const fromObj = GAME_DATA.subskills.find(
+                          (s) => s.name === step.fromSkill
+                        );
+                        const toObj = GAME_DATA.subskills.find(
+                          (s) => s.name === step.toSkill
+                        );
+                        return (
+                          <span
+                            key={idx}
+                            className={`text-[10px] px-1.5 py-0.5 rounded border transition-all ${
+                              isApplied
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200 font-bold'
+                                : 'bg-white/80 text-slate-400 border-slate-200 opacity-60'
+                            }`}
+                          >
+                            {isApplied ? '✓' : `#${idx + 1}`}{' '}
+                            {fromObj ? getEntityName(fromObj, locale) : step.fromSkill} ➔{' '}
+                            {toObj ? getEntityName(toObj, locale) : step.toSkill}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. Nature Mint (薄荷) */}
+                <div className="pt-2 border-t border-slate-200/70">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="inline-flex items-center space-x-1.5 cursor-pointer font-semibold text-slate-700">
+                      <input
+                        type="checkbox"
+                        disabled={isFullResourceBenchmark || isMythicalFixed}
+                        checked={isFullResourceBenchmark || useMint}
+                        onChange={(e) => setUseMint(e.target.checked)}
+                        className="rounded text-indigo-600"
+                      />
+                      <span className="flex items-center space-x-1">
+                        <Leaf className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>薄荷更换性格</span>
+                      </span>
+                    </label>
+                    <button
+                      type="button"
+                      disabled={isFullResourceBenchmark || isMythicalFixed}
+                      onClick={() => {
+                        setUseMint(true);
+                        setMintNature(getRecommendedMintNature(species.specialty));
+                      }}
+                      className="text-[10px] font-semibold text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer disabled:opacity-40"
+                    >
+                      推荐最优性格
+                    </button>
+                  </div>
+
+                  {(isFullResourceBenchmark || useMint) && (
+                    <div className="mt-1">
+                      <select
+                        value={mintNature}
+                        disabled={isFullResourceBenchmark || isMythicalFixed}
+                        onChange={(e) => setMintNature(e.target.value)}
+                        className="input-field text-xs py-1 bg-white w-full"
+                      >
+                        {GAME_DATA.natures.map((n) => (
+                          <option key={n.name} value={n.name}>
+                            {getEntityName(n, locale)}
+                            {n.positiveModifier && n.positiveModifier !== 'neutral'
+                              ? ` (▲${getNatureModLabel(n.positiveModifier, locale)} ▼${getNatureModLabel(n.negativeModifier, locale)})`
+                              : ' (中性)'}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {/* Investment Active Summary & Reset */}
+                {appliedInvestment.isInvested && (
+                  <div className="pt-2 border-t border-indigo-200/70 flex items-center justify-between">
+                    <div className="text-2xs text-indigo-700 font-medium">
+                      已启用推演: +{appliedInvestment.appliedGoldSeeds}金 / +
+                      {appliedInvestment.appliedSilverSeeds}银{' '}
+                      {appliedInvestment.appliedMint ? '+薄荷' : ''}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsFullResourceBenchmark(false);
+                        setInvestGoldSeeds(0);
+                        setInvestSilverSeeds(0);
+                        setUseMint(false);
+                      }}
+                      className="text-2xs text-slate-500 hover:text-slate-800 flex items-center space-x-0.5 cursor-pointer font-medium"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>重置推演</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Right Column (8 cols): Auto Multi-Stage Milestone Dashboard */}
@@ -1043,11 +1425,26 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                     <div className="text-2xs font-semibold text-slate-500 uppercase">
                       全阶段平均 PR 百分位 (Lv.10-70)
                     </div>
-                    <div className={`text-4xl font-black mt-1 ${prColor(standardAveragePercentile)}`}>
-                      PR {standardAveragePercentile}
+                    <div
+                      className={`text-4xl font-black mt-1 flex items-baseline justify-center space-x-2 ${prColor(
+                        standardAveragePercentile
+                      )}`}
+                    >
+                      <span>PR {standardAveragePercentile}</span>
+                      {appliedInvestment.isInvested &&
+                        standardAveragePercentile !== rawStandardAveragePercentile && (
+                          <span className="text-xs font-bold text-emerald-600 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                            {standardAveragePercentile >= rawStandardAveragePercentile ? '+' : ''}
+                            {(standardAveragePercentile - rawStandardAveragePercentile).toFixed(1)}
+                          </span>
+                        )}
                     </div>
                     <div className="text-2xs text-slate-500 mt-1">
-                      评估指标：{metricLabel(multiReport.evaluatedMetric)}
+                      {appliedInvestment.isInvested ? (
+                        <span>原案 PR {rawStandardAveragePercentile} · 投入后提升</span>
+                      ) : (
+                        <span>评估指标：{metricLabel(multiReport.evaluatedMetric)}</span>
+                      )}
                     </div>
                   </div>
 
@@ -1055,11 +1452,34 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                     <div className="text-2xs font-semibold text-slate-500 uppercase">
                       巅峰强势阶段 (Lv.{standardPeakStage?.level ?? multiReport.peakStage.level})
                     </div>
-                    <div className="text-4xl font-black text-blue-600 mt-1">
-                      PR {standardPeakStage?.rating.percentile ?? multiReport.peakStage.rating.percentile}
+                    <div className="text-4xl font-black text-blue-600 mt-1 flex items-baseline justify-center space-x-2">
+                      <span>
+                        PR{' '}
+                        {standardPeakStage?.rating.percentile ??
+                          multiReport.peakStage.rating.percentile}
+                      </span>
+                      {appliedInvestment.isInvested &&
+                        rawStandardPeakStage &&
+                        (standardPeakStage?.rating.percentile ?? 0) !==
+                          rawStandardPeakStage.rating.percentile && (
+                          <span className="text-xs font-bold text-emerald-600 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                            +
+                            {(standardPeakStage?.rating.percentile ?? 0) -
+                              rawStandardPeakStage.rating.percentile}
+                          </span>
+                        )}
                     </div>
                     <div className="text-2xs text-slate-500 mt-1">
-                      {standardPeakStage?.unlockNote ?? multiReport.peakStage.unlockNote}
+                      {appliedInvestment.isInvested && rawStandardPeakStage ? (
+                        <span>
+                          原案巅峰 PR {rawStandardPeakStage.rating.percentile} (Lv.
+                          {rawStandardPeakStage.level})
+                        </span>
+                      ) : (
+                        <span>
+                          {standardPeakStage?.unlockNote ?? multiReport.peakStage.unlockNote}
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -1072,7 +1492,25 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                       {focusedStage.rating.relativeGain}%
                     </div>
                     <div className="text-2xs text-slate-500 mt-1">
-                      区间位置 {focusedStage.rating.percentagePosition}% | SP {focusedProd.rp.toLocaleString()}
+                      {appliedInvestment.isInvested && rawProd ? (
+                        <span className="text-emerald-700 font-medium">
+                          日能量较原案提升 +
+                          {Math.max(
+                            0,
+                            Math.round(
+                              ((focusedProd.totalDailyEnergy - rawProd.totalDailyEnergy) /
+                                (rawProd.totalDailyEnergy || 1)) *
+                                100
+                            )
+                          )}
+                          %
+                        </span>
+                      ) : (
+                        <span>
+                          区间位置 {focusedStage.rating.percentagePosition}% | SP{' '}
+                          {focusedProd.rp.toLocaleString()}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1096,6 +1534,8 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                       const isSelected = m.level === focusedLevel;
                       const isLv80 = m.level === 80;
                       const prod = m.rating.currentProduction;
+                      const rawM = rawMultiReport?.milestones.find((rm) => rm.level === m.level);
+                      const prDiff = rawM ? m.rating.percentile - rawM.rating.percentile : 0;
                       return (
                         <button
                           type="button"
@@ -1144,13 +1584,32 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                           </div>
 
                           <div className="mt-2.5">
-                            <div
-                              className={`text-xl font-black ${
-                                isLv80 && !isSelected ? 'text-slate-500' : prColor(m.rating.percentile)
-                              }`}
-                            >
-                              PR {m.rating.percentile}
+                            <div className="flex items-baseline justify-between">
+                              <span
+                                className={`text-xl font-black ${
+                                  isLv80 && !isSelected ? 'text-slate-500' : prColor(m.rating.percentile)
+                                }`}
+                              >
+                                PR {m.rating.percentile}
+                              </span>
+                              {appliedInvestment.isInvested && prDiff !== 0 && (
+                                <span
+                                  className={`text-2xs font-bold px-1.5 py-0.5 rounded ${
+                                    prDiff > 0
+                                      ? 'bg-emerald-100 text-emerald-700'
+                                      : 'bg-rose-100 text-rose-700'
+                                  }`}
+                                >
+                                  {prDiff > 0 ? '+' : ''}
+                                  {prDiff}
+                                </span>
+                              )}
                             </div>
+                            {appliedInvestment.isInvested && rawM && (
+                              <div className="text-[10px] text-slate-400 leading-tight">
+                                原 PR {rawM.rating.percentile}
+                              </div>
+                            )}
                             {/* Visual PR Progress Bar */}
                             <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden mt-1">
                               <div
