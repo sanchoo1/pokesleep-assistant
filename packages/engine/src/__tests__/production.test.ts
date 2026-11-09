@@ -4,6 +4,8 @@ import {
   calculateDailyProduction,
   getSpeciesNativeIngredientPool,
 } from '../production';
+import { rankIngredientProducers, getSpecificIngredientYield } from '../ingredient/ranking';
+import { calculateSubskillSpeedFactor } from '../formula/helpingFrequency';
 import { analyzeIndividualRecipeCoverage } from '../rating';
 
 describe('Production: L1 Single-Pokemon Daily Calculator', () => {
@@ -277,6 +279,67 @@ describe('Production: L1 Single-Pokemon Daily Calculator', () => {
 
     expect(mewMagnet.skillDailyIngredients.length).toBeGreaterThan(10);
     expect(mewMagnet.skillDailyIngredientCount).toBeGreaterThan(20);
+  });
+
+  it('should accurately calculate Helping Bonus as 25% in individual mode and 5% in team mode', () => {
+    // 1. In physical frequency, 1 HB gives 5% (factor 0.95)
+    const factorTeamSolo = calculateSubskillSpeedFactor(['Helping Bonus'], 0);
+    expect(factorTeamSolo).toBe(0.95);
+
+    // In team mode with 2 teammates also having HB (total 3 HB = 15%), factor is 0.85
+    const factorTeamStacked = calculateSubskillSpeedFactor(['Helping Bonus'], 2);
+    expect(factorTeamStacked).toBe(0.85);
+
+    // 2. calculateDailyProduction with HB in individual mode vs team mode
+    const prodIndiv = calculateDailyProduction({
+      pokemon: 'PIKACHU',
+      level: 30,
+      subskills: ['Helping Bonus'],
+      helpingBonusMode: 'individual25',
+    });
+    const prodTeamSolo = calculateDailyProduction({
+      pokemon: 'PIKACHU',
+      level: 30,
+      subskills: ['Helping Bonus'],
+      helpingBonusMode: 'teamSolo5',
+    });
+
+    // Individual mode (+20% team credit) produces exactly 20% more daily helps than solo 5%
+    expect(prodIndiv.dailyHelps).toBeCloseTo(prodTeamSolo.dailyHelps * 1.2, 2);
+  });
+
+  it('should rank ingredient specialists and calculate specific ingredient yields', () => {
+    // 1. Rank Mushroom producers at Lv.60
+    const shroomRanking = rankIngredientProducers({
+      targetIngredient: 'Mushroom',
+      level: 60,
+      onlyFinalEvolution: true,
+    });
+
+    expect(shroomRanking.targetIngredient).toBe('Mushroom');
+    expect(shroomRanking.entries.length).toBeGreaterThan(0);
+
+    // Quagsire and Gengar should be present in top rankings
+    const names = shroomRanking.entries.map((e) => e.pokemon.name);
+    expect(names).toContain('QUAGSIRE');
+    expect(names).toContain('GENGAR');
+
+    // Top ranking entry should have 100% relative percentage
+    expect(shroomRanking.entries[0].relativePercentage).toBe(100);
+    expect(shroomRanking.entries[0].dailyTargetYield).toBeGreaterThan(30);
+
+    // 2. getSpecificIngredientYield
+    const blastoise = calculateDailyProduction({
+      pokemon: 'BLASTOISE',
+      level: 60,
+      ingredientSelection: { slot0: 'Milk', slot30: 'Cacao', slot60: 'Cacao' },
+    });
+    const milkYield = getSpecificIngredientYield(blastoise, 'Milk');
+    const cacaoYield = getSpecificIngredientYield(blastoise, 'Cacao');
+
+    expect(milkYield.dailyYield).toBeGreaterThan(10);
+    expect(cacaoYield.dailyYield).toBeGreaterThan(35);
+    expect(milkYield.dailyYield + cacaoYield.dailyYield).toBeLessThanOrEqual(blastoise.combinedDailyIngredientCount);
   });
 });
 

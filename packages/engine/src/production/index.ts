@@ -97,6 +97,7 @@ export interface ProductionParams {
   sleepHours?: number; // default 8.5
   allowPreviewLv80?: boolean;
   mewLearnedSkill?: string; // Mew's Versatile learned skill via Eureka Seed (e.g. 'Energy For Everyone S')
+  helpingBonusMode?: import('../formula').HelpingBonusMode;
 }
 
 export interface MewLearnedSkillMeta {
@@ -1104,6 +1105,7 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
     sleepHours = 8.5,
     allowPreviewLv80 = false,
     mewLearnedSkill,
+    helpingBonusMode,
   } = params;
 
   const maxAllowedLevel = allowPreviewLv80 ? MAX_PREVIEW_POKEMON_LEVEL : MAX_POKEMON_LEVEL;
@@ -1155,7 +1157,21 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
     energyMultiplier,
   });
 
-  const dailyHelps = 86400 / freqResult.frequency;
+  const rawDailyHelps = 86400 / freqResult.frequency;
+
+  // In individual evaluation mode (RaenonX convention), if this Pokémon has active Helping Bonus,
+  // it provides +5% speed on itself (included in freqResult) AND speeds up the other 4 teammates
+  // by +5% each (4 * 5% = +20% team production). In individual mode, this team contribution
+  // is attributed back to this Pokémon's daily yield.
+  const hasActiveHb = activeSubskills.some(
+    s => s.name.toLowerCase() === 'helping bonus' || s.name.toLowerCase() === 'hb'
+  );
+  const teamHbMultiplier =
+    helpingBonusMode === 'individual25' && hasActiveHb && nrOfTeamHelpingBonus === 0
+      ? 1.20 // 4 teammates * 5% = +20% team contribution (5% + 20% = ~25% total HB equivalent)
+      : 1.0;
+
+  const dailyHelps = rawDailyHelps * teamHbMultiplier;
 
   // 3. Carry Limit
   const carryResult = calculateCarryLimit({

@@ -9,6 +9,7 @@ import {
 import {
   calculateDailyProduction,
   recommendSingleMeal,
+  getActiveSubskills,
 } from '@pokesleep/engine';
 import { BoxPokemon, normalizeBoxSubskills } from '../storage/db';
 import { getEntityName, getUIText } from '../i18n';
@@ -20,6 +21,10 @@ import {
   Sparkles,
   Loader2,
   CheckCircle,
+  Zap,
+  Heart,
+  Shield,
+  Award,
 } from 'lucide-react';
 
 interface TeamAndCookingViewProps {
@@ -83,7 +88,7 @@ export const TeamAndCookingView: React.FC<TeamAndCookingViewProps> = ({
   const [weeklyPlan, setWeeklyPlan] = useState<any | null>(null);
   const [optimizerError, setOptimizerError] = useState<string | null>(null);
 
-  // Calculate team energy & daily ingredient production (including Lv.70 subskills & mainSkillLevel!)
+  // Calculate team energy & daily ingredient production with full team synergy & buffs
   const teamAnalysis = useMemo(() => {
     let totalEnergy = 0;
     let berryEnergy = 0;
@@ -92,11 +97,44 @@ export const TeamAndCookingView: React.FC<TeamAndCookingViewProps> = ({
     const dailyIngs: Record<string, number> = {};
     const memberProds: Record<string, ReturnType<typeof calculateDailyProduction>> = {};
 
+    // 1. Analyze team-wide subskills (Helping Bonus, ERB) & team main skills
+    let rawTeamHbCount = 0;
+    let totalTeamErb = 0;
+    let hasHealerE4E = false;
+    let potExpansionProcs = 0;
+    let tastyChanceProcs = 0;
+
+    for (const p of teamPokemon) {
+      const sp = GAME_DATA.pokemon.find(
+        (s) => s.name.toUpperCase() === p.pokemonName.toUpperCase()
+      );
+      const activeSubs = getActiveSubskills(normalizeBoxSubskills(p.subskills), p.level);
+      if (activeSubs.some((s) => s.name === 'Helping Bonus')) {
+        rawTeamHbCount += 1;
+      }
+      if (activeSubs.some((s) => s.name === 'Energy Recovery Bonus')) {
+        totalTeamErb += 1;
+      }
+      const skillName = sp?.skill?.name || '';
+      if (
+        skillName.includes('Energy For Everyone') ||
+        (p.pokemonName.toUpperCase() === 'MEW' && p.mewLearnedSkill === 'Energy For Everyone S')
+      ) {
+        hasHealerE4E = true;
+      }
+    }
+
+    const totalTeamHb = Math.min(5, rawTeamHbCount);
+
     for (const p of teamPokemon) {
       try {
         const sp = GAME_DATA.pokemon.find(
           (s) => s.name.toUpperCase() === p.pokemonName.toUpperCase()
         );
+        const pActiveSubs = getActiveSubskills(normalizeBoxSubskills(p.subskills), p.level);
+        const pHasHb = pActiveSubs.some((s) => s.name === 'Helping Bonus');
+        const teammateHb = Math.max(0, totalTeamHb - (pHasHb ? 1 : 0));
+
         const prod = calculateDailyProduction({
           pokemon: p.pokemonName,
           level: p.level,
@@ -111,6 +149,9 @@ export const TeamAndCookingView: React.FC<TeamAndCookingViewProps> = ({
           ribbonLevel: p.ribbonLevel || 0,
           goodCampTicket,
           mapBonus: islandBonus,
+          nrOfTeamHelpingBonus: teammateHb,
+          helpingBonusMode: 'teamSolo5',
+          mewLearnedSkill: p.mewLearnedSkill,
         });
 
         memberProds[p.id] = prod;
@@ -118,6 +159,14 @@ export const TeamAndCookingView: React.FC<TeamAndCookingViewProps> = ({
         berryEnergy += prod.dailyBerryEnergy;
         ingredientEnergy += prod.dailyIngredientEnergy;
         skillEnergy += prod.dailySkillEnergy;
+
+        const baseSkill = prod.skillActivationDetails.baseSkillName;
+        if (baseSkill.includes('Cooking Power-Up')) {
+          potExpansionProcs += prod.dailySkillProcs * (prod.skillActivationDetails.perProcOutput || 10);
+        }
+        if (baseSkill.includes('Tasty Chance')) {
+          tastyChanceProcs += prod.dailySkillProcs * (prod.skillActivationDetails.perProcOutput || 5);
+        }
 
         for (const ing of prod.combinedDailyIngredients || prod.dailyIngredients) {
           dailyIngs[ing.ingredient] = (dailyIngs[ing.ingredient] || 0) + ing.amount;
@@ -134,6 +183,11 @@ export const TeamAndCookingView: React.FC<TeamAndCookingViewProps> = ({
       skillEnergy,
       dailyIngredients: dailyIngs,
       memberProds,
+      totalTeamHb,
+      totalTeamErb,
+      hasHealerE4E,
+      potExpansionDaily: Math.round(potExpansionProcs),
+      tastyChanceDaily: Math.round(tastyChanceProcs),
     };
   }, [teamPokemon, goodCampTicket, islandBonus]);
 
@@ -252,6 +306,53 @@ export const TeamAndCookingView: React.FC<TeamAndCookingViewProps> = ({
             })
           )}
         </div>
+
+        {/* Team Synergies & Buffs Callouts */}
+        {teamPokemon.length > 0 &&
+          (teamAnalysis.totalTeamHb > 0 ||
+            teamAnalysis.totalTeamErb > 0 ||
+            teamAnalysis.hasHealerE4E ||
+            teamAnalysis.potExpansionDaily > 0 ||
+            teamAnalysis.tastyChanceDaily > 0) && (
+            <div className="mt-4 pt-3.5 border-t border-slate-100">
+              <div className="text-2xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500 mr-1" />
+                全队光环与技能增益联动 (Team Synergies)
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {teamAnalysis.totalTeamHb > 0 && (
+                  <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold">
+                    <Zap className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>帮手奖励 ×{teamAnalysis.totalTeamHb}（全队帮忙提速 +{teamAnalysis.totalTeamHb * 5}%）</span>
+                  </div>
+                )}
+                {teamAnalysis.totalTeamErb > 0 && (
+                  <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 border border-blue-200 text-xs font-semibold">
+                    <Shield className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                    <span>活力回复奖励 ×{teamAnalysis.totalTeamErb}（睡眠活力获取 +{teamAnalysis.totalTeamErb * 14}%）</span>
+                  </div>
+                )}
+                {teamAnalysis.hasHealerE4E && (
+                  <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-800 border border-rose-200 text-xs font-semibold">
+                    <Heart className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                    <span>全队回体 (E4E 奶妈)：维持全员全天 &gt;80% 极速帮忙</span>
+                  </div>
+                )}
+                {teamAnalysis.potExpansionDaily > 0 && (
+                  <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold">
+                    <ChefHat className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span>料理扩锅支援：日均预估扩锅 +{teamAnalysis.potExpansionDaily}</span>
+                  </div>
+                )}
+                {teamAnalysis.tastyChanceDaily > 0 && (
+                  <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-purple-50 text-purple-800 border border-purple-200 text-xs font-semibold">
+                    <Award className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                    <span>料理大成功支援：日均暴击率累加 +{teamAnalysis.tastyChanceDaily}%</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
         {/* Energy Breakdown */}
         {teamPokemon.length > 0 && (

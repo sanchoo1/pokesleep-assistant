@@ -46,6 +46,7 @@ export interface RatingParams {
   sleepHours?: number;
   previewLv80?: boolean;
   mewLearnedSkill?: string;
+  helpingBonusMode?: import('../formula').HelpingBonusMode;
 }
 
 export interface RatingResult {
@@ -357,6 +358,7 @@ export function ratePokemon(params: RatingParams): RatingResult {
     sleepHours = 8.5,
     previewLv80 = false,
     mewLearnedSkill,
+    helpingBonusMode = 'individual25',
   } = params;
 
   const mon =
@@ -391,6 +393,7 @@ export function ratePokemon(params: RatingParams): RatingResult {
     sleepHours,
     allowPreviewLv80: allowPreview,
     mewLearnedSkill,
+    helpingBonusMode,
   });
   const currentScore = extractMetricValue(currentProd, evaluatedMetric);
 
@@ -410,6 +413,7 @@ export function ratePokemon(params: RatingParams): RatingResult {
     sleepHours,
     allowPreviewLv80: allowPreview,
     mewLearnedSkill,
+    helpingBonusMode,
   });
   const baselineScore = extractMetricValue(baselineProd, evaluatedMetric);
 
@@ -453,6 +457,7 @@ export function ratePokemon(params: RatingParams): RatingResult {
           sleepHours,
           allowPreviewLv80: allowPreview,
           mewLearnedSkill,
+          helpingBonusMode,
         });
 
         const score = extractMetricValue(prod, evaluatedMetric);

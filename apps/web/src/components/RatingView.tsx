@@ -9,11 +9,14 @@ import {
   getRecipeImageUrl,
   getSkillImageUrl,
   getTypeImageUrl,
+  getPokemonImageUrl,
 } from '@pokesleep/data';
 import {
   evaluatePokemonMilestones,
   calculateDailyProduction,
   analyzeIndividualRecipeCoverage,
+  rankIngredientProducers,
+  getSpecificIngredientYield,
   EvaluationMetric,
   CookingScenarioContext,
   MEW_LEARNED_SKILLS,
@@ -38,6 +41,7 @@ import {
   BedDouble,
   Info,
   Lock,
+  BarChart3,
 } from 'lucide-react';
 
 interface RatingViewProps {
@@ -163,6 +167,13 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     species.specialty === 'all' ? 'skill' : species.specialty
   );
   const [recipeDishTab, setRecipeDishTab] = useState<RecipeType>('curry');
+
+  // Target Ingredient selection for granular production breakdown & cross-species benchmark ranking
+  const [selectedTargetIngredient, setSelectedTargetIngredient] = useState<string>('');
+  const [rankingLevel, setRankingLevel] = useState<number>(60);
+  const [rankingOnlyFinalEvolution, setRankingOnlyFinalEvolution] = useState<boolean>(true);
+  const [rankingOnlyAAA, setRankingOnlyAAA] = useState<boolean>(false);
+  const [rankingPreset, setRankingPreset] = useState<'optimal' | 'neutral'>('optimal');
 
   // Cooking strength scenario configuration for realistic pot expansion and crit chance
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>('standard');
@@ -496,6 +507,88 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     if (!focusedProd) return null;
     return analyzeIndividualRecipeCoverage(focusedProd, 100);
   }, [focusedProd]);
+
+  const availableIngredientsForSpecies = useMemo(() => {
+    const list: string[] = [];
+    const add = (ing?: string) => {
+      if (ing && ing !== 'Locked' && !list.includes(ing)) list.push(ing);
+    };
+    add(ingredients.slotA);
+    add(ingredients.slotB);
+    add(ingredients.slotC);
+    (species.ingredient0 || []).forEach((i) => add(i.ingredient));
+    (species.ingredient30 || []).forEach((i) => add(i.ingredient));
+    (species.ingredient60 || []).forEach((i) => add(i.ingredient));
+    return list;
+  }, [species, ingredients]);
+
+  const effectiveTargetIngredient = useMemo(() => {
+    if (selectedTargetIngredient) return selectedTargetIngredient;
+    return availableIngredientsForSpecies[0] || 'Apple';
+  }, [selectedTargetIngredient, availableIngredientsForSpecies]);
+
+  const targetIngObj = useMemo(() => {
+    return GAME_DATA.ingredients.find(
+      (i) => i.name.toLowerCase() === effectiveTargetIngredient.toLowerCase()
+    );
+  }, [effectiveTargetIngredient]);
+
+  const currentSpecificYield = useMemo(() => {
+    if (!focusedProd || !effectiveTargetIngredient) return null;
+    return getSpecificIngredientYield(focusedProd, effectiveTargetIngredient);
+  }, [focusedProd, effectiveTargetIngredient]);
+
+  const targetRecipesSupport = useMemo(() => {
+    if (!currentSpecificYield || !effectiveTargetIngredient) return [];
+    const targetLower = effectiveTargetIngredient.toLowerCase();
+    const matches: Array<{
+      recipe: (typeof GAME_DATA.recipes)[0];
+      reqPerMeal: number;
+      mealsPerDay: number;
+    }> = [];
+    for (const r of GAME_DATA.recipes) {
+      const ingReq = r.ingredients.find((i) => i.ingredient.toLowerCase() === targetLower);
+      if (ingReq && ingReq.amount > 0) {
+        const mealsPerDay = currentSpecificYield.dailyYield / ingReq.amount;
+        matches.push({ recipe: r, reqPerMeal: ingReq.amount, mealsPerDay });
+      }
+    }
+    matches.sort((a, b) => b.recipe.value - a.recipe.value);
+    return matches.slice(0, 4);
+  }, [currentSpecificYield, effectiveTargetIngredient]);
+
+  const ingredientRankingResult = useMemo(() => {
+    if (!effectiveTargetIngredient) return null;
+    return rankIngredientProducers({
+      targetIngredient: effectiveTargetIngredient,
+      level: rankingLevel,
+      onlyFinalEvolution: rankingOnlyFinalEvolution,
+      onlyAAA: rankingOnlyAAA,
+      preset: rankingPreset,
+      currentPokemon: {
+        pokemonName: species.name,
+        level: focusedLevel,
+        nature: effectiveNature,
+        subskills: Object.values(subskills).filter(Boolean),
+        ingredients,
+        ribbonLevel,
+        mewLearnedSkill: species.name === 'MEW' ? mewLearnedSkill : undefined,
+      },
+    });
+  }, [
+    effectiveTargetIngredient,
+    rankingLevel,
+    rankingOnlyFinalEvolution,
+    rankingOnlyAAA,
+    rankingPreset,
+    species.name,
+    focusedLevel,
+    effectiveNature,
+    subskills,
+    ingredients,
+    ribbonLevel,
+    mewLearnedSkill,
+  ]);
 
   const berryObj = useMemo(() => {
     return GAME_DATA.berries.find(
@@ -1801,6 +1894,322 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                   </div>
                 </div>
               )}
+
+              {/* ================= GRANULAR TARGET INGREDIENT SELECTOR & DEEP-DIVE ================= */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/40 border border-amber-200/80 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <div className="text-xs font-black text-amber-950 flex items-center space-x-1.5">
+                      <Utensils className="w-4 h-4 text-amber-600" />
+                      <span>目标食材深度细化产量分析与天梯</span>
+                    </div>
+                    <p className="text-2xs text-amber-800/80 mt-0.5">
+                      选择特定食材，查看本宠在该食材上的专精产量、解锁演进及在全游食材宠中的实力位次
+                    </p>
+                  </div>
+
+                  {/* Dropdown for any ingredient */}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-2xs text-slate-500 font-semibold shrink-0">自由探索食材:</span>
+                    <select
+                      value={effectiveTargetIngredient}
+                      onChange={(e) => setSelectedTargetIngredient(e.target.value)}
+                      className="input-field text-xs py-1 bg-white border-amber-300 font-semibold text-slate-800"
+                    >
+                      {GAME_DATA.ingredients.map((ing) => (
+                        <option key={ing.name} value={ing.name}>
+                          {getEntityName(ing, locale)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Quick Selection Pills from species pools */}
+                <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar py-1">
+                  <span className="text-2xs font-bold text-slate-500 shrink-0">本宠涉及食材:</span>
+                  {availableIngredientsForSpecies.map((ingName) => {
+                    const ingObj = GAME_DATA.ingredients.find(
+                      (i) => i.name.toLowerCase() === ingName.toLowerCase()
+                    );
+                    const isSelected =
+                      effectiveTargetIngredient.toLowerCase() === ingName.toLowerCase();
+                    return (
+                      <button
+                        key={ingName}
+                        type="button"
+                        onClick={() => setSelectedTargetIngredient(ingName)}
+                        className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                          isSelected
+                            ? 'bg-amber-600 text-white shadow-xs scale-102'
+                            : 'bg-white text-slate-700 border border-amber-200 hover:border-amber-400 hover:bg-amber-50'
+                        }`}
+                      >
+                        <img
+                          src={getIngredientImageUrl(ingName)}
+                          alt={ingName}
+                          className="w-4 h-4 object-contain"
+                        />
+                        <span>{ingObj ? getEntityName(ingObj, locale) : ingName}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Target Ingredient Detailed Yield KPI Cards */}
+                {currentSpecificYield && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                    <div className="p-3 rounded-xl bg-white border border-amber-200/90 shadow-2xs">
+                      <div className="text-[11px] font-semibold text-slate-500">
+                        Lv.{focusedLevel} 【{targetIngObj ? getEntityName(targetIngObj, locale) : effectiveTargetIngredient}】日产量
+                      </div>
+                      <div className="text-xl sm:text-2xl font-black text-amber-800 mt-1 flex items-baseline space-x-1">
+                        <span>{currentSpecificYield.dailyYield.toFixed(1)}</span>
+                        <span className="text-xs font-normal text-slate-500">份 / 天</span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-white border border-amber-200/90 shadow-2xs">
+                      <div className="text-[11px] font-semibold text-slate-500">食材产出占比</div>
+                      <div className="text-xl sm:text-2xl font-black text-amber-700 mt-1 flex items-baseline space-x-1">
+                        <span>{currentSpecificYield.ratio.toFixed(1)}%</span>
+                        <span className="text-[10px] font-normal text-slate-400">总食材</span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-white border border-amber-200/90 shadow-2xs">
+                      <div className="text-[11px] font-semibold text-slate-500">单次帮忙期望</div>
+                      <div className="text-xl sm:text-2xl font-black text-slate-800 mt-1 flex items-baseline space-x-1">
+                        <span>{(currentSpecificYield.dailyYield / (focusedProd?.dailyHelps || 1)).toFixed(2)}</span>
+                        <span className="text-[10px] font-normal text-slate-500">份 / 次</span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-white border border-amber-200/90 shadow-2xs">
+                      <div className="text-[11px] font-semibold text-slate-500">食材基础能量折算</div>
+                      <div className="text-xl sm:text-2xl font-black text-emerald-700 mt-1 flex items-baseline space-x-1">
+                        <span>+{Math.round((targetIngObj?.value || 100) * currentSpecificYield.dailyYield).toLocaleString()}</span>
+                        <span className="text-[10px] font-normal text-slate-400">能量/天</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Target Ingredient Milestone Yield Trajectory */}
+                <div>
+                  <div className="text-2xs font-bold text-slate-600 mb-1.5 flex items-center justify-between">
+                    <span>各成长里程碑【{targetIngObj ? getEntityName(targetIngObj, locale) : effectiveTargetIngredient}】产量阶梯演进：</span>
+                    <span className="text-slate-400 font-normal">点击任意里程碑可快速切换</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                    {multiReport.milestones.map((m) => {
+                      const mProd = m.rating.currentProduction;
+                      const mYield = getSpecificIngredientYield(mProd, effectiveTargetIngredient);
+                      const isCurrentFocused = m.level === focusedLevel;
+                      return (
+                        <div
+                          key={m.level}
+                          onClick={() => setFocusedLevel(m.level)}
+                          className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                            isCurrentFocused
+                              ? 'bg-amber-100 border-amber-400 ring-2 ring-amber-300 shadow-2xs'
+                              : 'bg-white border-amber-200/60 hover:bg-amber-50'
+                          }`}
+                        >
+                          <div className="text-2xs font-bold text-slate-500 mb-0.5">
+                            {m.level === 80 ? 'Lv.80 (前瞻)' : `Lv.${m.level}`}
+                          </div>
+                          <div className="text-sm font-black text-amber-900">
+                            {mYield.dailyYield.toFixed(1)}{' '}
+                            <span className="text-[9px] font-normal text-slate-500">份</span>
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            占 {mYield.ratio.toFixed(0)}%
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Recipe Sustainability Callout */}
+                {targetRecipesSupport.length > 0 && (
+                  <div className="p-3 bg-white rounded-xl border border-amber-200/70">
+                    <div className="text-2xs font-bold text-slate-600 mb-2">
+                      当前【{targetIngObj ? getEntityName(targetIngObj, locale) : effectiveTargetIngredient}】日均产出可独立供给核心食谱次数：
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                      {targetRecipesSupport.map(({ recipe, reqPerMeal, mealsPerDay }) => (
+                        <div
+                          key={recipe.name}
+                          className="p-2 rounded-lg bg-amber-50/50 border border-amber-100 flex items-center space-x-2 text-xs"
+                        >
+                          <img
+                            src={getRecipeImageUrl(recipe.name)}
+                            alt={recipe.name}
+                            className="w-7 h-7 object-contain shrink-0 rounded"
+                          />
+                          <div className="min-w-0">
+                            <div className="font-bold text-slate-800 truncate">
+                              {getEntityName(recipe, locale)}
+                            </div>
+                            <div className="text-[10px] text-slate-500">
+                              每餐需 {reqPerMeal} ·{' '}
+                              <strong className={mealsPerDay >= 3 ? 'text-emerald-700' : 'text-amber-700'}>
+                                可做 {mealsPerDay.toFixed(1)} 次/天
+                              </strong>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* ================= HORIZONTAL BAR CHART: TARGET INGREDIENT BENCHMARK RANKING ================= */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                  <div>
+                    <div className="text-sm font-black text-slate-800 flex items-center space-x-2">
+                      <BarChart3 className="w-4 h-4 text-amber-600" />
+                      <span>
+                        【{targetIngObj ? getEntityName(targetIngObj, locale) : effectiveTargetIngredient}】食材宠全游产出天梯榜
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      量化对比全游不同食材宠、不同食材槽搭配（AAA/ABB 等）与进化阶段在 Lv.{rankingLevel} 的产出实力排行
+                    </p>
+                  </div>
+
+                  {/* Filter controls */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center space-x-0.5 bg-slate-100 p-0.5 rounded-lg text-xs font-bold">
+                      {[30, 50, 60, 70].map((lvl) => (
+                        <button
+                          key={lvl}
+                          type="button"
+                          onClick={() => setRankingLevel(lvl)}
+                          className={`px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
+                            rankingLevel === lvl
+                              ? 'bg-white text-amber-700 shadow-2xs'
+                              : 'text-slate-500 hover:text-slate-900'
+                          }`}
+                        >
+                          Lv.{lvl}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setRankingOnlyFinalEvolution((prev) => !prev)}
+                      className={`px-2.5 py-1 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
+                        rankingOnlyFinalEvolution
+                          ? 'bg-blue-50 text-blue-700 border-blue-300'
+                          : 'bg-slate-50 text-slate-600 border-slate-200'
+                      }`}
+                    >
+                      {rankingOnlyFinalEvolution ? '✓ 仅最终形态' : '全部形态'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setRankingOnlyAAA((prev) => !prev)}
+                      className={`px-2.5 py-1 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
+                        rankingOnlyAAA
+                          ? 'bg-amber-50 text-amber-800 border-amber-300'
+                          : 'bg-slate-50 text-slate-600 border-slate-200'
+                      }`}
+                    >
+                      {rankingOnlyAAA ? '✓ 仅纯产(AAA)' : '全部组合'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Horizontal Bar Chart List */}
+                <div className="space-y-2.5">
+                  {ingredientRankingResult?.entries.slice(0, 15).map((entry, idx) => {
+                    const isTop3 = idx < 3;
+                    const rankBadgeColor =
+                      idx === 0
+                        ? 'bg-amber-500 text-white'
+                        : idx === 1
+                        ? 'bg-slate-400 text-white'
+                        : idx === 2
+                        ? 'bg-amber-700 text-white'
+                        : 'bg-slate-200 text-slate-600';
+
+                    return (
+                      <div
+                        key={`${entry.pokemon.name}_${entry.comboCode}_${entry.isCurrentPokemon}_${idx}`}
+                        className={`p-3 rounded-xl border transition-all ${
+                          entry.isCurrentPokemon
+                            ? 'bg-amber-50/90 border-amber-400 ring-2 ring-amber-300/70 shadow-xs'
+                            : 'bg-slate-50/60 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2.5 min-w-0">
+                            <span
+                              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${rankBadgeColor}`}
+                            >
+                              {entry.isCurrentPokemon ? '★' : idx + 1}
+                            </span>
+
+                            <img
+                              src={getPokemonImageUrl(entry.pokemon.name)}
+                              alt={entry.pokemon.name}
+                              className="w-7 h-7 object-contain shrink-0"
+                            />
+
+                            <div className="min-w-0 flex items-center space-x-1.5 flex-wrap">
+                              <span className="text-xs font-bold text-slate-800">
+                                {getEntityName(entry.pokemon, locale)}
+                              </span>
+                              <span className="text-[10px] font-bold text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded">
+                                {entry.comboCode}
+                              </span>
+                              {entry.isCurrentPokemon && (
+                                <span className="text-[10px] font-black text-amber-800 bg-amber-200 px-2 py-0.5 rounded-full animate-pulse">
+                                  👈 当前分析个体 (Lv.{entry.level})
+                                </span>
+                              )}
+                              <span className="text-[10px] text-slate-400 hidden sm:inline">
+                                {entry.subskillSummary}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="text-right shrink-0 ml-2">
+                            <span className="text-xs font-black text-slate-900">
+                              {entry.dailyTargetYield.toFixed(1)}{' '}
+                              <span className="text-[10px] font-normal text-slate-500">份/天</span>
+                            </span>
+                            <span className="text-[10px] text-slate-400 ml-1.5 hidden xs:inline">
+                              ({entry.targetRatio.toFixed(0)}% 纯度)
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Horizontal Bar */}
+                        <div className="w-full bg-slate-200/70 rounded-full h-2.5 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              entry.isCurrentPokemon
+                                ? 'bg-gradient-to-r from-amber-500 to-amber-600'
+                                : isTop3
+                                ? 'bg-gradient-to-r from-blue-500 to-indigo-600'
+                                : 'bg-gradient-to-r from-slate-400 to-slate-500'
+                            }`}
+                            style={{ width: `${Math.max(4, entry.relativePercentage)}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
 
               {/* Multi-Stage Ingredient Daily Yield Breakdown */}
               <div>

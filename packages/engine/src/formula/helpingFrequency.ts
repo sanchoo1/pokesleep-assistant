@@ -1,6 +1,8 @@
 import type { Nature, Subskill } from '@pokesleep/data';
 import { floorWithIEEE754Correction, round } from './math';
 
+export type HelpingBonusMode = 'individual25' | 'teamSolo5';
+
 export interface HelpingFrequencyParams {
   baseFrequency: number; // in seconds
   level: number; // 1 to 70
@@ -11,6 +13,7 @@ export interface HelpingFrequencyParams {
   remainingEvolutions?: number; // 0, 1, or 2
   goodCampTicket?: boolean;
   energyMultiplier?: number; // default 0.45 (>= 80% energy optimistic)
+  helpingBonusMode?: HelpingBonusMode;
 }
 
 export interface HelpingFrequencyResult {
@@ -63,7 +66,7 @@ export function calculateSubskillSpeedFactor(
   const totalHb = hasHb ? nrOfTeamHelpingBonus + 1 : nrOfTeamHelpingBonus;
   speedSum += 0.05 * Math.min(5, totalHb);
 
-  // Maximum helping speed boost is capped at 35% (multiplier minimum 0.65)
+  // Maximum personal subskill helping speed boost is capped at 35% (multiplier minimum 0.65)
   const cappedBonus = Math.min(0.35, speedSum);
   return round(1.0 - cappedBonus, 2);
 }

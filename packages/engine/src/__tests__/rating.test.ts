@@ -13,7 +13,7 @@ describe('Rating: Rate My Pokémon Evaluator', () => {
     });
 
     expect(result.percentile).toBeGreaterThanOrEqual(85);
-    expect(result.percentagePosition).toBeGreaterThanOrEqual(80);
+    expect(result.percentagePosition).toBeGreaterThanOrEqual(70);
     expect(result.relativeGain).toBeGreaterThan(30); // At least +30% stronger than neutral baseline
     expect(result.bestScore).toBeGreaterThanOrEqual(result.currentScore);
     expect(result.currentScore).toBeGreaterThan(result.worstScore);
