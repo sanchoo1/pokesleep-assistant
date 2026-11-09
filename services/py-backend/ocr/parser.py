@@ -6,6 +6,8 @@ import math
 import re
 import unicodedata
 from typing import Any, Dict, List, Optional, Tuple
+import cv2
+import numpy as np
 from pydantic import BaseModel, Field
 
 from data_loader import DATA_LOADER
@@ -34,10 +36,13 @@ class ParsedIngredient(BaseModel):
     name: str  # Canonical name, e.g. "Apple"
     displayName: str  # Localized display name, e.g. "特选苹果"
     amount: int
+    confidence: float = 1.0
 
 
 class ParsedPokemonResult(BaseModel):
     pokemon: Optional[Dict[str, Any]] = None
+    nickname: Optional[str] = None
+    isShiny: bool = False
     level: Optional[int] = None
     rp: Optional[int] = None
     nature: Optional[Dict[str, Any]] = None
@@ -46,6 +51,7 @@ class ParsedPokemonResult(BaseModel):
     carryLimit: Optional[int] = None
     mainSkillLevel: Optional[int] = None
     confidence: float = 0.0
+    fieldConfidences: Dict[str, float] = Field(default_factory=dict)
     matchedFields: List[str] = Field(default_factory=list)
     rawLines: List[str] = Field(default_factory=list)
 
@@ -53,7 +59,7 @@ class ParsedPokemonResult(BaseModel):
 # OCR common noise words to ignore when scanning for Pokémon names
 NOISE_KEYWORDS = {
     "lv", "level", "rp", "sp", "hp", "exp", "max", "box",
-    "主技能", "副技能", "食材", "性格", "等级", "等級", "持有上限", "最大持有数",
+    "樹果", "树果", "主技能", "副技能", "食材", "性格", "等级", "等級", "持有上限", "最大持有数",
     "帮手间隔", "帮忙间隔", "幫忙間隔", "睡眠类型", "睡眠類型", "睡姿", "图鉴", "圖鑑", "研究", "营地",
     "能力详情", "能力詳情", "帮忙能力", "幫忙能力",
     "main skill", "sub skill", "nature", "ingredients", "carry limit",
@@ -250,6 +256,9 @@ def extract_level(lines: List[str], row_lines: Optional[List[str]] = None) -> Op
     for idx, line in enumerate(search_pool):
         if any(k in line for k in ("主技能", "メインスキル", "遽增", "邃增", "填充", "療癒", "疗愈", "獲取", "获取", "強化", "强化", "支援", "鼓舞", "揮指", "挥指")):
             continue
+        # Skip ingredient unlock milestone previews e.g. "sP 1,136 Lv.30 LV.60" or "Lv.30 LV.60"
+        if re.search(r"(?i)lv\.?\s*30.*lv\.?\s*60", line) or re.search(r"(?i)lv\.?\s*60.*lv\.?\s*30", line):
+            continue
         for pat in level_patterns:
             m = pat.search(line)
             if m:
@@ -381,12 +390,13 @@ def extract_nature(lines: List[str], row_lines: Optional[List[str]] = None) -> O
     return None
 
 
-def extract_pokemon_species(lines: List[str]) -> Optional[Dict[str, Any]]:
-    """Extract Pokémon species name from lines."""
+def extract_pokemon_species(lines: List[str], row_lines: Optional[List[str]] = None) -> Optional[Dict[str, Any]]:
+    """Extract Pokémon species name from lines or row_lines."""
     best_candidate: Optional[Dict[str, Any]] = None
     best_score = 0.0
 
-    for idx, line in enumerate(lines[:14]):
+    search_pool = (row_lines or []) + lines
+    for idx, line in enumerate(search_pool[:18]):
         clean = line.strip()
         if not clean or len(clean) < 2:
             continue
@@ -397,33 +407,28 @@ def extract_pokemon_species(lines: List[str]) -> Optional[Dict[str, Any]]:
             if not clean or any(noise in clean.lower() for noise in NOISE_KEYWORDS):
                 continue
 
-        # Exact match check first!
-        if clean.lower() in DATA_LOADER.pokemon_map:
-            pkmn = DATA_LOADER.pokemon_map[clean.lower()]
+        # Exact or normalized match check first!
+        direct = DATA_LOADER.get_pokemon(clean)
+        if direct:
             score = 120.0 - (idx * 2)
             if score > best_score:
                 best_score = score
-                best_candidate = pkmn
+                best_candidate = direct
                 continue
 
         # Token check
         tokens = re.split(r"[\s\(\)\[\]（）]+", clean)
         for token in tokens:
             t = token.strip()
+            # Strip embedded Lv prefix like "LV.20扁鷄頭頭" -> "扁鷄頭頭"
+            t = re.sub(r"(?i)(?:lv|1v|等级|等級|レベル)[\.:\s]*\d{1,2}", "", t).strip()
             if len(t) >= 2:
-                if t.lower() in DATA_LOADER.pokemon_map:
-                    pkmn = DATA_LOADER.pokemon_map[t.lower()]
+                pkmn = DATA_LOADER.get_pokemon(t)
+                if pkmn:
                     score = 110.0 - (idx * 2)
                     if score > best_score:
                         best_score = score
                         best_candidate = pkmn
-                elif idx <= 5:
-                    pkmn = DATA_LOADER.get_pokemon(t)
-                    if pkmn:
-                        score = 75.0 - (idx * 2)
-                        if score > best_score:
-                            best_score = score
-                            best_candidate = pkmn
 
     return best_candidate
 
@@ -439,6 +444,20 @@ def _match_subskill_fuzzy_or_partial(text: str, in_subskill_grid: bool = False) 
     clean = re.sub(r"^[:：\-\s🔒]+", "", clean).strip()
     if not clean:
         return None
+
+    # Descriptions with sentence-ending punctuation or commas are never subskill names
+    if any(p in clean for p in ("。", "，", "！", "!", "?", "？", "：", "...", "…")):
+        return None
+
+    # Never match UI headers or labels as subskills!
+    UI_BLACKLIST = (
+        "樹果", "树果", "持有上限", "最大持有数", "主技能", "副技能", "食材",
+        "幫忙間隔", "帮忙间隔", "能力詳情", "能力详情", "性格", "せいかく",
+        "相遇的日子", "相遇的營地", "睡覺的時間", "睡觉的时间", "返回",
+    )
+    if clean in UI_BLACKLIST or any(clean.startswith(b) for b in ("相遇", "睡覺", "睡觉")):
+        return None
+
     # Never match nature stat modifier lines as subskills!
     if any(k in clean for k in ("回復量", "回复量", "獲得量", "获得量", "發現率", "发现率", "發動率", "发动率", "無性格", "无性格")):
         return None
@@ -494,16 +513,17 @@ def extract_subskills_2d(
         txt = clean_text_line(str(b.get("text", "")))
         ys = [p[1] for p in b["box"]]
         cy = 0.5 * (min(ys) + max(ys))
-        if txt in ("副技能", "サブスキル", "Sub Skills", "Subskill"):
-            y_top = cy
+        if any(k in txt for k in ("副技能", "サブスキル", "Sub Skills", "Subskill")):
+            if "主技能" not in txt:
+                y_top = cy
         elif re.fullmatch(r"(?i)lv\.?\s*(?:25|50|70|80)", txt) and badge_lv50_y is None:
             badge_lv50_y = min(ys)
         elif any(k in txt for k in ("能力詳情", "能力详情", "能力情", "性格", "せいかく")) and cy > img_h * 0.35:
             y_bottom = min(y_bottom, min(ys))
 
     if y_top <= 0.0 and badge_lv50_y is not None:
-        # Row 0 (Lv.10 / Lv.25) sits ~180-240px above the Lv.50 badge in a 3x2 grid
-        y_top = max(0.0, badge_lv50_y - img_h * 0.14)
+        # Row 0 (Lv.10 / Lv.25) sits ~100-140px (~img_h * 0.07) above the Lv.50 badge in a 3x2 grid
+        y_top = max(0.0, badge_lv50_y - img_h * 0.08)
 
     if y_top <= 0.0:
         return None
@@ -575,13 +595,19 @@ def extract_subskills(
     image_size: Optional[Tuple[int, int]] = None,
 ) -> List[ParsedSubskill]:
     """Extract up to 5 subskills associated with Lv10, Lv25, Lv50, Lv70, Lv80."""
-    if boxes and image_size:
-        res_2d = extract_subskills_2d(boxes, image_size)
-        if res_2d and len(res_2d) >= 2:
-            return res_2d
-
     found_by_slot: Dict[str, ParsedSubskill] = {}
     found_unordered: List[Dict[str, Any]] = []
+
+    # 1. Seed found_by_slot with 2D spatial grid extractions if available
+    if boxes and image_size:
+        res_2d = extract_subskills_2d(boxes, image_size)
+        if res_2d:
+            for s in res_2d:
+                found_by_slot[s.slot] = s
+
+    # If all 5 slots are already confidently filled by 2D grid, return immediately
+    if len(found_by_slot) == 5:
+        return [found_by_slot[sk] for sk, _ in SUBSKILL_SLOTS_LEVELS if sk in found_by_slot]
 
     def norm_slot_lvl(raw_lvl: int) -> int:
         if raw_lvl == 75:
@@ -602,44 +628,52 @@ def extract_subskills(
             break
         effective_lines.append(line)
 
+    used_subskill_names = {s.name for s in found_by_slot.values()}
+
     for i, line in enumerate(effective_lines):
         m = lv_subskill_pat.search(line)
         if m:
             lvl_val = norm_slot_lvl(int(m.group(1)))
             cand_name = m.group(2).strip()
             sub = _match_subskill_fuzzy_or_partial(cand_name)
-            if sub:
+            if sub and sub["name"] not in used_subskill_names:
                 slot_key = f"level{lvl_val}"
-                found_by_slot[slot_key] = ParsedSubskill(
-                    slot=slot_key,
-                    level=lvl_val,
-                    name=sub["name"],
-                    displayName=sub.get("translations", {}).get("zh-CN", sub["name"]),
-                    rarity=sub.get("rarity", "white"),
-                )
+                if slot_key not in found_by_slot:
+                    used_subskill_names.add(sub["name"])
+                    found_by_slot[slot_key] = ParsedSubskill(
+                        slot=slot_key,
+                        level=lvl_val,
+                        name=sub["name"],
+                        displayName=sub.get("translations", {}).get("zh-CN", sub["name"]),
+                        rarity=sub.get("rarity", "white"),
+                    )
                 continue
 
-        m_just_lv = re.fullmatch(
-            r"(?i)(?:lv|1v|等级|等級|🔒lv)[\.:\s]*(10|25|50|70|75|80|100)",
-            line.strip(),
-        )
-        if m_just_lv and i + 1 < len(effective_lines):
-            lvl_val = norm_slot_lvl(int(m_just_lv.group(1)))
-            cand_name = effective_lines[i + 1].strip()
-            sub = _match_subskill_fuzzy_or_partial(cand_name)
-            if sub:
-                slot_key = f"level{lvl_val}"
-                found_by_slot[slot_key] = ParsedSubskill(
-                    slot=slot_key,
-                    level=lvl_val,
-                    name=sub["name"],
-                    displayName=sub.get("translations", {}).get("zh-CN", sub["name"]),
-                    rarity=sub.get("rarity", "white"),
-                )
+        # Only use adjacent line fallback if 2D spatial extraction was NOT available
+        if not (boxes and image_size):
+            m_just_lv = re.fullmatch(
+                r"(?i)(?:lv|1v|等级|等級|🔒lv)[\.:\s]*(10|25|50|70|75|80|100)",
+                line.strip(),
+            )
+            if m_just_lv and i + 1 < len(effective_lines):
+                lvl_val = norm_slot_lvl(int(m_just_lv.group(1)))
+                cand_name = effective_lines[i + 1].strip()
+                sub = _match_subskill_fuzzy_or_partial(cand_name)
+                if sub and sub["name"] not in used_subskill_names:
+                    slot_key = f"level{lvl_val}"
+                    if slot_key not in found_by_slot:
+                        used_subskill_names.add(sub["name"])
+                        found_by_slot[slot_key] = ParsedSubskill(
+                            slot=slot_key,
+                            level=lvl_val,
+                            name=sub["name"],
+                            displayName=sub.get("translations", {}).get("zh-CN", sub["name"]),
+                            rarity=sub.get("rarity", "white"),
+                        )
 
     for line in effective_lines:
         sub = _match_subskill_fuzzy_or_partial(line)
-        if sub:
+        if sub and sub["name"] not in used_subskill_names:
             already_have = any(
                 p.name == sub["name"] for p in found_by_slot.values()
             ) or any(s["name"] == sub["name"] for s in found_unordered)
@@ -649,13 +683,15 @@ def extract_subskills(
     for slot_key, lvl in SUBSKILL_SLOTS_LEVELS:
         if slot_key not in found_by_slot and found_unordered:
             sub = found_unordered.pop(0)
-            found_by_slot[slot_key] = ParsedSubskill(
-                slot=slot_key,
-                level=lvl,
-                name=sub["name"],
-                displayName=sub.get("translations", {}).get("zh-CN", sub["name"]),
-                rarity=sub.get("rarity", "white"),
-            )
+            if sub["name"] not in used_subskill_names:
+                used_subskill_names.add(sub["name"])
+                found_by_slot[slot_key] = ParsedSubskill(
+                    slot=slot_key,
+                    level=lvl,
+                    name=sub["name"],
+                    displayName=sub.get("translations", {}).get("zh-CN", sub["name"]),
+                    rarity=sub.get("rarity", "white"),
+                )
 
     return [found_by_slot[sk] for sk, _ in SUBSKILL_SLOTS_LEVELS if sk in found_by_slot]
 
@@ -705,9 +741,33 @@ def extract_ingredients(
                     "amount": int(amt_str) if amt_str else None,
                 })
 
-    # If no ingredients were visible in text AND we have SP/RP + pokemon + level + nature, deduce from RP!
+    # 1. Try matching candidate ingredient amounts via visible multiplier counts (e.g. 'x2 x3 x5')
+    multiplier_counts: List[int] = []
+    for l in lines:
+        for m in re.finditer(r"(?:[xX×]\s*(\d{1,2})|(\d{1,2})\s*個)", l):
+            cnt = int(m.group(1) or m.group(2))
+            if cnt <= 9:
+                multiplier_counts.append(cnt)
+
     inferred_combo: Optional[Tuple[Dict[str, Any], ...]] = None
-    if not detected_ings and pokemon and level and rp and nature:
+    if multiplier_counts and pokemon and not detected_ings:
+        slots_data = [
+            pokemon.get("ingredient0", []),
+            pokemon.get("ingredient30", []),
+            pokemon.get("ingredient60", []),
+        ]
+        matched_from_counts = []
+        for s_cands, cnt in zip(slots_data, multiplier_counts):
+            hit = next((c for c in s_cands if c.get("amount") == cnt and c.get("ingredient") != "Locked"), None)
+            if hit:
+                matched_from_counts.append(hit)
+            else:
+                break
+        if len(matched_from_counts) >= 2:
+            inferred_combo = tuple(matched_from_counts)
+
+    # 2. If no ingredients were matched from text/multipliers AND we have SP/RP + pokemon + level + nature, deduce from RP!
+    if not detected_ings and not inferred_combo and pokemon and level and rp and nature:
         s0_list = [c for c in pokemon.get("ingredient0", []) if c["ingredient"] != "Locked"]
         s30_list = [c for c in pokemon.get("ingredient30", []) if c["ingredient"] != "Locked"]
         s60_list = [c for c in pokemon.get("ingredient60", []) if c["ingredient"] != "Locked"]
@@ -781,7 +841,7 @@ def extract_ingredients(
                 if assigned:
                     break
 
-            if not assigned:
+            if not assigned and slot_key == "slotA" and len(valid_cands) == 1:
                 cand = valid_cands[0]
                 ing_data = DATA_LOADER.get_ingredient(cand["ingredient"])
                 results.append(
@@ -869,31 +929,171 @@ def parse_ocr_text(
     lines: List[str],
     boxes: Optional[List[Dict[str, Any]]] = None,
     image_size: Optional[Tuple[int, int]] = None,
+    image_np: Optional[np.ndarray] = None,
 ) -> ParsedPokemonResult:
-    """Parse OCR raw text lines (and optional 2D boxes) into structured Pokemon Sleep profile."""
+    """Parse OCR raw text lines (and optional 2D boxes / image array) into structured Pokemon Sleep profile."""
+    from ocr.vision_matcher import VisionMatcher
+
     cleaned_lines = [clean_text_line(l) for l in lines if clean_text_line(l)]
     row_lines = _group_boxes_into_rows(boxes) if boxes else []
 
-    pokemon = extract_pokemon_species(cleaned_lines)
+    # 1. Base text extractions
+    pokemon = extract_pokemon_species(cleaned_lines, row_lines=row_lines)
     level = extract_level(cleaned_lines, row_lines=row_lines)
     rp = extract_rp(cleaned_lines, row_lines=row_lines)
     nature = extract_nature(cleaned_lines, row_lines=row_lines)
     subskills = extract_subskills(cleaned_lines, boxes=boxes, image_size=image_size)
     carry_limit = extract_carry_limit(cleaned_lines, row_lines=row_lines)
     main_skill_level = extract_main_skill_level(cleaned_lines, row_lines=row_lines)
-    ingredients = extract_ingredients(
-        cleaned_lines,
-        pokemon,
-        level=level,
-        rp=rp,
-        nature=nature,
-        subskills=subskills,
-        main_skill_level=main_skill_level,
-    )
 
+    # 2. High-performance visual intelligence (when image array is available)
+    nickname = None
+    is_shiny = False
+    conf_pokemon = 0.95 if pokemon else 0.0
+    conf_shiny = 0.5
+    conf_ing = 0.0
+    ingredients: List[ParsedIngredient] = []
+
+    if image_np is not None:
+        vm = VisionMatcher.get_instance()
+        img_bgr = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR) if image_np.shape[2] == 3 else image_np
+
+        # Extract possible raw name line from row_lines or cleaned_lines (e.g. "LV.20扁鷄頭頭 烏鷄頭頭")
+        raw_name_cand = None
+        for rl in (row_lines or []):
+            tokens = rl.split()
+            if any(DATA_LOADER.get_pokemon(re.sub(r"(?i)(?:lv|1v|等级|等級|レベル)[\.:\s]*\d{1,2}", "", t).strip()) is not None for t in tokens):
+                raw_name_cand = re.sub(r"(?i)(?:lv|1v|等级|等級|レベル)[\.:\s]*\d{1,2}", "", rl).strip()
+                break
+
+        if not raw_name_cand:
+            name_search_pool = (row_lines or []) + cleaned_lines
+            for cl in name_search_pool[:10]:
+                if re.search(r"^\d{1,2}[:：]\d{2}", cl) and not any(k in cl for k in ("lv", "LV", "sp", "SP", "等级")):
+                    continue
+                m_sub = re.sub(r"(?i)(?:lv|1v|等级|等級|レベル)[\.:\s]*\d{1,2}", "", cl).strip()
+                if m_sub and len(m_sub) >= 2 and not any(noise in m_sub.lower() for noise in NOISE_KEYWORDS):
+                    raw_name_cand = m_sub
+                    break
+
+        # (a) Visual Pokémon ID & Shiny discrimination
+        vis_pkmn = vm.identify_pokemon_and_shiny(
+            img_bgr,
+            text_candidate_species=pokemon.get("name") if pokemon else None,
+            raw_text_candidate=raw_name_cand,
+            text_boxes=boxes,
+        )
+
+        if vis_pkmn.get("species"):
+            if not pokemon:
+                pokemon = DATA_LOADER.get_pokemon(vis_pkmn["species"])
+            conf_pokemon = vis_pkmn.get("speciesConfidence", 0.8)
+            conf_shiny = vis_pkmn.get("shinyConfidence", 0.8)
+            is_shiny = vis_pkmn.get("isShiny", False)
+            nickname = vis_pkmn.get("nickname")
+
+        # (b) Visual ingredient detection
+        vis_ings, ing_score = vm.detect_ingredients_visually(img_bgr, text_boxes=boxes)
+        if ing_score >= 0.58 and len(vis_ings) >= 2:
+            conf_ing = ing_score
+            for vi in vis_ings:
+                ing_data = DATA_LOADER.get_ingredient(vi["name"])
+                ingredients.append(
+                    ParsedIngredient(
+                        slot=vi["slot"],
+                        level=vi["level"],
+                        name=vi["name"],
+                        displayName=(
+                            ing_data.get("translations", {}).get("zh-CN", vi["name"])
+                            if ing_data
+                            else vi["name"]
+                        ),
+                        amount=vi["amount"],
+                        confidence=vi["confidence"],
+                    )
+                )
+        else:
+            # If visual ingredient matching is inconclusive / scrolled off screen:
+            has_explicit_ing_text = any(
+                any(ing_word in l for ing_word in ("苹果", "蘋果", "生姜", "香草", "番茄", "蛋", "牛奶", "油", "肉", "葱", "蔥", "尾巴", "蘑菇", "可可", "咖啡", "玉米", "大豆"))
+                for l in cleaned_lines
+            )
+            has_multipliers = any(re.search(r"(?:[xX×]\s*\d{1,2}|\d{1,2}\s*個)", l) for l in cleaned_lines)
+            can_deduce_from_rp = (pokemon is not None and level is not None and rp is not None and nature is not None)
+
+            if has_explicit_ing_text or has_multipliers or can_deduce_from_rp:
+                deduced_ings = extract_ingredients(
+                    row_lines or cleaned_lines,
+                    pokemon,
+                    level=level,
+                    rp=rp,
+                    nature=nature,
+                    subskills=subskills,
+                    main_skill_level=main_skill_level,
+                )
+                if deduced_ings:
+                    ingredients = deduced_ings
+                    conf_ing = 0.92 if (has_multipliers or has_explicit_ing_text) else 0.85
+                else:
+                    ingredients = []
+                    conf_ing = 0.0
+            else:
+                # Deliberately leave empty with 0.0 confidence so UI highlights for user entry!
+                ingredients = []
+                conf_ing = 0.0
+
+        # (c) Micro-crop refinement for main skill level
+        if main_skill_level is None and boxes:
+            for b in boxes:
+                tx = b.get("text", "")
+                if any(k in tx for k in ("主技能", "main skill", "樹果", "树果", "能量", "活力", "美味", "大成功", "料理")):
+                    refined_lvl, refined_conf = vm.refine_main_skill_level_micro_ocr(img_bgr, b["box"])
+                    if refined_lvl is not None:
+                        main_skill_level = refined_lvl
+                        break
+    else:
+        # Fallback pure text API path
+        ingredients = extract_ingredients(
+            cleaned_lines,
+            pokemon,
+            level=level,
+            rp=rp,
+            nature=nature,
+            subskills=subskills,
+            main_skill_level=main_skill_level,
+        )
+        conf_ing = 0.80 if ingredients else 0.0
+
+    # Fallback nickname extraction from text row lines if not already extracted
+    if nickname is None and pokemon is not None and row_lines:
+        pkmn_meta = pokemon
+        known_names = {pkmn_meta["name"].lower(), pkmn_meta.get("displayName", "").lower()}
+        for tr in pkmn_meta.get("translations", {}).values():
+            if tr:
+                known_names.add(tr.lower())
+        for rl in row_lines:
+            tokens = rl.split()
+            custom_parts = []
+            has_species = False
+            for t in tokens:
+                clean_t = re.sub(r"(?i)(?:lv|1v|等级|等級|レベル)[\.:\s]*\d{1,2}", "", t).strip()
+                norm_t = clean_t.replace("鷄", "鴉").replace("鸡", "鸦").lower()
+                if norm_t in known_names:
+                    has_species = True
+                elif clean_t and not clean_t.isdigit() and not any(noise in clean_t.lower() for noise in NOISE_KEYWORDS):
+                    custom_parts.append(clean_t)
+            if has_species and custom_parts:
+                nickname = " ".join(custom_parts)
+                break
+
+    # 3. Match flags and confidence calculation
     matched_fields = []
-    if pokemon:
+    if pokemon and conf_pokemon >= 0.60:
         matched_fields.append("pokemon")
+    if nickname:
+        matched_fields.append("nickname")
+    if is_shiny:
+        matched_fields.append("isShiny")
     if level is not None:
         matched_fields.append("level")
     if rp is not None:
@@ -902,16 +1102,29 @@ def parse_ocr_text(
         matched_fields.append("nature")
     if len(subskills) >= 1:
         matched_fields.append(f"subskills({len(subskills)})")
-    if len(ingredients) >= 1:
+    if len(ingredients) >= 1 and conf_ing >= 0.58:
         matched_fields.append(f"ingredients({len(ingredients)})")
     if main_skill_level is not None:
         matched_fields.append("mainSkillLevel")
     if carry_limit is not None:
         matched_fields.append("carryLimit")
 
+    field_confidences = {
+        "pokemon": conf_pokemon,
+        "nickname": 0.95 if nickname else 0.0,
+        "isShiny": conf_shiny,
+        "level": 0.95 if level is not None else 0.0,
+        "rp": 0.95 if rp is not None else 0.0,
+        "nature": 0.90 if nature else 0.0,
+        "subskills": round(min(1.0, len(subskills) / 5.0), 2) if subskills else 0.0,
+        "ingredients": conf_ing,
+        "mainSkillLevel": 0.95 if main_skill_level is not None else 0.0,
+        "carryLimit": 0.90 if carry_limit is not None else 0.0,
+    }
+
     score = 0.0
     if pokemon:
-        score += 0.35
+        score += 0.35 * conf_pokemon
     if nature:
         score += 0.25
     if level is not None:
@@ -941,6 +1154,8 @@ def parse_ocr_text(
 
     return ParsedPokemonResult(
         pokemon=res_pokemon,
+        nickname=nickname,
+        isShiny=is_shiny,
         level=level or 1,
         rp=rp,
         nature=res_nature,
@@ -949,6 +1164,7 @@ def parse_ocr_text(
         carryLimit=carry_limit,
         mainSkillLevel=main_skill_level,
         confidence=round(score, 2),
+        fieldConfidences=field_confidences,
         matchedFields=matched_fields,
         rawLines=row_lines if row_lines else cleaned_lines,
     )

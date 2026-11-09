@@ -5,10 +5,16 @@ import {
   getIngredientImageUrl,
   getSkillImageUrl,
 } from '@pokesleep/data';
+import { MEW_LEARNED_SKILLS } from '@pokesleep/engine';
 import { BoxPokemon, normalizeBoxSubskills } from '../storage/db';
 import { getEntityName, getNatureModLabel, getUIText } from '../i18n';
 import { PokemonSelector } from './PokemonSelector';
 import { X, Upload, FileText, Sparkles, Loader2, Pencil, Image as ImageIcon, Lock } from 'lucide-react';
+
+export const isFixedNaturePokemon = (name?: string): boolean => {
+  const u = (name || '').toUpperCase();
+  return u === 'MEW' || u === 'DARKRAI';
+};
 
 interface AddPokemonModalProps {
   isOpen: boolean;
@@ -30,7 +36,9 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
   const [pokemonName, setPokemonName] = useState(initialData?.pokemonName || 'PIKACHU');
   const [nickname, setNickname] = useState(initialData?.nickname || '');
   const [level, setLevel] = useState(initialData?.level || 25);
-  const [nature, setNature] = useState(initialData?.nature || 'Adamant');
+  const [nature, setNature] = useState(
+    isFixedNaturePokemon(initialData?.pokemonName) ? 'Bashful' : initialData?.nature || 'Adamant'
+  );
   const [subskills, setSubskills] = useState(() => normalizeBoxSubskills(initialData?.subskills));
   const [ingredients, setIngredients] = useState({
     slotA: initialData?.ingredients?.slotA || 'Apple',
@@ -39,6 +47,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
   });
   const [mainSkillLevel, setMainSkillLevel] = useState(initialData?.mainSkillLevel || 1);
   const [ribbonLevel, setRibbonLevel] = useState(initialData?.ribbonLevel || 0);
+  const [mewLearnedSkill, setMewLearnedSkill] = useState(initialData?.mewLearnedSkill || 'Metronome');
 
   // Transition lifecycle states
   const [shouldRender, setShouldRender] = useState(isOpen);
@@ -50,6 +59,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
   const [ocrMessage, setOcrMessage] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [lowConfidenceFields, setLowConfidenceFields] = useState<string[]>([]);
 
   // Smooth close request
   const requestClose = useCallback(() => {
@@ -97,15 +107,18 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
       setPokemonName(sp.name);
       setNickname(initialData.nickname || '');
       setLevel(Math.min(70, Math.max(1, initialData.level || 25)));
-      setNature(initialData.nature || 'Adamant');
+      setNature(
+        isFixedNaturePokemon(initialData.pokemonName) ? 'Bashful' : initialData.nature || 'Adamant'
+      );
       setSubskills(normalizeBoxSubskills(initialData.subskills));
       setIngredients({
         slotA: initialData.ingredients?.slotA || sp.ingredient0?.[0]?.ingredient || 'Apple',
-        slotB: initialData.ingredients?.slotB || sp.ingredient30?.[0]?.ingredient || 'Apple',
-        slotC: initialData.ingredients?.slotC || sp.ingredient60?.[0]?.ingredient || 'Apple',
+        slotB: initialData.ingredients?.slotB || sp.ingredient30?.[0]?.ingredient || 'Locked',
+        slotC: initialData.ingredients?.slotC || sp.ingredient60?.[0]?.ingredient || 'Locked',
       });
       setMainSkillLevel(initialData.mainSkillLevel || 1 + (sp.previousEvolutions || 0));
       setRibbonLevel(initialData.ribbonLevel || 0);
+      setMewLearnedSkill(initialData.mewLearnedSkill || 'Metronome');
       setActiveMode('manual');
     } else {
       setPokemonName('PIKACHU');
@@ -122,6 +135,7 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
       setIngredients({ slotA: 'Apple', slotB: 'Apple', slotC: 'Apple' });
       setMainSkillLevel(1);
       setRibbonLevel(0);
+      setMewLearnedSkill('Metronome');
     }
     setOcrMessage(null);
     setPreviewUrl(null);
@@ -138,14 +152,40 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
     () => (currentSpecies.ingredient0 || []).filter((i) => i.ingredient !== 'Locked'),
     [currentSpecies]
   );
-  const validSlotB = useMemo(
-    () => (currentSpecies.ingredient30 || []).filter((i) => i.ingredient !== 'Locked'),
-    [currentSpecies]
-  );
-  const validSlotC = useMemo(
-    () => (currentSpecies.ingredient60 || []).filter((i) => i.ingredient !== 'Locked'),
-    [currentSpecies]
-  );
+  const validSlotB = useMemo(() => {
+    const list = currentSpecies.ingredient30 || [];
+    const hasLocked = list.some((i) => i.ingredient === 'Locked');
+    return hasLocked ? list : [...list, { ingredient: 'Locked', amount: 0 }];
+  }, [currentSpecies]);
+  const validSlotC = useMemo(() => {
+    const list = currentSpecies.ingredient60 || [];
+    const hasLocked = list.some((i) => i.ingredient === 'Locked');
+    return hasLocked ? list : [...list, { ingredient: 'Locked', amount: 0 }];
+  }, [currentSpecies]);
+
+  // Ensure ingredient slots always stay valid for current species
+  useEffect(() => {
+    setIngredients((prev) => {
+      const validA = validSlotA.map((i) => i.ingredient);
+      const validB = validSlotB.map((i) => i.ingredient);
+      const validC = validSlotC.map((i) => i.ingredient);
+
+      const safeA = validA.includes(prev.slotA) ? prev.slotA : (validA[0] || 'Apple');
+      const safeB =
+        prev.slotB === 'Locked' || validB.includes(prev.slotB || '')
+          ? prev.slotB
+          : (validB[0] || 'Locked');
+      const safeC =
+        prev.slotC === 'Locked' || validC.includes(prev.slotC || '')
+          ? prev.slotC
+          : (validC[0] || 'Locked');
+
+      if (safeA !== prev.slotA || safeB !== prev.slotB || safeC !== prev.slotC) {
+        return { slotA: safeA, slotB: safeB, slotC: safeC };
+      }
+      return prev;
+    });
+  }, [validSlotA, validSlotB, validSlotC]);
 
   const handleSpeciesChange = (newSpeciesName: string) => {
     setPokemonName(newSpeciesName);
@@ -153,11 +193,21 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
       (p) => p.name.toUpperCase() === newSpeciesName.toUpperCase()
     );
     if (sp) {
-      setIngredients({
-        slotA: sp.ingredient0?.[0]?.ingredient || 'Apple',
-        slotB: sp.ingredient30?.[0]?.ingredient || sp.ingredient0?.[0]?.ingredient || 'Apple',
-        slotC: sp.ingredient60?.[0]?.ingredient || sp.ingredient0?.[0]?.ingredient || 'Apple',
-      });
+      if (isFixedNaturePokemon(sp.name)) {
+        setNature('Bashful');
+      }
+      if (sp.name.toUpperCase() === 'MEW') {
+        setMewLearnedSkill('Metronome');
+      }
+      const validA = (sp.ingredient0 || []).map((i) => i.ingredient).filter((x) => x !== 'Locked');
+      const validB = (sp.ingredient30 || []).map((i) => i.ingredient);
+      const validC = (sp.ingredient60 || []).map((i) => i.ingredient);
+
+      setIngredients((prev) => ({
+        slotA: validA.includes(prev.slotA) ? prev.slotA : (validA[0] || 'Apple'),
+        slotB: validB.includes(prev.slotB || '') ? prev.slotB : (validB[0] || 'Locked'),
+        slotC: validC.includes(prev.slotC || '') ? prev.slotC : (validC[0] || 'Locked'),
+      }));
       setMainSkillLevel(Math.min(sp.skill.maxLevel || 6, 1 + (sp.previousEvolutions || 0)));
     }
   };
@@ -183,11 +233,22 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
         const data = await res.json();
         applyOcrData(data.parsed);
         const rpHint = data.parsed.rp ? ` | SP ${data.parsed.rp}` : '';
-        setOcrMessage(
-          locale === 'zh-TW'
-            ? `辨識成功！物種：${data.parsed.pokemon?.displayName || data.parsed.pokemon?.name || '未知'} Lv.${data.parsed.level || '?'}${rpHint}（置信度 ${(data.parsed.confidence * 100).toFixed(0)}%，已自動填入表單供核對）`
-            : `识别成功！物种：${data.parsed.pokemon?.displayName || data.parsed.pokemon?.name || '未知'} Lv.${data.parsed.level || '?'}${rpHint}（置信度 ${(data.parsed.confidence * 100).toFixed(0)}%，已自动填入表单供核对）`
-        );
+        const shinyHint = data.parsed.isShiny ? ' ✨ 识别为异色闪光！' : '';
+        const nickHint = data.parsed.nickname ? `（备注：${data.parsed.nickname}）` : '';
+        const pokemonDisplay = data.parsed.pokemon?.displayName || data.parsed.pokemon?.name;
+        if (!pokemonDisplay) {
+          setOcrMessage(
+            locale === 'zh-TW'
+              ? `⚠️ 面板辨識完成，但未能確認寶可夢物種${nickHint}，請在下方手動點選寶可夢！`
+              : `⚠️ 面板识别完成，但未能确认宝可梦物种${nickHint}，请在下方手动点选宝可梦！`
+          );
+        } else {
+          setOcrMessage(
+            locale === 'zh-TW'
+              ? `辨識成功！物種：${pokemonDisplay}${nickHint} Lv.${data.parsed.level || '?'}${rpHint}${shinyHint}（已自動填入表單供核對）`
+              : `识别成功！物种：${pokemonDisplay}${nickHint} Lv.${data.parsed.level || '?'}${rpHint}${shinyHint}（已自动填入表单供核对）`
+          );
+        }
       } else {
         const errData = await res.json().catch(() => null);
         setOcrMessage(errData?.detail || (locale === 'zh-TW' ? '後端 OCR 處理失敗，請檢查檔案是否為有效截圖。' : '后端 OCR 处理失败，请检查文件是否为有效截图。'));
@@ -265,11 +326,19 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
         setPokemonName(sp.name);
       }
     }
+    if (parsed.nickname) {
+      setNickname(parsed.nickname);
+    }
     if (parsed.level) {
       setLevel(Math.min(70, Math.max(1, parsed.level)));
     }
-    if (parsed.nature?.name) {
+    if (isFixedNaturePokemon(targetSpecies.name)) {
+      setNature('Bashful');
+    } else if (parsed.nature?.name) {
       setNature(parsed.nature.name);
+    } else {
+      // If nature was cropped or not detected, reset to neutral 'Bashful' (害羞), never leak previous Pokemon's nature!
+      setNature('Bashful');
     }
     if (parsed.mainSkillLevel) {
       setMainSkillLevel(parsed.mainSkillLevel);
@@ -282,28 +351,61 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
         level70: '',
         level80: '',
       };
+      const usedNames = new Set<string>();
       for (const s of parsed.subskills) {
         const slot =
           s.slot === 'level75' ? 'level70' : s.slot === 'level100' ? 'level80' : s.slot;
-        if (slot && s.name && slot in nextSubs) {
+        if (slot && s.name && slot in nextSubs && !usedNames.has(s.name)) {
           (nextSubs as any)[slot] = s.name;
+          usedNames.add(s.name);
         }
       }
       setSubskills(nextSubs);
     }
+    const validA = (targetSpecies.ingredient0 || []).map((i) => i.ingredient).filter((x) => x !== 'Locked');
+    const validB = (targetSpecies.ingredient30 || []).map((i) => i.ingredient);
+    const validC = (targetSpecies.ingredient60 || []).map((i) => i.ingredient);
+
+    const nextIngs = {
+      slotA: validA[0] || 'Apple',
+      slotB: validB.includes('Locked') ? 'Locked' : validB[0] || 'Locked',
+      slotC: validC.includes('Locked') ? 'Locked' : validC[0] || 'Locked',
+    };
+
+    let detectedSlotsCount = 0;
     if (parsed.ingredients && Array.isArray(parsed.ingredients)) {
-      const nextIngs = {
-        slotA: targetSpecies.ingredient0?.[0]?.ingredient || 'Apple',
-        slotB: targetSpecies.ingredient30?.[0]?.ingredient || 'Apple',
-        slotC: targetSpecies.ingredient60?.[0]?.ingredient || 'Apple',
-      };
       for (const ing of parsed.ingredients) {
-        if (ing.slot === 'slotA' && ing.name) nextIngs.slotA = ing.name;
-        if (ing.slot === 'slotB' && ing.name) nextIngs.slotB = ing.name;
-        if (ing.slot === 'slotC' && ing.name) nextIngs.slotC = ing.name;
+        if (ing.slot === 'slotA' && ing.name && validA.includes(ing.name)) {
+          nextIngs.slotA = ing.name;
+          detectedSlotsCount++;
+        }
+        if (ing.slot === 'slotB' && ing.name && validB.includes(ing.name)) {
+          nextIngs.slotB = ing.name;
+          detectedSlotsCount++;
+        }
+        if (ing.slot === 'slotC' && ing.name && validC.includes(ing.name)) {
+          nextIngs.slotC = ing.name;
+          detectedSlotsCount++;
+        }
       }
-      setIngredients(nextIngs);
     }
+    setIngredients(nextIngs);
+
+    // Intelligent UI Highlighting for low confidence / missing fields
+    const lowFields: string[] = [];
+    if (!parsed.pokemon?.name || (parsed.fieldConfidences?.pokemon ?? 1.0) < 0.60) {
+      lowFields.push('pokemon');
+    }
+    if (detectedSlotsCount < 2 || (parsed.fieldConfidences?.ingredients ?? 1.0) < 0.58) {
+      lowFields.push('ingredients');
+    }
+    if ((parsed.fieldConfidences?.mainSkillLevel ?? 1.0) < 0.65) {
+      lowFields.push('mainSkillLevel');
+    }
+    if (!parsed.nature?.name || (parsed.fieldConfidences?.nature ?? 1.0) < 0.65) {
+      lowFields.push('nature');
+    }
+    setLowConfidenceFields(lowFields);
     setActiveMode('manual');
   };
 
@@ -334,11 +436,12 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
       pokemonName,
       nickname: nickname.trim() || undefined,
       level: Math.min(70, Math.max(1, level)),
-      nature,
+      nature: isFixedNaturePokemon(pokemonName) ? 'Bashful' : nature,
       subskills,
       ingredients,
       mainSkillLevel,
       ribbonLevel,
+      mewLearnedSkill: pokemonName.toUpperCase() === 'MEW' ? mewLearnedSkill : undefined,
       createdAt: initialData?.createdAt || Date.now(),
     };
     onSave(newPkmn);
@@ -498,14 +601,26 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
           <div className="space-y-3.5 py-1 max-h-[58dvh] sm:max-h-[62vh] overflow-y-auto px-0.5 pr-1.5">
             {/* Species Selector */}
             <div>
-              <label className="block text-xs font-semibold text-[var(--text-main)] mb-1">
-                {getUIText('speciesLabel', locale)}
-              </label>
-              <PokemonSelector
-                value={pokemonName}
-                onChange={handleSpeciesChange}
-                locale={locale}
-              />
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-[var(--text-main)]">
+                  {getUIText('speciesLabel', locale)}
+                </label>
+                {lowConfidenceFields.includes('pokemon') && (
+                  <span className="text-2xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-300 animate-pulse">
+                    {locale === 'zh-TW' ? '⚠️ 未能確認寶可夢，請手動點選' : '⚠️ 未能确认宝可梦，请手动点选'}
+                  </span>
+                )}
+              </div>
+              <div className={lowConfidenceFields.includes('pokemon') ? 'p-1 rounded-xl border border-amber-400 bg-amber-50/60 shadow-xs' : ''}>
+                <PokemonSelector
+                  value={pokemonName}
+                  onChange={(val) => {
+                    handleSpeciesChange(val);
+                    setLowConfidenceFields((prev) => prev.filter((f) => f !== 'pokemon'));
+                  }}
+                  locale={locale}
+                />
+              </div>
             </div>
 
             {/* Nickname, Level & Main Skill Level */}
@@ -564,13 +679,30 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
             {/* Nature & Ribbon (睡飽飽獎章 / 睡饱饱徽章) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
-                <label className="block text-xs font-semibold text-[var(--text-main)] mb-1">
-                  {getUIText('nature', locale)}
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-[var(--text-main)]">
+                    {getUIText('nature', locale)}
+                  </label>
+                  {lowConfidenceFields.includes('nature') && !isFixedNaturePokemon(pokemonName) && (
+                    <span className="text-2xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-300 animate-pulse">
+                      {locale === 'zh-TW' ? '⚠️ 截圖未包含性格，已預設害羞請確認' : '⚠️ 截图未包含性格，已默认害羞请确认'}
+                    </span>
+                  )}
+                </div>
                 <select
-                  value={nature}
-                  onChange={(e) => setNature(e.target.value)}
-                  className="input-field text-xs"
+                  value={isFixedNaturePokemon(pokemonName) ? 'Bashful' : nature}
+                  disabled={isFixedNaturePokemon(pokemonName)}
+                  onChange={(e) => {
+                    setNature(e.target.value);
+                    setLowConfidenceFields(lowConfidenceFields.filter((f) => f !== 'nature'));
+                  }}
+                  className={`input-field text-xs ${
+                    isFixedNaturePokemon(pokemonName)
+                      ? 'bg-slate-50 text-slate-500 cursor-not-allowed border-slate-200'
+                      : lowConfidenceFields.includes('nature')
+                        ? 'border-amber-400 ring-2 ring-amber-400/30 bg-amber-50/40'
+                        : ''
+                  }`}
                 >
                   {GAME_DATA.natures.map((n) => (
                     <option key={n.name} value={n.name}>
@@ -581,6 +713,14 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
                     </option>
                   ))}
                 </select>
+                {isFixedNaturePokemon(pokemonName) && (
+                  <p className="text-[11px] text-blue-700 mt-1 flex items-center font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1 shrink-0" />
+                    {locale === 'zh-TW'
+                      ? '幻之寶可夢專屬：性格固定為「害羞」（無增減修正）'
+                      : '幻之宝可梦专属：性格固定为「害羞」（无增减修正）'}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -600,6 +740,36 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
                 </select>
               </div>
             </div>
+
+            {/* Mew's Unique Versatile Skill Selector (灵感之种) */}
+            {pokemonName.toUpperCase() === 'MEW' && (
+              <div className="p-3 rounded-xl border border-blue-200 bg-blue-50/50 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-blue-900 flex items-center">
+                    <Sparkles className="w-3.5 h-3.5 text-blue-600 mr-1" />
+                    {locale === 'zh-TW' ? '十項全能 · 靈感之種已習得技能' : '十项全能 · 灵感之种已习得技能'}
+                  </label>
+                  <span className="text-[10px] text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full font-medium">
+                    {locale === 'zh-TW' ? '附贈隊伍糖果' : '附赠队伍糖果'}
+                  </span>
+                </div>
+                <select
+                  value={mewLearnedSkill}
+                  onChange={(e) => setMewLearnedSkill(e.target.value)}
+                  className="input-field text-xs py-1.5 bg-white border-blue-300"
+                >
+                  {MEW_LEARNED_SKILLS.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      [{item.role}] {locale === 'en' ? item.name : item.nameZh}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-blue-700/80 leading-relaxed">
+                  {MEW_LEARNED_SKILLS.find((s) => s.id === mewLearnedSkill)?.description ||
+                    '每次发动必定获得队伍糖果，并施展此技能的效果。'}
+                </p>
+              </div>
+            )}
 
             {/* Subskills Selection */}
             <div>
@@ -649,11 +819,16 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
                       className="input-field text-xs py-1"
                     >
                       <option value="">{getUIText('notSet', locale)}</option>
-                      {GAME_DATA.subskills.map((s) => (
-                        <option key={s.name} value={s.name}>
-                          [{s.rarity === 'gold' ? (locale === 'en' ? 'G' : '金') : s.rarity === 'silver' ? (locale === 'en' ? 'S' : '银') : (locale === 'en' ? 'W' : '白')}] {getEntityName(s, locale)}
-                        </option>
-                      ))}
+                      {GAME_DATA.subskills.map((s) => {
+                        const isUsedInOtherSlot = Object.entries(subskills).some(
+                          ([k, v]) => k !== key && v === s.name
+                        );
+                        return (
+                          <option key={s.name} value={s.name} disabled={isUsedInOtherSlot}>
+                            [{s.rarity === 'gold' ? (locale === 'en' ? 'G' : '金') : s.rarity === 'silver' ? (locale === 'en' ? 'S' : '银') : (locale === 'en' ? 'W' : '白')}] {getEntityName(s, locale)}{isUsedInOtherSlot ? (locale === 'en' ? ' (Selected)' : ' (已选)') : ''}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                 ))}
@@ -662,40 +837,66 @@ export const AddPokemonModal: React.FC<AddPokemonModalProps> = ({
 
             {/* Ingredients Selection: Pantry Tray */}
             <div>
-              <label className="block text-xs font-semibold text-[var(--text-main)] mb-1.5">
-                {getUIText('ingredients', locale)} (A: Lv.1 / B: Lv.30 / C: Lv.60)
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-[var(--text-main)]">
+                  {getUIText('ingredients', locale)} (A: Lv.1 / B: Lv.30 / C: Lv.60)
+                </label>
+                {lowConfidenceFields.includes('ingredients') && (
+                  <span className="text-2xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-300 animate-pulse">
+                    {locale === 'zh-TW' ? '⚠️ 截圖未包含食材欄，請手動確認' : '⚠️ 截图未包含清晰食材栏，请手动确认'}
+                  </span>
+                )}
+              </div>
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { label: getUIText('slotA', locale), key: 'slotA' as const, list: validSlotA },
                   { label: getUIText('slotB', locale), key: 'slotB' as const, list: validSlotB },
                   { label: getUIText('slotC', locale), key: 'slotC' as const, list: validSlotC },
                 ].map(({ label, key, list }) => {
-                  const selectedIng = ingredients[key];
+                  const rawIng = ingredients[key];
+                  const selectedIng = list.some((i) => i.ingredient === rawIng)
+                    ? rawIng
+                    : (list[0]?.ingredient || rawIng);
+                  const isLowConf = lowConfidenceFields.includes('ingredients');
                   return (
-                    <div key={key} className="p-2.5 rounded-xl border border-[#eae4d6] bg-[#f7f5ee]">
+                    <div
+                      key={key}
+                      className={`p-2.5 rounded-xl border transition-all ${
+                        isLowConf
+                          ? 'border-amber-400 bg-amber-50/60 shadow-xs'
+                          : 'border-[#eae4d6] bg-[#f7f5ee]'
+                      }`}
+                    >
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-2xs text-[var(--text-muted)] font-semibold">{label}</span>
-                        {selectedIng && (
+                        {selectedIng && selectedIng !== 'Locked' ? (
                           <img
                             src={getIngredientImageUrl(selectedIng)}
                             alt={selectedIng}
                             className="w-4 h-4 object-contain"
                           />
-                        )}
+                        ) : selectedIng === 'Locked' ? (
+                          <Lock className="w-3.5 h-3.5 text-slate-400" />
+                        ) : null}
                       </div>
                       <select
                         value={selectedIng}
-                        onChange={(e) => setIngredients({ ...ingredients, [key]: e.target.value })}
+                        onChange={(e) => {
+                          setIngredients({ ...ingredients, [key]: e.target.value });
+                          setLowConfidenceFields((prev) => prev.filter((f) => f !== 'ingredients'));
+                        }}
                         className="input-field text-xs py-1 bg-white"
                       >
                         {list.map((item) => {
+                          const isLocked = item.ingredient === 'Locked';
                           const ingObj = GAME_DATA.ingredients.find(
                             (i) => i.name.toLowerCase() === item.ingredient.toLowerCase()
                           );
                           return (
                             <option key={item.ingredient} value={item.ingredient}>
-                              {ingObj ? getEntityName(ingObj, locale) : item.ingredient} ×{item.amount}
+                              {isLocked
+                                ? (locale === 'en' ? '🔒 (Locked / Empty)' : '🔒 (未解锁 / 空)')
+                                : `${ingObj ? getEntityName(ingObj, locale) : item.ingredient} ×${item.amount}`}
                             </option>
                           );
                         })}

@@ -87,8 +87,12 @@ class DataLoader:
         clean = name_or_query.strip().lower()
         if clean in self.pokemon_map:
             return self.pokemon_map[clean]
+        # Common CJK OCR glyph confusions (e.g. 鷄 -> 鴉 for 烏鴉頭頭/黑暗鴉)
+        normalized = clean.replace("鷄", "鴉").replace("鸡", "鸦")
+        if normalized in self.pokemon_map:
+            return self.pokemon_map[normalized]
         # Fuzzy fallback
-        matches = difflib.get_close_matches(clean, self.pokemon_map.keys(), n=1, cutoff=0.7)
+        matches = difflib.get_close_matches(normalized, self.pokemon_map.keys(), n=1, cutoff=0.7)
         if matches:
             return self.pokemon_map[matches[0]]
         return None
@@ -106,7 +110,7 @@ class DataLoader:
         clean = name_or_query.strip().lower()
         if clean in self.subskill_map:
             return self.subskill_map[clean]
-        matches = difflib.get_close_matches(clean, self.subskill_map.keys(), n=1, cutoff=0.65)
+        matches = difflib.get_close_matches(clean, self.subskill_map.keys(), n=1, cutoff=0.75)
         if matches:
             return self.subskill_map[matches[0]]
         return None

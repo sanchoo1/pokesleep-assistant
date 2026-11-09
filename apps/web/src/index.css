@@ -230,20 +230,29 @@ body {
 }
 
 /* Form Inputs */
-.input-field {
-  width: 100%;
-  padding: 0.55rem 0.8rem;
-  border: 1px solid var(--border-subtle);
-  border-radius: 0.625rem;
-  background-color: var(--surface);
-  color: var(--text-main);
-  font-size: 0.875rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+@layer components {
+  .input-field {
+    width: 100%;
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 0.625rem;
+    background-color: var(--surface);
+    color: var(--text-main);
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .input-field:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(50, 67, 95, 0.12);
+  }
 }
-.input-field:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(50, 67, 95, 0.12);
+
+/* Explicit search input clearance to avoid icon & placeholder overlap */
+.input-field.pl-9,
+input.input-field.pl-9,
+input.pl-9 {
+  padding-left: 2.375rem !important; /* 38px: 12px offset + 16px icon + 10px breathing room */
 }
 
 /* Prevent iOS Safari / Webview auto-zoom on input focus */

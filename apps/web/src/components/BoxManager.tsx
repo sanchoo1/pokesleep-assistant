@@ -261,7 +261,7 @@ export const BoxManager: React.FC<BoxManagerProps> = ({
           {/* Search & Multi-Dimensional Filters */}
           <div className="flex flex-col sm:flex-row sm:flex-wrap flex-1 items-stretch sm:items-center gap-2">
             <div className="relative w-full sm:min-w-[200px] sm:max-w-xs">
-              <Search className="w-4 h-4 text-[var(--text-subtle)] absolute left-3 top-2.5" />
+              <Search className="w-4 h-4 text-[var(--text-subtle)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}

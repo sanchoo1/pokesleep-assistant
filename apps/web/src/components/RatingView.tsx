@@ -16,6 +16,7 @@ import {
   analyzeIndividualRecipeCoverage,
   EvaluationMetric,
   CookingScenarioContext,
+  MEW_LEARNED_SKILLS,
 } from '@pokesleep/engine';
 import { BoxPokemon, normalizeBoxSubskills } from '../storage/db';
 import { getEntityName, getNatureModLabel, getPokemonTypeLabel, getUIText } from '../i18n';
@@ -105,11 +106,18 @@ const SKILL_UNIT_LABELS: Record<MainskillUnit, { label: string; unitSuffix: stri
   items: { label: '道具获取', unitSuffix: '个道具' },
 };
 
+const isFixedNaturePokemon = (name?: string): boolean => {
+  const u = (name || '').toUpperCase();
+  return u === 'MEW' || u === 'DARKRAI';
+};
+
 export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }) => {
   const [selectedSpecies, setSelectedSpecies] = useState(
     initialPokemon?.pokemonName || 'PIKACHU'
   );
-  const [natureName, setNatureName] = useState(initialPokemon?.nature || 'Adamant');
+  const [natureName, setNatureName] = useState(
+    isFixedNaturePokemon(initialPokemon?.pokemonName) ? 'Bashful' : initialPokemon?.nature || 'Adamant'
+  );
   const [subskills, setSubskills] = useState(() =>
     initialPokemon
       ? normalizeBoxSubskills(initialPokemon.subskills)
@@ -132,6 +140,9 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
   const [isFavoredBerry, setIsFavoredBerry] = useState(true);
   const [mapBonus, setMapBonus] = useState(0);
   const [metric, setMetric] = useState<EvaluationMetric>('auto');
+  const [mewLearnedSkill, setMewLearnedSkill] = useState<string>(
+    initialPokemon?.mewLearnedSkill || 'Metronome'
+  );
 
   const species = useMemo(() => {
     return (
@@ -141,15 +152,15 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     );
   }, [selectedSpecies]);
 
+  const isMythicalFixed = isFixedNaturePokemon(species.name);
+  const effectiveNature = isMythicalFixed ? 'Bashful' : natureName;
+
   // Inspected milestone stage in detail panel (auto-selected by specialty, clickable by user)
   const [focusedLevel, setFocusedLevel] = useState<number>(60);
   const [activeDeepTab, setActiveDeepTab] = useState<'berry' | 'ingredient' | 'skill' | 'overnight'>(
     species.specialty === 'all' ? 'skill' : species.specialty
   );
   const [recipeDishTab, setRecipeDishTab] = useState<RecipeType>('curry');
-
-  // Preview Lv.80 forward-looking computation option
-  const [previewLv80, setPreviewLv80] = useState<boolean>(false);
 
   // Cooking strength scenario configuration for realistic pot expansion and crit chance
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>('standard');
@@ -183,15 +194,18 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
         (p) => p.name.toUpperCase() === initialPokemon.pokemonName.toUpperCase()
       ) || GAME_DATA.pokemon[0];
     setSelectedSpecies(sp.name);
-    setNatureName(initialPokemon.nature || 'Adamant');
+    setNatureName(isFixedNaturePokemon(sp.name) ? 'Bashful' : initialPokemon.nature || 'Adamant');
     setSubskills(normalizeBoxSubskills(initialPokemon.subskills));
     setIngredients({
       slotA: initialPokemon.ingredients?.slotA || sp.ingredient0?.[0]?.ingredient || 'Apple',
-      slotB: initialPokemon.ingredients?.slotB || sp.ingredient30?.[0]?.ingredient || 'Apple',
-      slotC: initialPokemon.ingredients?.slotC || sp.ingredient60?.[0]?.ingredient || 'Apple',
+      slotB: initialPokemon.ingredients?.slotB || sp.ingredient30?.[0]?.ingredient || 'Locked',
+      slotC: initialPokemon.ingredients?.slotC || sp.ingredient60?.[0]?.ingredient || 'Locked',
     });
     setMainSkillLevel(initialPokemon.mainSkillLevel || 1 + (sp.previousEvolutions || 0));
     setRibbonLevel(initialPokemon.ribbonLevel || 0);
+    if (initialPokemon.mewLearnedSkill) {
+      setMewLearnedSkill(initialPokemon.mewLearnedSkill);
+    }
     setActiveDeepTab(sp.specialty === 'all' ? 'skill' : sp.specialty);
     setFocusedLevel(sp.specialty === 'ingredient' ? 60 : 50);
   }, [initialPokemon]);
@@ -202,10 +216,20 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
       (p) => p.name.toUpperCase() === newSpeciesName.toUpperCase()
     );
     if (sp) {
+      if (isFixedNaturePokemon(sp.name)) {
+        setNatureName('Bashful');
+      }
+      if (sp.name.toUpperCase() === 'MEW') {
+        setMewLearnedSkill('Metronome');
+      }
+      const validA = (sp.ingredient0 || []).map((i) => i.ingredient).filter((x) => x !== 'Locked');
+      const validB = (sp.ingredient30 || []).map((i) => i.ingredient);
+      const validC = (sp.ingredient60 || []).map((i) => i.ingredient);
+
       setIngredients({
-        slotA: sp.ingredient0?.[0]?.ingredient || 'Apple',
-        slotB: sp.ingredient30?.[0]?.ingredient || sp.ingredient0?.[0]?.ingredient || 'Apple',
-        slotC: sp.ingredient60?.[0]?.ingredient || sp.ingredient0?.[0]?.ingredient || 'Apple',
+        slotA: validA[0] || 'Apple',
+        slotB: validB.includes('Locked') ? 'Locked' : validB[0] || 'Locked',
+        slotC: validC.includes('Locked') ? 'Locked' : validC[0] || 'Locked',
       });
       setMainSkillLevel(Math.min(sp.skill.maxLevel || 6, 1 + (sp.previousEvolutions || 0)));
       setActiveDeepTab(sp.specialty === 'all' ? 'skill' : sp.specialty);
@@ -217,25 +241,51 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     () => (species.ingredient0 || []).filter((i) => i.ingredient !== 'Locked'),
     [species]
   );
-  const validSlotB = useMemo(
-    () => (species.ingredient30 || []).filter((i) => i.ingredient !== 'Locked'),
-    [species]
-  );
-  const validSlotC = useMemo(
-    () => (species.ingredient60 || []).filter((i) => i.ingredient !== 'Locked'),
-    [species]
-  );
+  const validSlotB = useMemo(() => {
+    const list = species.ingredient30 || [];
+    const hasLocked = list.some((i) => i.ingredient === 'Locked');
+    return hasLocked ? list : [...list, { ingredient: 'Locked', amount: 0 }];
+  }, [species]);
+  const validSlotC = useMemo(() => {
+    const list = species.ingredient60 || [];
+    const hasLocked = list.some((i) => i.ingredient === 'Locked');
+    return hasLocked ? list : [...list, { ingredient: 'Locked', amount: 0 }];
+  }, [species]);
+
+  // Ensure ingredient slots always stay valid for current species
+  useEffect(() => {
+    setIngredients((prev) => {
+      const validA = validSlotA.map((i) => i.ingredient);
+      const validB = validSlotB.map((i) => i.ingredient);
+      const validC = validSlotC.map((i) => i.ingredient);
+
+      const safeA = validA.includes(prev.slotA) ? prev.slotA : (validA[0] || 'Apple');
+      const safeB =
+        prev.slotB === 'Locked' || validB.includes(prev.slotB || '')
+          ? prev.slotB
+          : (validB[0] || 'Locked');
+      const safeC =
+        prev.slotC === 'Locked' || validC.includes(prev.slotC || '')
+          ? prev.slotC
+          : (validC[0] || 'Locked');
+
+      if (safeA !== prev.slotA || safeB !== prev.slotB || safeC !== prev.slotC) {
+        return { slotA: safeA, slotB: safeB, slotC: safeC };
+      }
+      return prev;
+    });
+  }, [validSlotA, validSlotB, validSlotC]);
 
   const effectiveInputSkillLevel = simulateMaxSkillSeed
     ? species.skill.maxLevel || 6
     : mainSkillLevel;
 
-  // Automatic Multi-Stage Evaluation across [10, 25, 30, 50, 60, 70] (and optional 80)
+  // Automatic Multi-Stage Evaluation across [10, 25, 30, 50, 60, 70, 80]
   const multiReport = useMemo(() => {
     try {
       return evaluatePokemonMilestones({
         pokemon: species,
-        nature: natureName,
+        nature: effectiveNature,
         subskills,
         ingredientSelection: {
           slot0: ingredients.slotA,
@@ -247,9 +297,10 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
         metric,
         isFavoredBerry,
         mapBonus,
-        previewLv80,
+        previewLv80: true,
         cookingContext: activeCookingContext,
         sleepHours: sleepDurationHours,
+        mewLearnedSkill: species.name === 'MEW' ? mewLearnedSkill : undefined,
       });
     } catch (e) {
       console.error(e);
@@ -257,7 +308,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     }
   }, [
     species,
-    natureName,
+    effectiveNature,
     subskills,
     ingredients,
     effectiveInputSkillLevel,
@@ -265,10 +316,31 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     metric,
     isFavoredBerry,
     mapBonus,
-    previewLv80,
     activeCookingContext,
     sleepDurationHours,
+    mewLearnedSkill,
   ]);
+
+  const standardMilestones = useMemo(() => {
+    return (multiReport?.milestones || []).filter((m) => m.level <= 70);
+  }, [multiReport]);
+
+  const standardAveragePercentile = useMemo(() => {
+    if (!standardMilestones.length) return 0;
+    const sum = standardMilestones.reduce((acc, m) => acc + m.rating.percentile, 0);
+    return Math.round((sum / standardMilestones.length) * 10) / 10;
+  }, [standardMilestones]);
+
+  const standardPeakStage = useMemo(() => {
+    if (!standardMilestones.length) return multiReport?.peakStage || null;
+    let peak = standardMilestones[0];
+    for (const m of standardMilestones) {
+      if (m.rating.percentile >= peak.rating.percentile) {
+        peak = m;
+      }
+    }
+    return peak;
+  }, [standardMilestones, multiReport]);
 
   const focusedStage = useMemo(() => {
     if (!multiReport) return null;
@@ -286,7 +358,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     const favored = calculateDailyProduction({
       pokemon: species,
       level: focusedLevel,
-      nature: natureName,
+      nature: effectiveNature,
       subskills,
       ingredientSelection: {
         slot0: ingredients.slotA,
@@ -297,11 +369,12 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
       ribbonLevel,
       isFavoredBerry: true,
       mapBonus,
+      mewLearnedSkill: species.name === 'MEW' ? mewLearnedSkill : undefined,
     });
     const unfavored = calculateDailyProduction({
       pokemon: species,
       level: focusedLevel,
-      nature: natureName,
+      nature: effectiveNature,
       subskills,
       ingredientSelection: {
         slot0: ingredients.slotA,
@@ -312,18 +385,108 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
       ribbonLevel,
       isFavoredBerry: false,
       mapBonus,
+      mewLearnedSkill: species.name === 'MEW' ? mewLearnedSkill : undefined,
     });
     return { favored, unfavored };
   }, [
     focusedProd,
     species,
     focusedLevel,
-    natureName,
+    effectiveNature,
     subskills,
     ingredients,
     effectiveInputSkillLevel,
     ribbonLevel,
     mapBonus,
+    mewLearnedSkill,
+  ]);
+
+  // Memoized comparison of all 12 learned skills for Mew at focusedLevel
+  const mewSkillComparison = useMemo(() => {
+    if (species.name !== 'MEW') return [];
+    return MEW_LEARNED_SKILLS.map((sk) => {
+      const prod = calculateDailyProduction({
+        pokemon: species,
+        level: focusedLevel,
+        nature: 'Bashful',
+        subskills,
+        ingredientSelection: {
+          slot0: ingredients.slotA,
+          slot30: ingredients.slotB,
+          slot60: ingredients.slotC,
+        },
+        mainSkillLevel: effectiveInputSkillLevel,
+        ribbonLevel,
+        isFavoredBerry,
+        mapBonus,
+        cookingContext: activeCookingContext,
+        sleepHours: sleepDurationHours,
+        mewLearnedSkill: sk.id,
+      });
+
+      const skillEnergy = prod.dailySkillEnergy;
+      const totalEnergy = prod.totalDailyEnergy;
+      const dailyProcs = prod.dailySkillProcs;
+      const candyItem = prod.skillActivationDetails.breakdown.find((b) => b.key === 'candy');
+      const dailyCandies = candyItem?.dailySelf || dailyProcs;
+
+      let keyOutputText = '';
+      switch (sk.roleType) {
+        case 'healer':
+          if (sk.id.includes('Everyone')) {
+            keyOutputText = `全队回体约 ${(dailyProcs * (11 + effectiveInputSkillLevel)).toFixed(0)} 点/天`;
+          } else {
+            keyOutputText = `单体急救约 ${(dailyProcs * 25).toFixed(0)} 活力/天`;
+          }
+          break;
+        case 'ingredient':
+          keyOutputText = `食材补给约 +${(dailyProcs * (6 + effectiveInputSkillLevel * 3)).toFixed(1)} 个/天`;
+          break;
+        case 'strength':
+          keyOutputText = `技能能量约 +${Math.round(skillEnergy).toLocaleString()} /天`;
+          break;
+        case 'pot':
+          keyOutputText = `单餐扩锅 +${7 + effectiveInputSkillLevel * 3} 容量`;
+          break;
+        case 'crit':
+          keyOutputText = `料理暴击率 +${(4 + effectiveInputSkillLevel * 1.5).toFixed(1)}% /次`;
+          break;
+        case 'helps':
+          keyOutputText = `日助攻队友 +${(dailyProcs * 4).toFixed(1)} 次瞬间帮忙`;
+          break;
+        case 'berries':
+          keyOutputText = `日喷发 +${(dailyProcs * 6).toFixed(1)} 颗额外树果`;
+          break;
+        case 'shards':
+          keyOutputText = `日产出 +${Math.round(dailyProcs * 1200)} 梦之碎片`;
+          break;
+        default:
+          keyOutputText = `随机技能触发期望`;
+          break;
+      }
+
+      return {
+        ...sk,
+        dailyProcs,
+        dailyCandies,
+        skillEnergy,
+        totalEnergy,
+        keyOutputText,
+        isCurrent: sk.id === mewLearnedSkill,
+      };
+    });
+  }, [
+    species,
+    focusedLevel,
+    subskills,
+    ingredients,
+    effectiveInputSkillLevel,
+    ribbonLevel,
+    isFavoredBerry,
+    mapBonus,
+    activeCookingContext,
+    sleepDurationHours,
+    mewLearnedSkill,
   ]);
 
   // Recipe coverage at focusedLevel (defaults to Lv.60 if focusedLevel < 60 toggleable, or actual focusedProd)
@@ -409,9 +572,14 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                   {getUIText('nature', locale)}
                 </label>
                 <select
-                  value={natureName}
+                  value={effectiveNature}
+                  disabled={isMythicalFixed}
                   onChange={(e) => setNatureName(e.target.value)}
-                  className="input-field text-xs py-1.5"
+                  className={`input-field text-xs py-1.5 ${
+                    isMythicalFixed
+                      ? 'bg-slate-50 text-slate-500 cursor-not-allowed border-slate-200'
+                      : ''
+                  }`}
                 >
                   {GAME_DATA.natures.map((n) => (
                     <option key={n.name} value={n.name}>
@@ -422,6 +590,12 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                     </option>
                   ))}
                 </select>
+                {isMythicalFixed && (
+                  <p className="text-[10px] text-blue-700 mt-1 flex items-center font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1 shrink-0" />
+                    幻之宝可梦固定性格：害羞（Bashful）
+                  </p>
+                )}
               </div>
 
               <div>
@@ -444,6 +618,35 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
               </div>
             </div>
 
+            {/* Mew's Unique Versatile Skill Selector (灵感之种) */}
+            {species.name === 'MEW' && (
+              <div className="p-3 rounded-xl border border-blue-200 bg-blue-50/60 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-blue-900 flex items-center">
+                    <Sparkles className="w-3.5 h-3.5 text-blue-600 mr-1" />
+                    十项全能 · 灵感之种已习得技能
+                  </span>
+                  <span className="text-[10px] text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded font-semibold">
+                    灵感之种
+                  </span>
+                </div>
+                <select
+                  value={mewLearnedSkill}
+                  onChange={(e) => setMewLearnedSkill(e.target.value)}
+                  className="input-field text-xs py-1.5 bg-white border-blue-300 font-semibold text-slate-800"
+                >
+                  {MEW_LEARNED_SKILLS.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      [{item.role}] {locale === 'en' ? item.name : item.nameZh}
+                    </option>
+                  ))}
+                </select>
+                <div className="text-[11px] text-blue-800/90 leading-tight">
+                  ✨ <strong>双重触发机制</strong>：每次发动必得队伍糖果，并触发「{MEW_LEARNED_SKILLS.find(s => s.id === mewLearnedSkill)?.nameZh || mewLearnedSkill}」效果。
+                </div>
+              </div>
+            )}
+
             {/* 5 Subskills: Lv.10, 25, 50, 70, 80 */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
@@ -463,13 +666,15 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                     <span
                       className={`text-xs font-bold w-16 shrink-0 ${
                         capLocked
-                          ? 'text-slate-400'
+                          ? focusedLevel === 80
+                            ? 'text-blue-600'
+                            : 'text-slate-400'
                           : lvl <= focusedLevel
                             ? 'text-blue-600'
                             : 'text-slate-600'
                       }`}
                     >
-                      {capLocked ? '🔒Lv.80' : `Lv.${lvl}`}
+                      {capLocked ? 'Lv.80' : `Lv.${lvl}`}
                     </span>
                     <select
                       value={subskills[key]}
@@ -477,11 +682,16 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                       className={`input-field text-xs py-1 ${capLocked ? 'bg-slate-50 text-slate-500' : ''}`}
                     >
                       <option value="">(无 / 未设置)</option>
-                      {GAME_DATA.subskills.map((s) => (
-                        <option key={s.name} value={s.name}>
-                          [{s.rarity === 'gold' ? '金' : s.rarity === 'silver' ? '银' : '白'}] {getEntityName(s, locale)}
-                        </option>
-                      ))}
+                      {GAME_DATA.subskills.map((s) => {
+                        const isUsedInOtherSlot = Object.entries(subskills).some(
+                          ([k, v]) => k !== key && v === s.name
+                        );
+                        return (
+                          <option key={s.name} value={s.name} disabled={isUsedInOtherSlot}>
+                            [{s.rarity === 'gold' ? '金' : s.rarity === 'silver' ? '银' : '白'}] {getEntityName(s, locale)}{isUsedInOtherSlot ? (locale === 'en' ? ' (Selected)' : ' (已选)') : ''}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                 ))}
@@ -498,36 +708,47 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                   { label: 'Lv.1 (A)', key: 'slotA' as const, list: validSlotA },
                   { label: 'Lv.30 (B)', key: 'slotB' as const, list: validSlotB },
                   { label: 'Lv.60 (C)', key: 'slotC' as const, list: validSlotC },
-                ].map(({ label, key, list }) => (
-                  <div key={key} className="p-1.5 rounded-lg border border-slate-200 bg-slate-50/70">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[11px] font-semibold text-slate-500">{label}</span>
-                      {ingredients[key] && (
-                        <img
-                          src={getIngredientImageUrl(ingredients[key])}
-                          alt={ingredients[key]}
-                          className="w-4 h-4 object-contain"
-                        />
-                      )}
+                ].map(({ label, key, list }) => {
+                  const rawIng = ingredients[key];
+                  const selectedIng = list.some((i) => i.ingredient === rawIng)
+                    ? rawIng
+                    : (list[0]?.ingredient || rawIng);
+                  return (
+                    <div key={key} className="p-1.5 rounded-lg border border-slate-200 bg-slate-50/70">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-semibold text-slate-500">{label}</span>
+                        {selectedIng && selectedIng !== 'Locked' ? (
+                          <img
+                            src={getIngredientImageUrl(selectedIng)}
+                            alt={selectedIng}
+                            className="w-4 h-4 object-contain"
+                          />
+                        ) : selectedIng === 'Locked' ? (
+                          <Lock className="w-3.5 h-3.5 text-slate-400" />
+                        ) : null}
+                      </div>
+                      <select
+                        value={selectedIng}
+                        onChange={(e) => setIngredients({ ...ingredients, [key]: e.target.value })}
+                        className="input-field text-xs py-1 bg-white px-1.5"
+                      >
+                        {list.map((item) => {
+                          const isLocked = item.ingredient === 'Locked';
+                          const ingObj = GAME_DATA.ingredients.find(
+                            (i) => i.name.toLowerCase() === item.ingredient.toLowerCase()
+                          );
+                          return (
+                            <option key={item.ingredient} value={item.ingredient}>
+                              {isLocked
+                                ? (locale === 'en' ? '🔒 (Locked / Empty)' : '🔒 (未解锁 / 空)')
+                                : `${ingObj ? getEntityName(ingObj, locale) : item.ingredient} ×${item.amount}`}
+                            </option>
+                          );
+                        })}
+                      </select>
                     </div>
-                    <select
-                      value={ingredients[key]}
-                      onChange={(e) => setIngredients({ ...ingredients, [key]: e.target.value })}
-                      className="input-field text-xs py-1 bg-white px-1.5"
-                    >
-                      {list.map((item) => {
-                        const ingObj = GAME_DATA.ingredients.find(
-                          (i) => i.name.toLowerCase() === item.ingredient.toLowerCase()
-                        );
-                        return (
-                          <option key={item.ingredient} value={item.ingredient}>
-                            {ingObj ? getEntityName(ingObj, locale) : item.ingredient} ×{item.amount}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -620,10 +841,10 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                   <div className="card p-4 text-center bg-gradient-to-b from-amber-50/60 to-white border-amber-200">
                     <div className="text-2xs font-semibold text-slate-500 uppercase">
-                      全阶段平均 PR 百分位
+                      全阶段平均 PR 百分位 (Lv.10-70)
                     </div>
-                    <div className={`text-4xl font-black mt-1 ${prColor(multiReport.averagePercentile)}`}>
-                      PR {multiReport.averagePercentile}
+                    <div className={`text-4xl font-black mt-1 ${prColor(standardAveragePercentile)}`}>
+                      PR {standardAveragePercentile}
                     </div>
                     <div className="text-2xs text-slate-500 mt-1">
                       评估指标：{metricLabel(multiReport.evaluatedMetric)}
@@ -632,19 +853,19 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
 
                   <div className="card p-4 text-center bg-gradient-to-b from-blue-50/60 to-white border-blue-200">
                     <div className="text-2xs font-semibold text-slate-500 uppercase">
-                      巅峰强势阶段 (Lv.{multiReport.peakStage.level})
+                      巅峰强势阶段 (Lv.{standardPeakStage?.level ?? multiReport.peakStage.level})
                     </div>
                     <div className="text-4xl font-black text-blue-600 mt-1">
-                      PR {multiReport.peakStage.rating.percentile}
+                      PR {standardPeakStage?.rating.percentile ?? multiReport.peakStage.rating.percentile}
                     </div>
                     <div className="text-2xs text-slate-500 mt-1">
-                      {multiReport.peakStage.unlockNote}
+                      {standardPeakStage?.unlockNote ?? multiReport.peakStage.unlockNote}
                     </div>
                   </div>
 
                   <div className="card p-4 text-center bg-gradient-to-b from-emerald-50/60 to-white border-emerald-200">
                     <div className="text-2xs font-semibold text-slate-500 uppercase">
-                      Lv.{focusedStage.level} 相对白板增益
+                      Lv.{focusedStage.level} {focusedStage.level === 80 ? '前瞻' : ''}相对白板增益
                     </div>
                     <div className="text-4xl font-black text-emerald-600 mt-1">
                       {focusedStage.rating.relativeGain >= 0 ? '+' : ''}
@@ -663,38 +884,17 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                       <Award className="w-4 h-4 mr-1.5 text-blue-600" />
                       全等级阶段自动评分表（点击任意等级切换下方专项详情）
                     </div>
-                    <div className="flex items-center space-x-2.5">
-                      <label className="inline-flex items-center space-x-1.5 cursor-pointer text-2xs font-bold px-2 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={previewLv80}
-                          onChange={(e) => {
-                            setPreviewLv80(e.target.checked);
-                            if (e.target.checked && focusedLevel === 70) {
-                              setFocusedLevel(80);
-                            } else if (!e.target.checked && focusedLevel === 80) {
-                              setFocusedLevel(70);
-                            }
-                          }}
-                          className="rounded text-indigo-600"
-                        />
-                        <span>🔮 开启 Lv.80 前瞻 (推演第 5 副技能)</span>
-                      </label>
-                      <span className="text-2xs text-slate-400">
-                        当前查看：Lv.{focusedLevel}
+                    <div className="flex items-center space-x-2">
+                      <span className="text-2xs text-slate-500 font-medium bg-slate-100 px-2.5 py-0.5 rounded-full">
+                        当前查看：Lv.{focusedLevel}{focusedLevel === 80 ? ' (前瞻)' : ''}
                       </span>
                     </div>
                   </div>
 
-                  <div
-                    className={`grid gap-2.5 ${
-                      previewLv80
-                        ? 'grid-cols-2 sm:grid-cols-4 md:grid-cols-7'
-                        : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-6'
-                    }`}
-                  >
+                  <div className="grid gap-2.5 grid-cols-2 sm:grid-cols-4 md:grid-cols-7">
                     {multiReport.milestones.map((m) => {
                       const isSelected = m.level === focusedLevel;
+                      const isLv80 = m.level === 80;
                       const prod = m.rating.currentProduction;
                       return (
                         <button
@@ -704,40 +904,64 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                           className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                             isSelected
                               ? 'bg-blue-50/80 border-blue-500 ring-2 ring-blue-400/50 shadow-xs'
-                              : 'bg-slate-50/70 border-slate-200 hover:border-blue-300 hover:bg-white'
+                              : isLv80
+                                ? 'bg-slate-50/50 border-dashed border-slate-300 opacity-60 grayscale hover:opacity-100 hover:grayscale-0 hover:border-slate-400'
+                                : 'bg-slate-50/70 border-slate-200 hover:border-blue-300 hover:bg-white'
                           }`}
                         >
                           <div>
                             <div className="flex items-center justify-between">
-                              <span className="text-xs font-extrabold text-slate-800">
+                              <span
+                                className={`text-xs font-extrabold ${
+                                  isLv80 && !isSelected ? 'text-slate-500' : 'text-slate-800'
+                                }`}
+                              >
                                 Lv.{m.level}
                               </span>
-                              <span
-                                className={`text-2xs font-black px-1.5 py-0.5 rounded ${gradeBadgeStyle(
-                                  m.rating.grade
-                                )}`}
-                              >
-                                {m.rating.grade}
-                              </span>
+                              {isLv80 ? (
+                                <span
+                                  className={`text-2xs font-bold px-1.5 py-0.5 rounded ${
+                                    isSelected
+                                      ? 'bg-blue-100 text-blue-700'
+                                      : 'bg-slate-200/80 text-slate-500'
+                                  }`}
+                                >
+                                  前瞻
+                                </span>
+                              ) : (
+                                <span
+                                  className={`text-2xs font-black px-1.5 py-0.5 rounded ${gradeBadgeStyle(
+                                    m.rating.grade
+                                  )}`}
+                                >
+                                  {m.rating.grade}
+                                </span>
+                              )}
                             </div>
                             <div className="text-[10px] text-slate-400 mt-0.5 truncate">
-                              {m.unlockNote}
+                              {isLv80 ? (isSelected ? '第5副技能推演' : '点击切换前瞻') : m.unlockNote}
                             </div>
                           </div>
 
                           <div className="mt-2.5">
-                            <div className={`text-xl font-black ${prColor(m.rating.percentile)}`}>
+                            <div
+                              className={`text-xl font-black ${
+                                isLv80 && !isSelected ? 'text-slate-500' : prColor(m.rating.percentile)
+                              }`}
+                            >
                               PR {m.rating.percentile}
                             </div>
                             {/* Visual PR Progress Bar */}
                             <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden mt-1">
                               <div
                                 className={`h-full rounded-full ${
-                                  m.rating.percentile >= 85
-                                    ? 'bg-amber-500'
-                                    : m.rating.percentile >= 70
-                                      ? 'bg-blue-500'
-                                      : 'bg-emerald-500'
+                                  isLv80 && !isSelected
+                                    ? 'bg-slate-400'
+                                    : m.rating.percentile >= 85
+                                      ? 'bg-amber-500'
+                                      : m.rating.percentile >= 70
+                                        ? 'bg-blue-500'
+                                        : 'bg-emerald-500'
                                 }`}
                                 style={{ width: `${Math.max(4, m.rating.percentile)}%` }}
                               />
@@ -779,28 +1003,32 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                     })}
                   </div>
 
-                  {subskills.level80 && (
-                    <div
-                      className={`mt-3 px-3 py-2 rounded-lg text-2xs flex items-center justify-between transition-colors ${
-                        previewLv80
-                          ? 'bg-indigo-50 border border-indigo-200 text-indigo-800 font-medium'
-                          : 'bg-slate-100 text-slate-600'
-                      }`}
-                    >
-                      <span>
-                        {previewLv80 ? '✨' : '🔒'} 第 5 副技能槽 (<strong>Lv.80</strong>)：已填入「
-                        <strong>
-                          {getEntityName(
-                            GAME_DATA.subskills.find(
-                              (s) => s.name.toLowerCase() === subskills.level80.toLowerCase()
-                            ),
-                            locale
-                          ) || subskills.level80}
-                        </strong>
-                        」{previewLv80
-                          ? ' — 🌟 前瞻推演已激活！已计入 Lv.80 最终巅峰评分与生产量。'
-                          : ' — 当前处于锁定状态，可点击右上角「开启 Lv.80 前瞻」推演未来养成极限。'}
-                      </span>
+                  {focusedLevel === 80 && (
+                    <div className="mt-3 px-3.5 py-2.5 rounded-xl text-xs bg-slate-50 border border-slate-200 text-slate-600 flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                        <span>
+                          当前正在查看 <strong>Lv.80 前瞻推演</strong>
+                          {subskills.level80
+                            ? `（已推演第 5 副技能「${
+                                getEntityName(
+                                  GAME_DATA.subskills.find(
+                                    (s) => s.name.toLowerCase() === subskills.level80.toLowerCase()
+                                  ),
+                                  locale
+                                ) || subskills.level80
+                              }」与极限生产力）`
+                            : '（游戏中 80 级尚未实装；可在左侧副技能栏填入第 5 副技能推演极限表现）'}
+                          。
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFocusedLevel(70)}
+                        className="text-xs text-blue-600 hover:text-blue-700 font-medium ml-3 shrink-0 cursor-pointer hover:underline"
+                      >
+                        返回 Lv.70
+                      </button>
                     </div>
                   )}
                 </div>
@@ -882,6 +1110,92 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
           </div>
         </div>
       </div>
+
+      {/* Mew's Exclusive Versatile Eureka Seed Matrix */}
+      {species.name === 'MEW' && mewSkillComparison.length > 0 && (
+        <div className="bg-white p-4 sm:p-6 rounded-xl border border-blue-200 shadow-2xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3 border-b border-slate-100">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
+                <Sparkles className="w-4 h-4 text-blue-600" />
+                <span>梦幻「十项全能」（Versatile）灵感之种全技能流派推演对比</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                通过灵感之种自由切换 12 大主流技能（每次发动必得队伍糖果 + 执行该技能）。针对当前个体配置（Lv.{focusedLevel}）量化对比各流派表现：
+              </p>
+            </div>
+            <span className="text-2xs text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200 font-semibold self-start sm:self-auto">
+              当前激活：{MEW_LEARNED_SKILLS.find((s) => s.id === mewLearnedSkill)?.nameZh || mewLearnedSkill}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {mewSkillComparison.map((item) => (
+              <div
+                key={item.id}
+                className={`p-3 rounded-xl border transition-all flex flex-col justify-between ${
+                  item.isCurrent
+                    ? 'bg-blue-50/70 border-blue-400 ring-2 ring-blue-300/50 shadow-xs'
+                    : 'bg-slate-50/60 border-slate-200 hover:border-blue-300 hover:bg-white'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-black text-slate-800">
+                      {locale === 'en' ? item.name : item.nameZh}
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                        item.isCurrent
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-slate-200/80 text-slate-600'
+                      }`}
+                    >
+                      {item.role.split(' / ')[0]}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 font-medium">
+                    {item.keyOutputText}
+                  </div>
+                </div>
+
+                <div className="mt-2.5 pt-2 border-t border-slate-200/60 space-y-1 text-[11px]">
+                  <div className="flex justify-between text-slate-600">
+                    <span className="text-slate-400">附赠糖果</span>
+                    <span className="font-bold text-amber-700">+{item.dailyCandies.toFixed(1)} 颗/天</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span className="text-slate-400">日均触发</span>
+                    <span className="font-semibold text-slate-700">{item.dailyProcs.toFixed(2)} 次/天</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span className="text-slate-400">技能等效能量</span>
+                    <span className="font-bold text-blue-700">
+                      +{Math.round(item.skillEnergy).toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div className="pt-1.5">
+                    {item.isCurrent ? (
+                      <span className="block text-center text-2xs font-bold text-blue-700 bg-blue-100/80 py-1 rounded-lg">
+                        ✓ 当前流派已选定
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setMewLearnedSkill(item.id)}
+                        className="w-full text-center text-2xs font-bold text-blue-600 hover:text-white hover:bg-blue-600 py-1 rounded-lg border border-blue-300 transition-colors cursor-pointer"
+                      >
+                        应用此流派 →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Specialty-Specific Deep-Dive Analysis Section */}
       {multiReport && focusedProd && (

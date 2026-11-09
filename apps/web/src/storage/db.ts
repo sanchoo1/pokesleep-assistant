@@ -29,8 +29,26 @@ export interface BoxPokemon {
   mainSkillLevel?: number;
   ribbonLevel?: number;
   carryLimitBonus?: number;
+  mewLearnedSkill?: string;
   createdAt: number;
   tags?: string[];
+  userId?: string; // Profile owner, default 'hxc'
+}
+
+export function getActiveUsername(): string {
+  try {
+    return localStorage.getItem('pokesleep_current_user') || 'hxc';
+  } catch {
+    return 'hxc';
+  }
+}
+
+export function setActiveUsername(username: string): void {
+  try {
+    localStorage.setItem('pokesleep_current_user', username.trim() || 'hxc');
+  } catch (err) {
+    console.error('Failed to set active username:', err);
+  }
 }
 
 export function normalizeBoxSubskills(sub?: BoxSubskills): {
@@ -53,6 +71,7 @@ export function normalizeBoxPokemon(item: BoxPokemon): BoxPokemon {
   const normSubs = normalizeBoxSubskills(item.subskills);
   return {
     ...item,
+    userId: item.userId || 'hxc',
     level: Math.max(1, Math.min(70, item.level || 1)),
     subskills: normSubs,
   };
@@ -80,7 +99,8 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
-export async function getAllPokemon(): Promise<BoxPokemon[]> {
+export async function getAllPokemon(targetUsername?: string): Promise<BoxPokemon[]> {
+  const user = targetUsername || getActiveUsername();
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_POKEMON, 'readonly');
@@ -88,15 +108,22 @@ export async function getAllPokemon(): Promise<BoxPokemon[]> {
     const req = store.getAll();
     req.onsuccess = () => {
       const raw: BoxPokemon[] = req.result || [];
-      resolve(raw.map(normalizeBoxPokemon));
+      const userList = raw
+        .map(normalizeBoxPokemon)
+        .filter((p) => {
+          const owner = p.userId || 'hxc';
+          return owner === user;
+        });
+      resolve(userList);
     };
     req.onerror = () => reject(req.error);
   });
 }
 
-export async function savePokemon(pokemon: BoxPokemon): Promise<void> {
+export async function savePokemon(pokemon: BoxPokemon, targetUsername?: string): Promise<void> {
+  const user = targetUsername || pokemon.userId || getActiveUsername();
   const db = await openDB();
-  const normalized = normalizeBoxPokemon(pokemon);
+  const normalized = normalizeBoxPokemon({ ...pokemon, userId: user });
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_POKEMON, 'readwrite');
     const store = tx.objectStore(STORE_POKEMON);
@@ -117,26 +144,36 @@ export async function deletePokemon(id: string): Promise<void> {
   });
 }
 
-export async function importBox(items: BoxPokemon[]): Promise<void> {
+export async function importBox(items: BoxPokemon[], targetUsername?: string): Promise<void> {
+  const user = targetUsername || getActiveUsername();
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_POKEMON, 'readwrite');
     const store = tx.objectStore(STORE_POKEMON);
     for (const item of items) {
-      store.put(normalizeBoxPokemon(item));
+      store.put(normalizeBoxPokemon({ ...item, userId: user }));
     }
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
 }
 
-export async function clearBox(): Promise<void> {
+export async function clearBox(targetUsername?: string): Promise<void> {
+  const user = targetUsername || getActiveUsername();
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_POKEMON, 'readwrite');
     const store = tx.objectStore(STORE_POKEMON);
-    const req = store.clear();
-    req.onsuccess = () => resolve();
+    const req = store.getAll();
+    req.onsuccess = () => {
+      const raw: BoxPokemon[] = req.result || [];
+      for (const p of raw) {
+        if ((p.userId || 'hxc') === user) {
+          store.delete(p.id);
+        }
+      }
+      resolve();
+    };
     req.onerror = () => reject(req.error);
   });
 }

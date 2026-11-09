@@ -45,6 +45,7 @@ export interface RatingParams {
   cookingContext?: CookingScenarioContext;
   sleepHours?: number;
   previewLv80?: boolean;
+  mewLearnedSkill?: string;
 }
 
 export interface RatingResult {
@@ -355,6 +356,7 @@ export function ratePokemon(params: RatingParams): RatingResult {
     cookingContext,
     sleepHours = 8.5,
     previewLv80 = false,
+    mewLearnedSkill,
   } = params;
 
   const mon =
@@ -388,6 +390,7 @@ export function ratePokemon(params: RatingParams): RatingResult {
     cookingContext,
     sleepHours,
     allowPreviewLv80: allowPreview,
+    mewLearnedSkill,
   });
   const currentScore = extractMetricValue(currentProd, evaluatedMetric);
 
@@ -406,6 +409,7 @@ export function ratePokemon(params: RatingParams): RatingResult {
     cookingContext,
     sleepHours,
     allowPreviewLv80: allowPreview,
+    mewLearnedSkill,
   });
   const baselineScore = extractMetricValue(baselineProd, evaluatedMetric);
 
@@ -448,6 +452,7 @@ export function ratePokemon(params: RatingParams): RatingResult {
           cookingContext,
           sleepHours,
           allowPreviewLv80: allowPreview,
+          mewLearnedSkill,
         });
 
         const score = extractMetricValue(prod, evaluatedMetric);

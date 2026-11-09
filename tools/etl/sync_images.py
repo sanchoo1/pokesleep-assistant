@@ -71,9 +71,9 @@ def main() -> None:
     total_files += c
     total_bytes += b
 
-    # Pokémon sprites (skip *_shiny.png, 160x160 Retina crisp)
-    c, b = copy_and_resize_dir("pokemon", max_size=(160, 160), exclude_suffix="_shiny.png")
-    print(f"[Images] pokemon: {c} files ({b / 1024:.1f} KB)")
+    # Pokémon sprites (both normal and shiny, 160x160 Retina crisp)
+    c, b = copy_and_resize_dir("pokemon", max_size=(160, 160))
+    print(f"[Images] pokemon (normal + shiny): {c} files ({b / 1024:.1f} KB)")
     total_files += c
     total_bytes += b
 

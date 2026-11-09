@@ -117,7 +117,7 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ locale }) => {
           <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
             <div className="flex flex-wrap items-center gap-2.5">
               <div className="relative flex-1 min-w-[220px] max-w-md">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <Search className="w-4 h-4 text-[var(--text-subtle)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -327,7 +327,7 @@ export const PokedexView: React.FC<PokedexViewProps> = ({ locale }) => {
         <div className="space-y-4">
           <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap items-center gap-2.5">
             <div className="relative flex-1 min-w-[200px] max-w-md">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <Search className="w-4 h-4 text-[var(--text-subtle)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}

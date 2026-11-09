@@ -96,7 +96,129 @@ export interface ProductionParams {
   cookingContext?: CookingScenarioContext;
   sleepHours?: number; // default 8.5
   allowPreviewLv80?: boolean;
+  mewLearnedSkill?: string; // Mew's Versatile learned skill via Eureka Seed (e.g. 'Energy For Everyone S')
 }
+
+export interface MewLearnedSkillMeta {
+  id: string;
+  name: string;
+  nameZh: string;
+  nameJa: string;
+  role: string;
+  roleType: 'healer' | 'ingredient' | 'strength' | 'pot' | 'crit' | 'helps' | 'berries' | 'shards' | 'random';
+  description: string;
+}
+
+export const MEW_LEARNED_SKILLS: MewLearnedSkillMeta[] = [
+  {
+    id: 'Energy For Everyone S',
+    name: 'Energy For Everyone S',
+    nameZh: '活力疗愈S (E4E 全队奶妈)',
+    nameJa: 'げんきオールS',
+    role: '团队奶妈 / 全队活力续航',
+    roleType: 'healer',
+    description: '为全队所有成员回复大量活力，维持全队全天处于 >80% 活力的极速帮忙区间。',
+  },
+  {
+    id: 'Ingredient Magnet S',
+    name: 'Ingredient Magnet S',
+    nameZh: '食材获取S (海量食材补给)',
+    nameJa: '食材ゲットS',
+    role: '全局食材补给 / 顶级填锅',
+    roleType: 'ingredient',
+    description: '随机获取海量各类食材，极大丰富食材库并支持高级食谱烹饪。',
+  },
+  {
+    id: 'Charge Strength M',
+    name: 'Charge Strength M',
+    nameZh: '能量填充M (高额能量爆发)',
+    nameJa: 'エナジーチャージM',
+    role: '强力能量爆发 / 纯卡比兽能量',
+    roleType: 'strength',
+    description: '直接为卡比兽注入超高额能量，爆发力极强。',
+  },
+  {
+    id: 'Cooking Power-Up S',
+    name: 'Cooking Power-Up S',
+    nameZh: '料理强化S (大锅扩容)',
+    nameJa: '料理パワーアップS',
+    role: '扩锅辅助 / 烹饪极限大菜',
+    roleType: 'pot',
+    description: '大幅扩张下一次料理的锅容量，助攻制作 77+ 或更高容量的顶级大菜。',
+  },
+  {
+    id: 'Tasty Chance S',
+    name: 'Tasty Chance S',
+    nameZh: '料理成功S (暴击率提升)',
+    nameJa: 'おてつだいブーストS',
+    role: '烹饪暴击提升 / 料理爆击',
+    roleType: 'crit',
+    description: '提升下一次料理的大成功（暴击）概率，每次未暴击持续累加直至爆发。',
+  },
+  {
+    id: 'Extra Helpful S',
+    name: 'Extra Helpful S',
+    nameZh: '帮手支援S (队员瞬间帮忙)',
+    nameJa: 'おてつだいサポートS',
+    role: '即时帮忙协助 / 队员加速',
+    roleType: 'helps',
+    description: '瞬间使队伍中随机一名队员产生多次瞬间帮忙，获取该队员的树果与食材。',
+  },
+  {
+    id: 'Berry Burst',
+    name: 'Berry Burst',
+    nameZh: '树果遽增 (树果喷发)',
+    nameJa: 'ばけのかわ（きのみバースト）',
+    role: '树果喷发 / 瞬间能量',
+    roleType: 'berries',
+    description: '自身及全队立刻获得额外树果掉落，直接转化为卡比兽能量。',
+  },
+  {
+    id: 'Charge Strength S',
+    name: 'Charge Strength S',
+    nameZh: '能量填充S (基础能量)',
+    nameJa: 'エナジーチャージS',
+    role: '基础能量填充',
+    roleType: 'strength',
+    description: '为卡比兽增加稳定基础能量。',
+  },
+  {
+    id: 'Dream Shard Magnet S',
+    name: 'Dream Shard Magnet S',
+    nameZh: '梦之碎片获取S (碎片收益)',
+    nameJa: 'ゆめのかけらゲットS',
+    role: '资源收益 / 梦之碎片',
+    roleType: 'shards',
+    description: '每次发动获得大量梦之碎片，适用于培养升级与高阶活动筹备。',
+  },
+  {
+    id: 'Energizing Cheer S',
+    name: 'Energizing Cheer S',
+    nameZh: '活力加油S (单体大回体)',
+    nameJa: 'げんきエールS',
+    role: '单体紧急救急',
+    roleType: 'healer',
+    description: '随机为队伍中活力最低的一只宝可梦回复超高额活力。',
+  },
+  {
+    id: 'Charge Energy S',
+    name: 'Charge Energy S',
+    nameZh: '活力填充S (自身自愈)',
+    nameJa: 'げんきチャージS',
+    role: '自身持续满活力',
+    roleType: 'healer',
+    description: '为梦幻自身回复大量活力，保障梦幻自身全天满状态。',
+  },
+  {
+    id: 'Metronome',
+    name: 'Metronome',
+    nameZh: '挥指 (初始默认随机技能)',
+    nameJa: 'ゆびをふる',
+    role: '随机挥指 / 初始白板',
+    roleType: 'random',
+    description: '刚获得梦幻时的初始技能，随机施展全游戏中任意一个技能的效果。',
+  },
+];
 
 export interface DailyIngredientProduce {
   ingredient: string;
@@ -283,13 +405,21 @@ export function resolveIngredientsForSlots(
       const match = slot0List.find(i => i.ingredient.toLowerCase() === selection.slot0?.toLowerCase());
       if (match) s0 = match;
     }
-    if (selection.slot30) {
-      const match = slot30List.find(i => i.ingredient.toLowerCase() === selection.slot30?.toLowerCase());
-      if (match) s30 = match;
+    if (selection.slot30 !== undefined) {
+      if (selection.slot30 === 'Locked' || selection.slot30 === '') {
+        s30 = { ingredient: 'Locked', amount: 0 };
+      } else {
+        const match = slot30List.find(i => i.ingredient.toLowerCase() === selection.slot30?.toLowerCase());
+        if (match) s30 = match;
+      }
     }
-    if (selection.slot60) {
-      const match = slot60List.find(i => i.ingredient.toLowerCase() === selection.slot60?.toLowerCase());
-      if (match) s60 = match;
+    if (selection.slot60 !== undefined) {
+      if (selection.slot60 === 'Locked' || selection.slot60 === '') {
+        s60 = { ingredient: 'Locked', amount: 0 };
+      } else {
+        const match = slot60List.find(i => i.ingredient.toLowerCase() === selection.slot60?.toLowerCase());
+        if (match) s60 = match;
+      }
     }
   }
 
@@ -326,14 +456,27 @@ export function calculateSkillIngredientProduce(params: {
   dailySkillProcs: number;
   effectiveSkillLevel: number;
   mapBonus?: number;
+  mewLearnedSkill?: string;
 }): DailyIngredientProduce[] {
-  const { mon, dailySkillProcs, effectiveSkillLevel, mapBonus = 0 } = params;
+  const { mon, dailySkillProcs, effectiveSkillLevel, mapBonus = 0, mewLearnedSkill } = params;
   if (dailySkillProcs <= 0) return [];
 
-  const skillName = mon.skill.name;
-  const baseSkillName = mon.skill.baseSkillName || mon.skill.name;
-  const activationsRaw = mon.skill.activations || {};
-  const maxSkillLvl = mon.skill.maxLevel || (mon.skill.RP?.length || 6);
+  let skillName = mon.skill.name;
+  let baseSkillName = mon.skill.baseSkillName || mon.skill.name;
+  let activationsRaw = mon.skill.activations || {};
+  let maxSkillLvl = mon.skill.maxLevel || (mon.skill.RP?.length || 6);
+
+  // If Mew has learned Ingredient Magnet S via Eureka Seed:
+  if (mon.name === 'MEW' && mewLearnedSkill?.toLowerCase().includes('ingredient magnet')) {
+    const magnetMon = GAME_DATA.pokemon.find(p => p.skill.name === 'Ingredient Magnet S');
+    if (magnetMon) {
+      skillName = magnetMon.skill.name;
+      baseSkillName = magnetMon.skill.baseSkillName || magnetMon.skill.name;
+      activationsRaw = magnetMon.skill.activations || {};
+      maxSkillLvl = magnetMon.skill.maxLevel || 6;
+    }
+  }
+
   const clampedLvl = Math.max(1, Math.min(effectiveSkillLevel, maxSkillLvl));
   const lvlIdx = clampedLvl - 1;
   const mapMult = 1.0 + Math.max(0, mapBonus) / 100;
@@ -451,6 +594,7 @@ export function evaluateSkillActivations(params: {
   selfBerryBaseStrengthAtLevel: number;
   mapBonus: number;
   cookingContext?: CookingScenarioContext;
+  mewLearnedSkill?: string;
 }): { dailySkillEnergy: number; summary: SkillActivationSummary } {
   const {
     mon,
@@ -465,6 +609,7 @@ export function evaluateSkillActivations(params: {
     selfBerryBaseStrengthAtLevel,
     mapBonus,
     cookingContext,
+    mewLearnedSkill,
   } = params;
 
   const maxSkillLevel = mon.skill.maxLevel || (mon.skill.RP?.length || 6);
@@ -484,6 +629,173 @@ export function evaluateSkillActivations(params: {
     typeof mon.skill.critChance === 'number' && typeof mon.skill.critMultiplier === 'number'
       ? 1 + mon.skill.critChance * (mon.skill.critMultiplier - 1)
       : 1.0;
+
+  // Specialized Handling for Mew's "十项全能" (Versatile):
+  // Inherently yields candy + executes the learned main skill from Eureka Seed!
+  if (mon.name === 'MEW' || mon.skill.name === 'Versatile') {
+    const effectiveLearned = mewLearnedSkill || 'Metronome';
+    // 1. Inherent Versatile Candy Reward
+    const candyAct = activationsRaw.candy;
+    const baseCandyAmt = candyAct?.amounts?.[lvlIdx] ?? 1;
+    const critCandyAmt = candyAct?.critAmounts?.[lvlIdx] ?? 0;
+    const expectedCandy = baseCandyAmt + critCandyAmt * 0.25;
+    const dailyCandies = dailySkillProcs * expectedCandy;
+    const candyEnergy = dailyCandies * 400 * fieldMult;
+
+    breakdown.push({
+      key: 'candy',
+      unit: 'candy' as MainskillUnit,
+      perProcSelf: baseCandyAmt,
+      perProcTeamEach: 0,
+      dailySelf: dailyCandies,
+      dailyTeamTotal: 0,
+      estimatedDailyEnergy: candyEnergy,
+    });
+    totalEstimatedEnergy += candyEnergy;
+
+    // 2. Learned Skill Execution
+    if (effectiveLearned === 'Metronome') {
+      const metronomeEst = dailySkillProcs * 1350 * fieldMult;
+      breakdown.push({
+        key: 'metronome',
+        unit: 'strength' as MainskillUnit,
+        perProcSelf: 1350,
+        perProcTeamEach: 0,
+        dailySelf: metronomeEst,
+        dailyTeamTotal: 0,
+        estimatedDailyEnergy: metronomeEst,
+      });
+      totalEstimatedEnergy += metronomeEst;
+    } else {
+      const learnedMon = GAME_DATA.pokemon.find(
+        (p) =>
+          p.skill.name.toLowerCase() === effectiveLearned.toLowerCase() ||
+          p.skill.baseSkillName?.toLowerCase() === effectiveLearned.toLowerCase()
+      );
+      if (learnedMon && learnedMon.skill.activations) {
+        const learnedActs = learnedMon.skill.activations;
+        const learnedBase = learnedMon.skill.baseSkillName || learnedMon.skill.name;
+        const learnedMax = learnedMon.skill.maxLevel || 6;
+        const learnedLvlIdx = Math.max(0, Math.min(effectiveSkillLevel, learnedMax) - 1);
+
+        for (const [actKey, actDef] of Object.entries(learnedActs)) {
+          if ((actKey === 'low' || actKey === 'high') && learnedActs.mean) continue;
+          if (actKey === 'paired' && learnedActs.solo) continue;
+          if (actKey === 'pairedHelps' && learnedActs.soloHelps) continue;
+
+          const rawAmt = actDef.amounts?.[learnedLvlIdx] ?? actDef.amounts?.[actDef.amounts.length - 1] ?? 0;
+          const isTeamOnlyBerries = actKey === 'teamBerries';
+          const selfAmt = isTeamOnlyBerries ? 0 : rawAmt;
+          const teamEach = isTeamOnlyBerries ? rawAmt : (actDef.teamAmounts?.[learnedLvlIdx] ?? 0);
+          const isTeamWideAll5 =
+            (actDef.unit === 'energy' && learnedBase.includes('Energy For Everyone')) ||
+            (actDef.unit === 'helps' && learnedBase.includes('Helper Boost'));
+          const teamTotalPerProc = isTeamWideAll5 ? selfAmt * 5 : teamEach > 0 ? teamEach * 4 : 0;
+
+          const dailySelf = dailySkillProcs * selfAmt * critBoost;
+          const dailyTeamTotal = dailySkillProcs * teamTotalPerProc * critBoost;
+
+          let estEnergy = 0;
+          switch (actDef.unit) {
+            case 'berries': {
+              const selfEnergyPerProc = selfAmt * selfBerryFinalStrength * critBoost;
+              const teamEnergyPerProc = 4 * teamEach * selfBerryBaseStrengthAtLevel * fieldMult * critBoost;
+              estEnergy = dailySkillProcs * (selfEnergyPerProc + teamEnergyPerProc);
+              break;
+            }
+            case 'strength': {
+              estEnergy = dailySkillProcs * selfAmt * fieldMult;
+              break;
+            }
+            case 'ingredients': {
+              const avgIngEnergy = 125 * fieldMult;
+              estEnergy = (dailySelf + dailyTeamTotal) * avgIngEnergy;
+              break;
+            }
+            case 'pot size': {
+              const fillerBase = cookingContext?.fillerEnergyPerSlot ?? 135;
+              const recipeMult = cookingContext?.recipeMultiplier ?? 1.0;
+              const avgPotSlotBonusEnergy = fillerBase * recipeMult * fieldMult;
+              estEnergy = dailySelf * avgPotSlotBonusEnergy;
+              break;
+            }
+            case 'energy': {
+              if (learnedBase.includes('Energy For Everyone')) {
+                estEnergy = dailySkillProcs * selfAmt * 160 * fieldMult;
+              } else if (learnedBase.includes('Energizing Cheer')) {
+                estEnergy = dailySkillProcs * selfAmt * 55 * fieldMult;
+              } else {
+                estEnergy = dailySkillProcs * selfAmt * 20 * fieldMult;
+              }
+              break;
+            }
+            case 'helps': {
+              estEnergy = dailySkillProcs * selfAmt * 185 * fieldMult;
+              break;
+            }
+            case 'crit chance': {
+              const mealEnergy = cookingContext?.dishEnergyBaseline ?? 35000;
+              const scale = mealEnergy / 35000;
+              estEnergy = dailySkillProcs * selfAmt * 420 * scale * fieldMult;
+              break;
+            }
+            case 'dream shards': {
+              estEnergy = dailySkillProcs * (learnedMon.skill.RP?.[learnedLvlIdx] ?? 400) * 0.65 * fieldMult;
+              break;
+            }
+            default: {
+              estEnergy = dailySkillProcs * (learnedMon.skill.RP?.[learnedLvlIdx] ?? 400) * fieldMult;
+              break;
+            }
+          }
+
+          totalEstimatedEnergy += estEnergy;
+          breakdown.push({
+            key: `learned_${actKey}`,
+            unit: actDef.unit,
+            perProcSelf: selfAmt,
+            perProcTeamEach: teamEach,
+            dailySelf,
+            dailyTeamTotal,
+            estimatedDailyEnergy: estEnergy,
+          });
+        }
+      }
+    }
+
+    const primary = breakdown.find((b) => b.key !== 'candy') || breakdown[0];
+    const perProcTotalPrimary =
+      primary.unit === 'berries' && primary.perProcTeamEach > 0
+        ? primary.perProcSelf + 4 * primary.perProcTeamEach
+        : primary.perProcSelf;
+    const dailyTotalPrimary =
+      primary.unit === 'berries' && primary.perProcTeamEach > 0
+        ? primary.dailySelf + primary.dailyTeamTotal
+        : primary.dailySelf;
+
+    return {
+      dailySkillEnergy: totalEstimatedEnergy,
+      summary: {
+        skillName: `Versatile (${effectiveLearned})`,
+        baseSkillName: `Versatile (${effectiveLearned})`,
+        baseSkillLevel,
+        skillLevelUpBonus,
+        effectiveSkillLevel: clampedLvl,
+        maxSkillLevel,
+        baseTriggerRate,
+        modifiedTriggerRate,
+        effectiveTriggerRate,
+        pityProcThreshold: mon.pityProcThreshold,
+        dailySkillProcs,
+        primaryUnit: primary.unit,
+        perProcOutput: perProcTotalPrimary,
+        dailyOutput: dailyTotalPrimary,
+        estimatedDailyEnergy: totalEstimatedEnergy,
+        description: `十项全能（已习得「${effectiveLearned}」+ 附赠队伍糖果）`,
+        breakdown,
+      },
+    };
+  }
 
   const actEntries = Object.entries(activationsRaw);
 
@@ -790,6 +1102,7 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
     cookingContext,
     sleepHours = 8.5,
     allowPreviewLv80 = false,
+    mewLearnedSkill,
   } = params;
 
   const maxAllowedLevel = allowPreviewLv80 ? MAX_PREVIEW_POKEMON_LEVEL : MAX_POKEMON_LEVEL;
@@ -885,8 +1198,22 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
   // 6. Ingredients Production
   const resolvedSlots = resolveIngredientsForSlots(mon, ingredientSelection);
   const unlockedSlots: Array<{ ingredient: string; amount: number }> = [resolvedSlots.slot0];
-  if (level >= 30 && resolvedSlots.slot30) unlockedSlots.push(resolvedSlots.slot30);
-  if (level >= 60 && resolvedSlots.slot60) unlockedSlots.push(resolvedSlots.slot60);
+  if (
+    level >= 30 &&
+    resolvedSlots.slot30 &&
+    resolvedSlots.slot30.ingredient !== 'Locked' &&
+    resolvedSlots.slot30.amount > 0
+  ) {
+    unlockedSlots.push(resolvedSlots.slot30);
+  }
+  if (
+    level >= 60 &&
+    resolvedSlots.slot60 &&
+    resolvedSlots.slot60.ingredient !== 'Locked' &&
+    resolvedSlots.slot60.amount > 0
+  ) {
+    unlockedSlots.push(resolvedSlots.slot60);
+  }
 
   const dailyIngredientHelps = dailyHelps * ingredientRate;
   const slotWeight = 1.0 / unlockedSlots.length;
@@ -956,6 +1283,7 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
     selfBerryBaseStrengthAtLevel: berryStrengthResult.baseStrengthAtLevel,
     mapBonus,
     cookingContext,
+    mewLearnedSkill,
   });
   const dailySkillEnergy = skillEval.dailySkillEnergy;
 
@@ -965,6 +1293,7 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
     dailySkillProcs,
     effectiveSkillLevel: effectiveMainSkillLevel,
     mapBonus,
+    mewLearnedSkill,
   });
 
   let skillDailyIngredientCount = 0;

@@ -226,6 +226,58 @@ describe('Production: L1 Single-Pokemon Daily Calculator', () => {
     expect(prod80.activeSubskills.map((s) => s.name)).toContain('Skill Trigger M');
     expect(prod80.activeSubskills.length).toBe(5);
   });
+
+  it('should support Darkrai and Mew with Locked ingredient slots and Mew Versatile learned skills', () => {
+    // 1. Darkrai with slot B & C Locked at Lv.38
+    const darkraiProd = calculateDailyProduction({
+      pokemon: 'DARKRAI',
+      level: 38,
+      nature: 'Bashful',
+      subskills: ['Skill Level Up S', 'Helping Speed S', 'Helping Speed M'],
+      ingredientSelection: { slot0: 'Sausage', slot30: 'Locked', slot60: 'Locked' },
+    });
+
+    expect(darkraiProd.pokemon.name).toBe('DARKRAI');
+    expect(darkraiProd.dailyIngredients.length).toBe(1);
+    expect(darkraiProd.dailyIngredients[0].ingredient).toBe('Sausage');
+    expect(darkraiProd.dailyIngredientCount).toBeGreaterThan(0);
+    expect(Number.isNaN(darkraiProd.totalDailyEnergy)).toBe(false);
+
+    // 2. Mew with Versatile + Energy for Everyone S
+    const mewHealer = calculateDailyProduction({
+      pokemon: 'MEW',
+      level: 50,
+      nature: 'Bashful',
+      subskills: ['Skill Trigger M', 'Skill Trigger S'],
+      ingredientSelection: { slot0: 'Egg', slot30: 'Locked', slot60: 'Locked' },
+      mainSkillLevel: 6,
+      mewLearnedSkill: 'Energy For Everyone S',
+    });
+
+    expect(mewHealer.pokemon.name).toBe('MEW');
+    expect(mewHealer.skillActivationDetails.skillName).toContain('Energy For Everyone S');
+    // Dual activations: candy + learned skill
+    const candyEntry = mewHealer.skillActivationDetails.breakdown.find((b) => b.key === 'candy');
+    const energyEntry = mewHealer.skillActivationDetails.breakdown.find((b) => b.key.includes('energy'));
+    expect(candyEntry).toBeDefined();
+    expect(energyEntry).toBeDefined();
+    expect(candyEntry!.dailySelf).toBeGreaterThan(0);
+    expect(mewHealer.dailySkillEnergy).toBeGreaterThan(candyEntry!.estimatedDailyEnergy);
+
+    // 3. Mew with Versatile + Ingredient Magnet S
+    const mewMagnet = calculateDailyProduction({
+      pokemon: 'MEW',
+      level: 50,
+      nature: 'Bashful',
+      subskills: ['Skill Trigger M', 'Skill Trigger S'],
+      ingredientSelection: { slot0: 'Egg', slot30: 'Locked', slot60: 'Locked' },
+      mainSkillLevel: 6,
+      mewLearnedSkill: 'Ingredient Magnet S',
+    });
+
+    expect(mewMagnet.skillDailyIngredients.length).toBeGreaterThan(10);
+    expect(mewMagnet.skillDailyIngredientCount).toBeGreaterThan(20);
+  });
 });
 
 function prodMon(name: string) {

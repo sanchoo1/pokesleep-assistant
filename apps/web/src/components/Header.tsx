@@ -1,7 +1,7 @@
 import React from 'react';
 import { SupportedLocale } from '@pokesleep/data';
 import { getUIText } from '../i18n';
-import { Box, Sparkles, ChefHat, BookOpen, Globe } from 'lucide-react';
+import { Box, Sparkles, ChefHat, BookOpen, Globe, User, ChevronDown } from 'lucide-react';
 
 export type TabType = 'box' | 'rating' | 'team' | 'pokedex';
 
@@ -11,6 +11,8 @@ interface HeaderProps {
   locale: SupportedLocale;
   onLocaleChange: (loc: SupportedLocale) => void;
   pokemonCount: number;
+  currentUser: string;
+  onOpenProfileModal: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -19,6 +21,8 @@ export const Header: React.FC<HeaderProps> = ({
   locale,
   onLocaleChange,
   pokemonCount,
+  currentUser,
+  onOpenProfileModal,
 }) => {
   const tabs = [
     { id: 'box' as TabType, label: getUIText('tabBox', locale), icon: Box, badge: pokemonCount },
@@ -48,19 +52,34 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            {/* Language Selector */}
-            <div className="flex items-center space-x-1.5 sm:space-x-2">
-              <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--text-muted)]" />
-              <select
-                value={locale}
-                onChange={(e) => onLocaleChange(e.target.value as SupportedLocale)}
-                className="text-xs bg-[#f4efe6] hover:bg-[#eae4d6] border-none rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 font-medium text-[var(--text-main)] cursor-pointer focus:ring-2 focus:ring-[var(--primary)] transition-colors"
+            {/* Profile & Language Selector */}
+            <div className="flex items-center space-x-2">
+              {/* User Profile Selector Badge */}
+              <button
+                type="button"
+                onClick={onOpenProfileModal}
+                className="flex items-center space-x-1.5 px-2.5 py-1 sm:py-1.5 rounded-lg bg-[#f4efe6] hover:bg-[#eae4d6] text-xs font-semibold text-[var(--text-main)] tap-feedback cursor-pointer transition-colors border border-[#eae4d6]"
+                title="切换或注册家庭成员档案"
               >
-                <option value="zh-CN">简体中文</option>
-                <option value="zh-TW">繁體中文</option>
-                <option value="ja">日本語</option>
-                <option value="en">English</option>
-              </select>
+                <User className="w-3.5 h-3.5 text-[var(--primary)] shrink-0" />
+                <span className="max-w-[70px] sm:max-w-[100px] truncate">{currentUser}</span>
+                <ChevronDown className="w-3 h-3 text-[var(--text-muted)] shrink-0" />
+              </button>
+
+              {/* Language Selector */}
+              <div className="flex items-center space-x-1">
+                <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--text-muted)] hidden sm:inline" />
+                <select
+                  value={locale}
+                  onChange={(e) => onLocaleChange(e.target.value as SupportedLocale)}
+                  className="text-xs bg-[#f4efe6] hover:bg-[#eae4d6] border-none rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 font-medium text-[var(--text-main)] cursor-pointer focus:ring-2 focus:ring-[var(--primary)] transition-colors"
+                >
+                  <option value="zh-CN">简体中文</option>
+                  <option value="zh-TW">繁體中文</option>
+                  <option value="ja">日本語</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
             </div>
           </div>
 

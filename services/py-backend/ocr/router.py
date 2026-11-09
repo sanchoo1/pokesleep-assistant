@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 from ocr.parser import ParsedPokemonResult, parse_ocr_text
 from ocr.scanner import scan_pokemon_image
+from ocr.audit_logger import save_ocr_scan_record
 
 router = APIRouter(prefix="/api/ocr", tags=["ocr"])
 
@@ -55,6 +56,13 @@ async def api_scan_image(file: UploadFile = File(...)):
 
     try:
         parsed_result, boxes = scan_pokemon_image(content)
+        # Automatically record uploaded screenshot and OCR diagnostic logs locally for annotation
+        save_ocr_scan_record(
+            image_bytes=content,
+            parsed_result=parsed_result,
+            boxes=boxes,
+            original_filename=file.filename,
+        )
         return ScanImageResponse(parsed=parsed_result, boxes=boxes)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"OCR scan failed: {str(e)}")

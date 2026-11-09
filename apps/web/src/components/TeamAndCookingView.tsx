@@ -26,28 +26,58 @@ interface TeamAndCookingViewProps {
   teamPokemon: BoxPokemon[];
   locale: SupportedLocale;
   onRemoveFromTeam: (pokemon: BoxPokemon) => void;
+  currentUser?: string;
 }
 
 export const TeamAndCookingView: React.FC<TeamAndCookingViewProps> = ({
   teamPokemon,
   locale,
   onRemoveFromTeam,
+  currentUser = 'hxc',
 }) => {
   const [mealCategory, setMealCategory] = useState<'curry' | 'salad' | 'dessert'>('curry');
-  const [potSize, setPotSize] = useState(57);
+  const [potSize, setPotSize] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`pokesleep_potsize_${currentUser}`);
+      return saved ? Number(saved) : 57;
+    } catch {
+      return 57;
+    }
+  });
   const [goodCampTicket, setGoodCampTicket] = useState(false);
   const [islandBonus, setIslandBonus] = useState(20);
 
-  const [inventory, setInventory] = useState<Record<string, number>>({
-    Apple: 40,
-    Sausage: 30,
-    Ginger: 25,
-    Milk: 20,
-    Honey: 20,
-    Tomato: 15,
-    Egg: 15,
-    Herb: 15,
+  const [inventory, setInventory] = useState<Record<string, number>>(() => {
+    try {
+      const saved = localStorage.getItem(`pokesleep_inventory_${currentUser}`);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      Apple: 40,
+      Sausage: 30,
+      Ginger: 25,
+      Milk: 20,
+      Honey: 20,
+      Tomato: 15,
+      Egg: 15,
+      Herb: 15,
+    };
   });
+
+  // Persist inventory when changed
+  const updateInventory = (newInv: Record<string, number>) => {
+    setInventory(newInv);
+    try {
+      localStorage.setItem(`pokesleep_inventory_${currentUser}`, JSON.stringify(newInv));
+    } catch {}
+  };
+
+  const updatePotSize = (newPot: number) => {
+    setPotSize(newPot);
+    try {
+      localStorage.setItem(`pokesleep_potsize_${currentUser}`, String(newPot));
+    } catch {}
+  };
 
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [weeklyPlan, setWeeklyPlan] = useState<any | null>(null);
@@ -315,7 +345,7 @@ export const TeamAndCookingView: React.FC<TeamAndCookingViewProps> = ({
                 min={15}
                 max={200}
                 value={potSize}
-                onChange={(e) => setPotSize(Number(e.target.value))}
+                onChange={(e) => updatePotSize(Number(e.target.value))}
                 className="input-field text-xs"
               />
             </div>
@@ -371,7 +401,7 @@ export const TeamAndCookingView: React.FC<TeamAndCookingViewProps> = ({
                     max={999}
                     value={inventory[ing.name] || 0}
                     onChange={(e) =>
-                      setInventory({
+                      updateInventory({
                         ...inventory,
                         [ing.name]: Math.max(0, Number(e.target.value)),
                       })

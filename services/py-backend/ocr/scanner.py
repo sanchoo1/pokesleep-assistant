@@ -112,5 +112,5 @@ def scan_pokemon_image(
     boxes.sort(key=lambda b: (_box_bounds(b["box"])[1], _box_bounds(b["box"])[0]))
     lines = [b["text"] for b in boxes]
 
-    parsed_result = parse_ocr_text(lines, boxes=boxes, image_size=(w, h))
+    parsed_result = parse_ocr_text(lines, boxes=boxes, image_size=(w, h), image_np=img_np)
     return parsed_result, boxes

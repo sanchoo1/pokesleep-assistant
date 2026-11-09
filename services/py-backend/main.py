@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from ocr.router import router as ocr_router
 from optimizer.router import router as optimizer_router
+from profiles.router import router as profiles_router
 
 app = FastAPI(
     title="Pokémon Sleep Assistant API",
@@ -22,6 +23,7 @@ app.add_middleware(
 
 app.include_router(ocr_router)
 app.include_router(optimizer_router)
+app.include_router(profiles_router)
 
 
 @app.get("/health")

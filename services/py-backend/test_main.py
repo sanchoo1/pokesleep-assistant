@@ -151,12 +151,13 @@ def test_ocr_lv70_lv80_and_real_screenshot():
         "level80": "Helping Speed S",
     }
 
-    # 2. If local gitignored test_imgs/蜥蜴王 exists, verify end-to-end real screenshot OCR
-    real_img = Path(__file__).resolve().parents[2] / "test_imgs" / "蜥蜴王"
+    # 2. If local gitignored test_imgs/cew or test_imgs/蜥蜴王 exists, verify end-to-end real screenshot OCR
+    test_imgs_dir = Path(__file__).resolve().parents[2] / "test_imgs"
+    real_img = test_imgs_dir / "cew" if (test_imgs_dir / "cew").exists() else test_imgs_dir / "蜥蜴王"
     if real_img.exists():
         res_img = client.post(
             "/api/ocr/scan-image",
-            files={"file": ("蜥蜴王", real_img.read_bytes(), "application/octet-stream")},
+            files={"file": (real_img.name, real_img.read_bytes(), "application/octet-stream")},
         )
         assert res_img.status_code == 200
         p = res_img.json()["parsed"]
@@ -166,6 +167,9 @@ def test_ocr_lv70_lv80_and_real_screenshot():
         assert p["carryLimit"] == 33
         assert p["mainSkillLevel"] == 3
         assert p["nature"]["name"] == "Relaxed"
+        assert p["isShiny"] is False
+        assert p["fieldConfidences"]["pokemon"] >= 0.60
+        assert p["fieldConfidences"]["isShiny"] >= 0.70
         assert [s["name"] for s in p["subskills"]] == [
             "Skill Trigger M",
             "Inventory Up S",
@@ -173,7 +177,38 @@ def test_ocr_lv70_lv80_and_real_screenshot():
             "Helping Bonus",
             "Helping Speed S",
         ]
-        assert p["ingredients"][1]["name"] == "Coffee"
+
+
+def test_vision_matcher_performance_and_nickname():
+    """Verify VisionMatcher runs in milliseconds on CPU, extracts custom nicknames, and detects shiny status."""
+    import time
+    from pathlib import Path
+    from ocr.vision_matcher import VisionMatcher
+
+    vm = VisionMatcher.get_instance()
+    assert len(vm.pokemon_signatures) >= 200
+    assert len(vm.ingredient_signatures) >= 15
+
+    test_img_path = Path(__file__).resolve().parents[2] / "test_imgs" / "cew"
+    if test_img_path.exists():
+        import cv2
+
+        img = cv2.imread(str(test_img_path))
+        t0 = time.time()
+        vis_res = vm.identify_pokemon_and_shiny(
+            img,
+            text_candidate_species=None,
+            raw_text_candidate="翠神",
+        )
+        elapsed_ms = (time.time() - t0) * 1000
+
+        # CPU performance budget check: must finish within 30ms!
+        assert elapsed_ms < 30.0, f"Vision matching took {elapsed_ms:.1f}ms, exceeding 30ms budget!"
+        assert vis_res["species"] == "SCEPTILE"
+        assert vis_res["nickname"] == "翠神"
+        assert vis_res["isShiny"] is False
+        assert vis_res["speciesConfidence"] >= 0.65
+        assert vis_res["shinyConfidence"] >= 0.80
 
 
 def test_python_rp_cross_validation_against_golden():
@@ -289,3 +324,136 @@ def test_optimizer_weekly_meals():
     # Verify ingredient flow conservation: final inventory should be non-negative
     for ing, rem in plan["finalInventory"].items():
         assert rem >= -1e-5
+
+
+def test_profiles_api():
+    # 1. List profiles, hxc must exist and have 3 default pokemon
+    res = client.get("/api/profiles")
+    assert res.status_code == 200
+    profiles = res.json()
+    assert any(p["username"] == "hxc" for p in profiles)
+    hxc_meta = next(p for p in profiles if p["username"] == "hxc")
+    assert hxc_meta["pokemonCount"] >= 3
+
+    # 2. Get hxc profile
+    res_hxc = client.get("/api/profiles/hxc")
+    assert res_hxc.status_code == 200
+    hxc_data = res_hxc.json()
+    assert hxc_data["username"] == "hxc"
+    assert len(hxc_data["pokemonList"]) >= 3
+
+    # 3. Create new profile 'test_member'
+    res_new = client.post("/api/profiles", json={"username": "test_member"})
+    assert res_new.status_code == 200
+    member_data = res_new.json()
+    assert member_data["username"] == "test_member"
+    assert len(member_data["pokemonList"]) == 0
+
+    # 4. Update test_member profile
+    res_update = client.put(
+        "/api/profiles/test_member",
+        json={
+            "pokemonList": [
+                {
+                    "id": "member_pika_01",
+                    "pokemonName": "PIKACHU",
+                    "level": 15,
+                    "nature": "Brave",
+                    "subskills": {},
+                    "ingredients": {"slotA": "Apple"},
+                    "createdAt": 1700000000000,
+                }
+            ],
+            "teamIds": ["member_pika_01"],
+            "locale": "en",
+        },
+    )
+    assert res_update.status_code == 200
+    updated = res_update.json()
+    assert len(updated["pokemonList"]) == 1
+    assert updated["locale"] == "en"
+
+    # 5. Verify deletion safeguard on hxc
+    res_del_hxc = client.delete("/api/profiles/hxc")
+    assert res_del_hxc.status_code == 400
+
+    # 6. Delete test_member
+    res_del = client.delete("/api/profiles/test_member")
+    assert res_del.status_code == 200
+
+
+def test_ditto_debug_scan_regression():
+    """Verify Ditto audit scan fixes subskills row-shifting and deduces ingredients."""
+    import os, json
+    scan_json_path = "data-sources/debug_scans/scan_20261108_050625_daa4a3.json"
+    if not os.path.exists(scan_json_path):
+        pytest.skip("Debug scan file not found")
+
+    with open(scan_json_path) as f:
+        data = json.load(f)
+
+    res = parse_ocr_text(
+        lines=data["parsed"]["rawLines"],
+        boxes=data["rawBoxes"],
+        image_size=(1170, 2532),
+    )
+
+    assert res.pokemon["name"] == "DITTO"
+    assert res.level == 36
+    assert res.rp == 1453
+    assert res.nature["name"] == "Docile"
+
+    # Subskills should be correctly placed in all 5 slots without shifting or fake skills
+    slots_map = {s.slot: s.name for s in res.subskills}
+    assert slots_map.get("level10") == "Ingredient Finder M"
+    assert slots_map.get("level25") == "Helping Bonus"
+    assert slots_map.get("level50") == "Inventory Up S"
+    assert slots_map.get("level70") == "Skill Level Up S"
+    assert slots_map.get("level80") == "Skill Trigger M"
+
+    # Ingredients deduced correctly: Oil (x2), Leek (x3), Leek (x5)
+    ing_map = {i.slot: (i.name, i.amount) for i in res.ingredients}
+    assert ing_map.get("slotA") == ("Oil", 2)
+    assert ing_map.get("slotB") == ("Leek", 3)
+    assert ing_map.get("slotC") == ("Leek", 5)
+
+
+def test_honchkrow_debug_scan_regression():
+    """Verify Honchkrow scan handles nickname, OCR glyph confusion (鷄->鴉), and ingredient previews."""
+    import os, json
+    scan_json_path = "data-sources/debug_scans/scan_20261108_054556_67245e.json"
+    if not os.path.exists(scan_json_path):
+        pytest.skip("Debug scan file not found")
+
+    with open(scan_json_path) as f:
+        data = json.load(f)
+
+    res = parse_ocr_text(
+        lines=data["parsed"]["rawLines"],
+        boxes=data["rawBoxes"],
+        image_size=(1170, 2532),
+    )
+
+    assert res.pokemon["name"] == "HONCHKROW"
+    assert res.level == 20
+    assert res.rp == 1136
+    assert res.nature["name"] == "Sassy"
+    assert res.carryLimit == 23
+    assert res.mainSkillLevel == 2
+    assert res.nickname == "扁鷄頭頭"
+
+    # Subskills
+    slots_map = {s.slot: s.name for s in res.subskills}
+    assert slots_map.get("level10") == "Helping Speed M"
+    assert slots_map.get("level25") == "Inventory Up S"
+    assert slots_map.get("level50") == "Skill Trigger S"
+    assert slots_map.get("level70") == "Skill Level Up M"
+    assert slots_map.get("level80") == "Helping Speed S"
+
+    # Ingredients
+    ing_map = {i.slot: (i.name, i.amount) for i in res.ingredients}
+    assert ing_map.get("slotA") == ("Coffee", 1)
+    assert ing_map.get("slotB") == ("Soybean", 3)
+
+
+

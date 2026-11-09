@@ -1,86 +1,38 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SupportedLocale } from '@pokesleep/data';
-import { BoxPokemon, getAllPokemon, savePokemon } from './storage/db';
+import {
+  BoxPokemon,
+  getAllPokemon,
+  savePokemon,
+  getActiveUsername,
+  setActiveUsername,
+  clearBox,
+} from './storage/db';
+import {
+  fetchProfilesList,
+  fetchProfileDataFromServer,
+  createProfileOnServer,
+  saveProfileToServer,
+  deleteProfileFromServer,
+  ProfileSummary,
+} from './storage/profileSync';
 import { Header, TabType } from './components/Header';
 import { BoxManager } from './components/BoxManager';
 import { RatingView } from './components/RatingView';
 import { TeamAndCookingView } from './components/TeamAndCookingView';
 import { PokedexView } from './components/PokedexView';
+import { ProfileModal } from './components/ProfileModal';
 import { getUIText } from './i18n';
-
-const SEED_POKEMON: BoxPokemon[] = [
-  {
-    id: 'seed_pikachu_01',
-    pokemonName: 'PIKACHU',
-    nickname: '雷电先锋',
-    level: 30,
-    nature: 'Adamant',
-    subskills: {
-      level10: 'Berry Finding S',
-      level25: 'Helping Speed M',
-      level50: 'Helping Bonus',
-      level70: 'Helping Speed S',
-      level80: 'Inventory Up L',
-    },
-    ingredients: {
-      slotA: 'Apple',
-      slotB: 'Apple',
-      slotC: 'Apple',
-    },
-    mainSkillLevel: 2,
-    ribbonLevel: 1,
-    createdAt: Date.now() - 100000,
-  },
-  {
-    id: 'seed_charizard_02',
-    pokemonName: 'CHARIZARD',
-    nickname: '火龙大厨',
-    level: 50,
-    nature: 'Quiet',
-    subskills: {
-      level10: 'Helping Bonus',
-      level25: 'Ingredient Finder M',
-      level50: 'Inventory Up L',
-      level70: 'Ingredient Finder S',
-      level80: 'Helping Speed M',
-    },
-    ingredients: {
-      slotA: 'Sausage',
-      slotB: 'Ginger',
-      slotC: 'Herb',
-    },
-    mainSkillLevel: 3,
-    ribbonLevel: 2,
-    createdAt: Date.now() - 50000,
-  },
-  {
-    id: 'seed_gardevoir_03',
-    pokemonName: 'GARDEVOIR',
-    nickname: '奶妈女王',
-    level: 50,
-    nature: 'Calm',
-    subskills: {
-      level10: 'Skill Trigger M',
-      level25: 'Helping Speed M',
-      level50: 'Skill Trigger S',
-      level70: 'Skill Level Up M',
-      level80: 'Berry Finding S',
-    },
-    ingredients: {
-      slotA: 'Apple',
-      slotB: 'Corn',
-      slotC: 'Leek',
-    },
-    mainSkillLevel: 4,
-    ribbonLevel: 0,
-    createdAt: Date.now() - 20000,
-  },
-];
 
 export const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<TabType>('box');
+  const [currentUser, setCurrentUser] = useState<string>(() => getActiveUsername());
+  const [profiles, setProfiles] = useState<ProfileSummary[]>([]);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
   const [locale, setLocale] = useState<SupportedLocale>(() => {
-    return (localStorage.getItem('pokesleep_locale') as SupportedLocale) || 'zh-CN';
+    return (localStorage.getItem(`pokesleep_locale_${getActiveUsername()}`) as SupportedLocale) ||
+      (localStorage.getItem('pokesleep_locale') as SupportedLocale) || 'zh-CN';
   });
 
   const [pokemonList, setPokemonList] = useState<BoxPokemon[]>([]);
@@ -88,71 +40,170 @@ export const App: React.FC = () => {
 
   const [teamIds, setTeamIds] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem('pokesleep_team_ids');
+      const saved = localStorage.getItem(`pokesleep_team_ids_${getActiveUsername()}`) ||
+        localStorage.getItem('pokesleep_team_ids');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
   });
 
-  const loadPokemon = useCallback(async () => {
+  const isInitialSyncDone = useRef(false);
+
+  // Refresh profile list
+  const refreshProfiles = useCallback(async () => {
     try {
-      let list = await getAllPokemon();
-      if (list.length === 0) {
-        // Seed default sample data so user immediately has a functional experience
-        for (const seed of SEED_POKEMON) {
-          await savePokemon(seed);
-        }
-        list = await getAllPokemon();
-        // Default seed active team
-        const defaultTeam = list.slice(0, 5).map((p) => p.id);
-        setTeamIds(defaultTeam);
-        localStorage.setItem('pokesleep_team_ids', JSON.stringify(defaultTeam));
-      } else {
-        // Automatically prune any stale/ghost IDs from teamIds and persist back to localStorage
-        setTeamIds((prev) => {
-          const validSet = new Set(list.map((p) => p.id));
-          const cleaned = Array.from(new Set(prev)).filter((id) => validSet.has(id)).slice(0, 5);
-          localStorage.setItem('pokesleep_team_ids', JSON.stringify(cleaned));
-          return cleaned;
-        });
-      }
-      setPokemonList(list);
+      const list = await fetchProfilesList();
+      setProfiles(list);
     } catch (err) {
-      console.error('Failed to load pokemon box:', err);
+      console.warn('Failed to load profiles:', err);
     }
   }, []);
 
+  // Load user data for a specific user
+  const loadUserData = useCallback(async (user: string) => {
+    try {
+      // 1. Load from local IndexedDB
+      let localList = await getAllPokemon(user);
+
+      // 2. Try fetching remote server profile
+      const serverProfile = await fetchProfileDataFromServer(user);
+
+      if (serverProfile) {
+        const localSyncTime = parseInt(localStorage.getItem(`pokesleep_last_sync_${user}`) || '0', 10);
+        const serverTime = serverProfile.updatedAt || 0;
+        const hasObsoleteSeed = localList.some(
+          (p) => p.id === 'seed_pikachu_01' || p.id === 'seed_gardevoir_03'
+        );
+
+        // Populate local from server if local is empty, or has outdated mock seeds, or server is newer
+        if (
+          serverProfile.pokemonList &&
+          (localList.length === 0 || hasObsoleteSeed || serverTime > localSyncTime)
+        ) {
+          await clearBox(user);
+          for (const item of serverProfile.pokemonList) {
+            await savePokemon(item, user);
+          }
+          localList = await getAllPokemon(user);
+          localStorage.setItem(`pokesleep_last_sync_${user}`, String(serverTime || Date.now()));
+
+          if (serverProfile.teamIds && serverProfile.teamIds.length > 0) {
+            const validSet = new Set(localList.map((p) => p.id));
+            const cleaned = serverProfile.teamIds.filter((id) => validSet.has(id)).slice(0, 5);
+            setTeamIds(cleaned);
+            localStorage.setItem(`pokesleep_team_ids_${user}`, JSON.stringify(cleaned));
+          }
+        } else if (localList.length > 0 && (!serverProfile.pokemonList || serverProfile.pokemonList.length === 0)) {
+          // Local has data, push to server
+          const now = Date.now();
+          await saveProfileToServer(user, {
+            pokemonList: localList,
+            teamIds: teamIds,
+            updatedAt: now,
+          });
+          localStorage.setItem(`pokesleep_last_sync_${user}`, String(now));
+        } else if (serverProfile.teamIds && serverProfile.teamIds.length > 0 && teamIds.length === 0) {
+          const validSet = new Set(localList.map((p) => p.id));
+          const cleaned = serverProfile.teamIds.filter((id) => validSet.has(id)).slice(0, 5);
+          if (cleaned.length > 0) {
+            setTeamIds(cleaned);
+            localStorage.setItem(`pokesleep_team_ids_${user}`, JSON.stringify(cleaned));
+          }
+        }
+      }
+
+      // Clean team IDs
+      setTeamIds((prev) => {
+        let currentTeam = prev;
+        try {
+          const saved = localStorage.getItem(`pokesleep_team_ids_${user}`);
+          if (saved) currentTeam = JSON.parse(saved);
+        } catch {}
+        const validSet = new Set(localList.map((p) => p.id));
+        const cleaned = Array.from(new Set(currentTeam)).filter((id) => validSet.has(id)).slice(0, 5);
+        localStorage.setItem(`pokesleep_team_ids_${user}`, JSON.stringify(cleaned));
+        return cleaned;
+      });
+
+      setPokemonList(localList);
+      refreshProfiles();
+    } catch (err) {
+      console.error('Failed to load user box:', err);
+    }
+  }, [refreshProfiles, teamIds]);
+
+  // Initial load
   useEffect(() => {
-    loadPokemon();
-  }, [loadPokemon]);
+    if (!isInitialSyncDone.current) {
+      isInitialSyncDone.current = true;
+      refreshProfiles();
+      loadUserData(currentUser);
+    }
+  }, [currentUser, loadUserData, refreshProfiles]);
+
+  const handleSwitchUser = useCallback(async (newUser: string) => {
+    if (newUser === currentUser) return;
+    setCurrentUser(newUser);
+    setActiveUsername(newUser);
+    // Switch locale if saved per user
+    const userLocale = (localStorage.getItem(`pokesleep_locale_${newUser}`) as SupportedLocale) || locale;
+    setLocale(userLocale);
+    await loadUserData(newUser);
+  }, [currentUser, locale, loadUserData]);
+
+  const handleCreateUser = useCallback(async (newUsername: string) => {
+    await createProfileOnServer(newUsername);
+    await refreshProfiles();
+    await handleSwitchUser(newUsername);
+  }, [refreshProfiles, handleSwitchUser]);
+
+  const handleDeleteUser = useCallback(async (username: string) => {
+    await deleteProfileFromServer(username);
+    await clearBox(username);
+    if (currentUser === username) {
+      await handleSwitchUser('hxc');
+    }
+    await refreshProfiles();
+  }, [currentUser, handleSwitchUser, refreshProfiles]);
 
   const handleLocaleChange = (newLoc: SupportedLocale) => {
     setLocale(newLoc);
+    localStorage.setItem(`pokesleep_locale_${currentUser}`, newLoc);
     localStorage.setItem('pokesleep_locale', newLoc);
+    saveProfileToServer(currentUser, { locale: newLoc });
   };
 
   const handleToggleTeam = (pokemon: BoxPokemon) => {
     setTeamIds((prev) => {
-      // 1. 基于当前存在的 pokemonList 进行去重与幽灵 ID 过滤清洗
       const validSet = new Set(pokemonList.map((p) => p.id));
       const validIds = Array.from(new Set(prev)).filter((id) => validSet.has(id));
 
       let next: string[];
       if (validIds.includes(pokemon.id)) {
-        // 移出队伍
         next = validIds.filter((id) => id !== pokemon.id);
       } else {
-        // 检查当前真实在队数量是否已达上限 5 只
         if (validIds.length >= 5) {
           alert(getUIText('teamLimitAlert', locale));
           return validIds;
         }
         next = [...validIds, pokemon.id];
       }
-      localStorage.setItem('pokesleep_team_ids', JSON.stringify(next));
+      localStorage.setItem(`pokesleep_team_ids_${currentUser}`, JSON.stringify(next));
+      const now = Date.now();
+      localStorage.setItem(`pokesleep_last_sync_${currentUser}`, String(now));
+      saveProfileToServer(currentUser, { teamIds: next, updatedAt: now });
       return next;
     });
+  };
+
+  const handleReloadBox = async () => {
+    const list = await getAllPokemon(currentUser);
+    setPokemonList(list);
+    const now = Date.now();
+    localStorage.setItem(`pokesleep_last_sync_${currentUser}`, String(now));
+    saveProfileToServer(currentUser, { pokemonList: list, teamIds, updatedAt: now });
+    refreshProfiles();
   };
 
   const handleAnalyzeFromBox = (pokemon: BoxPokemon) => {
@@ -170,13 +221,15 @@ export const App: React.FC = () => {
         locale={locale}
         onLocaleChange={handleLocaleChange}
         pokemonCount={pokemonList.length}
+        currentUser={currentUser}
+        onOpenProfileModal={() => setIsProfileModalOpen(true)}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 sm:pb-8">
         {currentTab === 'box' && (
           <BoxManager
             pokemonList={pokemonList}
-            onReload={loadPokemon}
+            onReload={handleReloadBox}
             locale={locale}
             onAnalyze={handleAnalyzeFromBox}
             teamIds={teamIds}
@@ -197,6 +250,7 @@ export const App: React.FC = () => {
             teamPokemon={teamPokemon}
             locale={locale}
             onRemoveFromTeam={handleToggleTeam}
+            currentUser={currentUser}
           />
         )}
 
@@ -206,10 +260,22 @@ export const App: React.FC = () => {
       <footer className="bg-[var(--surface)] border-t border-[var(--border-subtle)] py-6 pb-24 sm:pb-6 text-center text-xs text-[var(--text-muted)] px-4">
         <p>Pokémon Sleep Companion Toolkit © 2026. Made with ❤️ for the Pokémon Sleep Community.</p>
         <p className="mt-1 text-[var(--text-subtle)]">
-          Pokémon and its trademarks are © Nintendo / Creatures Inc. / GAME FREAK inc. / The Pokémon Company.
+          当前活跃档案：<strong className="text-[var(--text-main)]">{currentUser}</strong> · 支持免密多成员档案随时切换与云端同步。
         </p>
       </footer>
+
+      {/* Profile Switch & Registration Modal */}
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        currentUser={currentUser}
+        profiles={profiles}
+        onSelectUser={handleSwitchUser}
+        onCreateUser={handleCreateUser}
+        onDeleteUser={handleDeleteUser}
+      />
     </div>
   );
 };
+
 

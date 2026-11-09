@@ -22,6 +22,9 @@ html/
 .cache/
 .pytest_cache/
 /test_imgs/
+data_storage/
+data-sources/debug_scans/
+ocr_debug_logs/
 .DS_Store
 *.log
 .env
