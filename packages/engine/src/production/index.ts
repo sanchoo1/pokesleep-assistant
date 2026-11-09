@@ -1192,7 +1192,7 @@ export function calculateDailyProduction(params: ProductionParams): ProductionRe
 
   // 5. Berries Production & Sneaky Snacking
   const hasBfs = activeSubskills.some(
-    s => s.name.toLowerCase() === 'berry finding s' || s.shortName.toLowerCase() === 'bfs'
+    s => s.name.toLowerCase() === 'berry finding s' || s.shortName?.toLowerCase() === 'bfs'
   );
   const isBerrySpecialist = mon.specialty === 'berry' || mon.specialty === 'all';
   const berriesPerDrop = (isBerrySpecialist ? 2 : 1) + (hasBfs ? 1 : 0);

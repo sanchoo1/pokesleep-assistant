@@ -17,6 +17,16 @@ import {
   analyzeIndividualRecipeCoverage,
   rankIngredientProducers,
   getSpecificIngredientYield,
+  rankSkillSpecialists,
+  rankEnergyProducers,
+  detectSkillCategory,
+  SKILL_CATEGORY_META,
+  findIslandForBerry,
+  type SkillRankingCategory,
+  type SkillRankingMetric,
+  type EnergyRankingScope,
+  type EnergyRankingSpecialtyFilter,
+  type EnergyRankingMetric,
   EvaluationMetric,
   CookingScenarioContext,
   MEW_LEARNED_SKILLS,
@@ -175,6 +185,21 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
   const [rankingOnlyAAA, setRankingOnlyAAA] = useState<boolean>(false);
   const [rankingPreset, setRankingPreset] = useState<'optimal' | 'neutral'>('optimal');
 
+  // Skill Specialist Ranking states
+  const [skillRankingCategory, setSkillRankingCategory] = useState<SkillRankingCategory>(() =>
+    detectSkillCategory(species)
+  );
+  const [skillRankingMetric, setSkillRankingMetric] = useState<SkillRankingMetric>('skill_procs');
+  const [skillRankingLevel, setSkillRankingLevel] = useState<number>(50);
+  const [skillRankingOnlyFinalEvolution, setSkillRankingOnlyFinalEvolution] = useState<boolean>(true);
+
+  // Energy & Island Ranking states (Meganium vs Sceptile flexible benchmarking)
+  const [energyRankingScope, setEnergyRankingScope] = useState<EnergyRankingScope>('same_berry');
+  const [energyRankingSpecialtyFilter, setEnergyRankingSpecialtyFilter] = useState<EnergyRankingSpecialtyFilter>('all');
+  const [energyRankingMetric, setEnergyRankingMetric] = useState<EnergyRankingMetric>('berry_energy');
+  const [energyRankingLevel, setEnergyRankingLevel] = useState<number>(50);
+  const [energyRankingOnlyFinalEvolution, setEnergyRankingOnlyFinalEvolution] = useState<boolean>(true);
+
   // Cooking strength scenario configuration for realistic pot expansion and crit chance
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>('standard');
   const [customDishEnergy, setCustomDishEnergy] = useState<number>(35000);
@@ -221,6 +246,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     }
     setActiveDeepTab(sp.specialty === 'all' ? 'skill' : sp.specialty);
     setFocusedLevel(sp.specialty === 'ingredient' ? 60 : 50);
+    setSkillRankingCategory(detectSkillCategory(sp));
   }, [initialPokemon]);
 
   const handleSpeciesChange = (newSpeciesName: string) => {
@@ -247,6 +273,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
       setMainSkillLevel(Math.min(sp.skill.maxLevel || 6, 1 + (sp.previousEvolutions || 0)));
       setActiveDeepTab(sp.specialty === 'all' ? 'skill' : sp.specialty);
       setFocusedLevel(sp.specialty === 'ingredient' ? 60 : 50);
+      setSkillRankingCategory(detectSkillCategory(sp));
     }
   };
 
@@ -586,6 +613,75 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     effectiveNature,
     subskills,
     ingredients,
+    ribbonLevel,
+    mewLearnedSkill,
+  ]);
+
+  const skillRankingResult = useMemo(() => {
+    return rankSkillSpecialists({
+      category: skillRankingCategory,
+      metric: skillRankingMetric,
+      level: skillRankingLevel,
+      onlyFinalEvolution: skillRankingOnlyFinalEvolution,
+      currentPokemon: {
+        pokemonName: species.name,
+        level: focusedLevel,
+        nature: effectiveNature,
+        subskills: Object.values(subskills).filter(Boolean),
+        mainSkillLevel,
+        ribbonLevel,
+        ingredientSelection: `${ingredients.slotA}${ingredients.slotB}${ingredients.slotC}`,
+        mewLearnedSkill: species.name === 'MEW' ? mewLearnedSkill : undefined,
+      },
+    });
+  }, [
+    skillRankingCategory,
+    skillRankingMetric,
+    skillRankingLevel,
+    skillRankingOnlyFinalEvolution,
+    species.name,
+    focusedLevel,
+    effectiveNature,
+    subskills,
+    mainSkillLevel,
+    ribbonLevel,
+    ingredients,
+    mewLearnedSkill,
+  ]);
+
+  const energyRankingResult = useMemo(() => {
+    return rankEnergyProducers({
+      scope: energyRankingScope,
+      targetBerry: species.berry,
+      specialtyFilter: energyRankingSpecialtyFilter,
+      metric: energyRankingMetric,
+      level: energyRankingLevel,
+      onlyFinalEvolution: energyRankingOnlyFinalEvolution,
+      isFavoredBerry: true,
+      currentPokemon: {
+        pokemonName: species.name,
+        level: focusedLevel,
+        nature: effectiveNature,
+        subskills: Object.values(subskills).filter(Boolean),
+        ingredientSelection: `${ingredients.slotA}${ingredients.slotB}${ingredients.slotC}`,
+        mainSkillLevel,
+        ribbonLevel,
+        mewLearnedSkill: species.name === 'MEW' ? mewLearnedSkill : undefined,
+      },
+    });
+  }, [
+    energyRankingScope,
+    species.berry,
+    species.name,
+    energyRankingSpecialtyFilter,
+    energyRankingMetric,
+    energyRankingLevel,
+    energyRankingOnlyFinalEvolution,
+    focusedLevel,
+    effectiveNature,
+    subskills,
+    ingredients,
+    mainSkillLevel,
     ribbonLevel,
     mewLearnedSkill,
   ]);
@@ -1694,6 +1790,244 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                   </tbody>
                 </table>
               </div>
+
+              {/* ================= HORIZONTAL BAR CHART: SKILL SPECIALIST BENCHMARK RANKING ================= */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                  <div>
+                    <div className="text-sm font-black text-slate-800 flex items-center space-x-2">
+                      <BarChart3 className="w-4 h-4 text-indigo-600" />
+                      <span>
+                        【{skillRankingResult.categoryDisplayName}】全游技能天梯榜
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {SKILL_CATEGORY_META[skillRankingCategory]?.description || '横向对比全游不同技能定位宠物的期望发动次数与实际效果量化排行'}
+                    </p>
+                  </div>
+
+                  {/* Filter controls */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center space-x-0.5 bg-slate-100 p-0.5 rounded-lg text-xs font-bold">
+                      {[30, 50, 60, 70].map((lvl) => (
+                        <button
+                          key={lvl}
+                          type="button"
+                          onClick={() => setSkillRankingLevel(lvl)}
+                          className={`px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
+                            skillRankingLevel === lvl
+                              ? 'bg-white text-indigo-700 shadow-2xs'
+                              : 'text-slate-500 hover:text-slate-900'
+                          }`}
+                        >
+                          Lv.{lvl}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setSkillRankingOnlyFinalEvolution((prev) => !prev)}
+                      className={`px-2.5 py-1 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
+                        skillRankingOnlyFinalEvolution
+                          ? 'bg-blue-50 text-blue-700 border-blue-300'
+                          : 'bg-slate-50 text-slate-600 border-slate-200'
+                      }`}
+                    >
+                      {skillRankingOnlyFinalEvolution ? '✓ 仅最终形态' : '全部形态'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Category & Metric pills */}
+                <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1">
+                  {/* Category Pills */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {(
+                      [
+                        'healer',
+                        'pot_expansion',
+                        'charge_strength',
+                        'ingredient_draw',
+                        'cooking_crit',
+                        'helper_boost',
+                        'all_skill_mon',
+                      ] as SkillRankingCategory[]
+                    ).map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setSkillRankingCategory(cat)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          skillRankingCategory === cat
+                            ? 'bg-indigo-600 text-white shadow-2xs'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {SKILL_CATEGORY_META[cat].displayName}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Metric Switch */}
+                  <div className="flex items-center space-x-1 bg-slate-100 p-0.5 rounded-lg text-xs font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => setSkillRankingMetric('skill_procs')}
+                      className={`px-2 py-0.5 rounded-md cursor-pointer ${
+                        skillRankingMetric === 'skill_procs'
+                          ? 'bg-white text-indigo-700 shadow-2xs font-bold'
+                          : 'text-slate-500 hover:text-slate-900'
+                      }`}
+                    >
+                      发动次数 (次/天)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSkillRankingMetric('skill_value')}
+                      className={`px-2 py-0.5 rounded-md cursor-pointer ${
+                        skillRankingMetric === 'skill_value'
+                          ? 'bg-white text-indigo-700 shadow-2xs font-bold'
+                          : 'text-slate-500 hover:text-slate-900'
+                      }`}
+                    >
+                      实效量化 ({SKILL_CATEGORY_META[skillRankingCategory]?.primaryUnit || '量化'})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSkillRankingMetric('total_energy')}
+                      className={`px-2 py-0.5 rounded-md cursor-pointer ${
+                        skillRankingMetric === 'total_energy'
+                          ? 'bg-white text-indigo-700 shadow-2xs font-bold'
+                          : 'text-slate-500 hover:text-slate-900'
+                      }`}
+                    >
+                      全天总能量
+                    </button>
+                  </div>
+                </div>
+
+                {/* Horizontal Bar Chart List */}
+                <div className="space-y-2.5">
+                  {skillRankingResult.entries.slice(0, 15).map((entry, idx) => {
+                    const isTop3 = idx < 3;
+                    const rankBadgeColor =
+                      idx === 0
+                        ? 'bg-amber-500 text-white'
+                        : idx === 1
+                        ? 'bg-slate-400 text-white'
+                        : idx === 2
+                        ? 'bg-amber-700 text-white'
+                        : 'bg-slate-200 text-slate-600';
+
+                    return (
+                      <div
+                        key={`${entry.pokemon.name}_${entry.isCurrentPokemon}_${idx}`}
+                        className={`p-3 rounded-xl border transition-all ${
+                          entry.isCurrentPokemon
+                            ? 'bg-amber-50/90 border-amber-400 ring-2 ring-amber-300/70 shadow-xs'
+                            : 'bg-slate-50/60 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2.5 min-w-0">
+                            <span
+                              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${rankBadgeColor}`}
+                            >
+                              {entry.isCurrentPokemon ? '★' : idx + 1}
+                            </span>
+
+                            <img
+                              src={getPokemonImageUrl(entry.pokemon.name)}
+                              alt={entry.pokemon.name}
+                              className="w-7 h-7 object-contain shrink-0"
+                            />
+
+                            <div className="min-w-0 flex items-center space-x-1.5 flex-wrap">
+                              <span className="text-xs font-bold text-slate-800">
+                                {getEntityName(entry.pokemon, locale)}
+                              </span>
+                              <span
+                                className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
+                                  entry.pokemon.specialty === 'skill'
+                                    ? 'bg-indigo-100 text-indigo-800'
+                                    : entry.pokemon.specialty === 'berry'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : 'bg-amber-100 text-amber-800'
+                                }`}
+                              >
+                                {entry.pokemon.specialty === 'skill'
+                                  ? '技能型'
+                                  : entry.pokemon.specialty === 'berry'
+                                  ? '树果型'
+                                  : '食材型'}
+                              </span>
+                              {entry.isCurrentPokemon && (
+                                <span className="text-[10px] font-black text-amber-800 bg-amber-200 px-2 py-0.5 rounded-full animate-pulse">
+                                  👈 当前分析个体 (Lv.{entry.level})
+                                </span>
+                              )}
+                              <span className="text-[10px] text-slate-400 hidden sm:inline">
+                                {entry.subskillSummary}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="text-right shrink-0 ml-2">
+                            {skillRankingMetric === 'skill_procs' ? (
+                              <div>
+                                <span className="text-xs font-black text-indigo-700">
+                                  {entry.dailySkillProcs.toFixed(2)}{' '}
+                                  <span className="text-[10px] font-normal text-slate-500">次/天</span>
+                                </span>
+                                {skillRankingCategory !== 'all_skill_mon' && (
+                                  <span className="text-[10px] text-slate-400 ml-1.5 hidden xs:inline">
+                                    ({entry.quantifiedLabel}: {entry.quantifiedValue} {entry.quantifiedUnit})
+                                  </span>
+                                )}
+                              </div>
+                            ) : skillRankingMetric === 'skill_value' ? (
+                              <div>
+                                <span className="text-xs font-black text-emerald-700">
+                                  {entry.quantifiedValue}{' '}
+                                  <span className="text-[10px] font-normal text-slate-500">{entry.quantifiedUnit}</span>
+                                </span>
+                                <span className="text-[10px] text-slate-400 ml-1.5 hidden xs:inline">
+                                  ({entry.dailySkillProcs.toFixed(2)} 次/天)
+                                </span>
+                              </div>
+                            ) : (
+                              <div>
+                                <span className="text-xs font-black text-blue-700">
+                                  {Math.round(entry.dailyTotalEnergy).toLocaleString()}{' '}
+                                  <span className="text-[10px] font-normal text-slate-500">pts/天</span>
+                                </span>
+                                <span className="text-[10px] text-slate-400 ml-1.5 hidden xs:inline">
+                                  ({entry.dailySkillProcs.toFixed(2)} 次/天)
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Horizontal Bar */}
+                        <div className="w-full bg-slate-200/70 rounded-full h-2.5 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              entry.isCurrentPokemon
+                                ? 'bg-gradient-to-r from-amber-500 to-amber-600'
+                                : isTop3
+                                ? 'bg-gradient-to-r from-indigo-500 to-purple-600'
+                                : 'bg-gradient-to-r from-slate-400 to-slate-500'
+                            }`}
+                            style={{ width: `${Math.max(4, entry.relativePercentage)}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
 
@@ -1807,6 +2141,296 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                     })}
                   </tbody>
                 </table>
+              </div>
+
+              {/* ================= HORIZONTAL BAR CHART: BERRY & ISLAND ENERGY BENCHMARK RANKING ================= */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                  <div>
+                    <div className="text-sm font-black text-slate-800 flex items-center space-x-2">
+                      <BarChart3 className="w-4 h-4 text-emerald-600" />
+                      <span>
+                        【{energyRankingResult.scopeDisplayName}】能量产出天梯榜
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      横向对比全游不同宝可梦在{' '}
+                      {energyRankingResult.targetIsland
+                        ? getEntityName(energyRankingResult.targetIsland, locale)
+                        : berryObj
+                        ? getEntityName(berryObj, locale)
+                        : '对应属性'}{' '}
+                      的能量产出实力排行（大竺葵与蜥蜴王等跨专长同台较量）
+                    </p>
+                  </div>
+
+                  {/* Filter controls */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center space-x-0.5 bg-slate-100 p-0.5 rounded-lg text-xs font-bold">
+                      {[30, 50, 60, 70].map((lvl) => (
+                        <button
+                          key={lvl}
+                          type="button"
+                          onClick={() => setEnergyRankingLevel(lvl)}
+                          className={`px-2 py-0.5 rounded-md transition-colors cursor-pointer ${
+                            energyRankingLevel === lvl
+                              ? 'bg-white text-emerald-700 shadow-2xs'
+                              : 'text-slate-500 hover:text-slate-900'
+                          }`}
+                        >
+                          Lv.{lvl}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setEnergyRankingOnlyFinalEvolution((prev) => !prev)}
+                      className={`px-2.5 py-1 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
+                        energyRankingOnlyFinalEvolution
+                          ? 'bg-blue-50 text-blue-700 border-blue-300'
+                          : 'bg-slate-50 text-slate-600 border-slate-200'
+                      }`}
+                    >
+                      {energyRankingOnlyFinalEvolution ? '✓ 仅最终形态' : '全部形态'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Scope, Specialty & Metric filters */}
+                <div className="space-y-2.5 pt-1">
+                  {/* Row 1: Scope & Specialty */}
+                  <div className="flex flex-wrap items-center justify-between gap-2.5">
+                    {/* Scope Pills */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-[11px] font-bold text-slate-500 mr-1">范围:</span>
+                      <button
+                        type="button"
+                        onClick={() => setEnergyRankingScope('same_berry')}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer inline-flex items-center space-x-1 ${
+                          energyRankingScope === 'same_berry'
+                            ? 'bg-emerald-600 text-white shadow-2xs'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {berryObj && (
+                          <img
+                            src={getBerryImageUrl(berryObj.name)}
+                            alt={berryObj.name}
+                            className="w-3.5 h-3.5 object-contain"
+                          />
+                        )}
+                        <span>同树果 ({getEntityName(berryObj, locale)})</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setEnergyRankingScope('same_island')}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          energyRankingScope === 'same_island'
+                            ? 'bg-emerald-600 text-white shadow-2xs'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        同岛屿 (
+                        {energyRankingResult.targetIsland
+                          ? getEntityName(energyRankingResult.targetIsland, locale)
+                          : '适性岛'}
+                        )
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setEnergyRankingScope('all_berry_mon')}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          energyRankingScope === 'all_berry_mon'
+                            ? 'bg-emerald-600 text-white shadow-2xs'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        全游树果霸主榜
+                      </button>
+                    </div>
+
+                    {/* Metric Switch */}
+                    <div className="flex items-center space-x-1 bg-slate-100 p-0.5 rounded-lg text-xs font-semibold">
+                      <button
+                        type="button"
+                        onClick={() => setEnergyRankingMetric('berry_energy')}
+                        className={`px-2 py-0.5 rounded-md cursor-pointer ${
+                          energyRankingMetric === 'berry_energy'
+                            ? 'bg-white text-emerald-700 shadow-2xs font-bold'
+                            : 'text-slate-500 hover:text-slate-900'
+                        }`}
+                      >
+                        纯树果能量
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEnergyRankingMetric('total_energy')}
+                        className={`px-2 py-0.5 rounded-md cursor-pointer ${
+                          energyRankingMetric === 'total_energy'
+                            ? 'bg-white text-emerald-700 shadow-2xs font-bold'
+                            : 'text-slate-500 hover:text-slate-900'
+                        }`}
+                      >
+                        全天总能量 (含技能/食材)
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Row 2: Specialty Filter (Critical for Meganium vs Sceptile flexibility!) */}
+                  <div className="flex flex-wrap items-center gap-1.5 bg-slate-50 p-2 rounded-xl border border-slate-100 text-xs">
+                    <span className="text-[11px] font-bold text-slate-600 mr-1 flex items-center">
+                      <SlidersHorizontal className="w-3 h-3 text-slate-500 mr-1" />
+                      专长过滤:
+                    </span>
+                    {(
+                      [
+                        { id: 'all', label: '全部专长 (跨专长PK：大竺葵 vs 蜥蜴王)' },
+                        { id: 'berry', label: '仅树果型' },
+                        { id: 'skill', label: '仅技能型' },
+                        { id: 'ingredient', label: '仅食材型' },
+                      ] as Array<{ id: EnergyRankingSpecialtyFilter; label: string }>
+                    ).map((sp) => (
+                      <button
+                        key={sp.id}
+                        type="button"
+                        onClick={() => setEnergyRankingSpecialtyFilter(sp.id)}
+                        className={`px-2.5 py-0.5 rounded-md font-bold transition-all cursor-pointer ${
+                          energyRankingSpecialtyFilter === sp.id
+                            ? 'bg-emerald-700 text-white shadow-2xs'
+                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        {sp.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Horizontal Bar Chart List */}
+                <div className="space-y-2.5">
+                  {energyRankingResult.entries.slice(0, 15).map((entry, idx) => {
+                    const isTop3 = idx < 3;
+                    const rankBadgeColor =
+                      idx === 0
+                        ? 'bg-amber-500 text-white'
+                        : idx === 1
+                        ? 'bg-slate-400 text-white'
+                        : idx === 2
+                        ? 'bg-amber-700 text-white'
+                        : 'bg-slate-200 text-slate-600';
+
+                    const entryBerryObj = GAME_DATA.berries.find(
+                      (b) => b.name.toUpperCase() === entry.berry.toUpperCase()
+                    );
+
+                    return (
+                      <div
+                        key={`${entry.pokemon.name}_${entry.isCurrentPokemon}_${idx}`}
+                        className={`p-3 rounded-xl border transition-all ${
+                          entry.isCurrentPokemon
+                            ? 'bg-amber-50/90 border-amber-400 ring-2 ring-amber-300/70 shadow-xs'
+                            : 'bg-slate-50/60 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2.5 min-w-0">
+                            <span
+                              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${rankBadgeColor}`}
+                            >
+                              {entry.isCurrentPokemon ? '★' : idx + 1}
+                            </span>
+
+                            <img
+                              src={getPokemonImageUrl(entry.pokemon.name)}
+                              alt={entry.pokemon.name}
+                              className="w-7 h-7 object-contain shrink-0"
+                            />
+
+                            <div className="min-w-0 flex items-center space-x-1.5 flex-wrap">
+                              <span className="text-xs font-bold text-slate-800">
+                                {getEntityName(entry.pokemon, locale)}
+                              </span>
+                              <span
+                                className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
+                                  entry.specialty === 'skill'
+                                    ? 'bg-indigo-100 text-indigo-800'
+                                    : entry.specialty === 'berry'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : 'bg-amber-100 text-amber-800'
+                                }`}
+                              >
+                                {entry.specialty === 'skill'
+                                  ? '技能型'
+                                  : entry.specialty === 'berry'
+                                  ? '树果型'
+                                  : '食材型'}
+                              </span>
+                              {entryBerryObj && (
+                                <span className="inline-flex items-center space-x-1 text-[10px] text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
+                                  <img
+                                    src={getBerryImageUrl(entryBerryObj.name)}
+                                    alt={entryBerryObj.name}
+                                    className="w-3.5 h-3.5 object-contain"
+                                  />
+                                  <span>{getEntityName(entryBerryObj, locale)}</span>
+                                </span>
+                              )}
+                              {entry.isCurrentPokemon && (
+                                <span className="text-[10px] font-black text-amber-800 bg-amber-200 px-2 py-0.5 rounded-full animate-pulse">
+                                  👈 当前分析个体 (Lv.{entry.level})
+                                </span>
+                              )}
+                              <span className="text-[10px] text-slate-400 hidden sm:inline">
+                                {entry.subskillSummary}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="text-right shrink-0 ml-2">
+                            {energyRankingMetric === 'berry_energy' ? (
+                              <div>
+                                <span className="text-xs font-black text-emerald-700">
+                                  {Math.round(entry.dailyBerryEnergy).toLocaleString()}{' '}
+                                  <span className="text-[10px] font-normal text-slate-500">pts/天</span>
+                                </span>
+                                <span className="text-[10px] text-slate-400 ml-1.5 hidden xs:inline">
+                                  (总: {Math.round(entry.dailyTotalEnergy).toLocaleString()})
+                                </span>
+                              </div>
+                            ) : (
+                              <div>
+                                <span className="text-xs font-black text-blue-700">
+                                  {Math.round(entry.dailyTotalEnergy).toLocaleString()}{' '}
+                                  <span className="text-[10px] font-normal text-slate-500">pts/天</span>
+                                </span>
+                                <span className="text-[10px] text-slate-400 ml-1.5 hidden xs:inline">
+                                  (树果: {Math.round(entry.dailyBerryEnergy).toLocaleString()})
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Horizontal Bar */}
+                        <div className="w-full bg-slate-200/70 rounded-full h-2.5 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              entry.isCurrentPokemon
+                                ? 'bg-gradient-to-r from-amber-500 to-amber-600'
+                                : isTop3
+                                ? 'bg-gradient-to-r from-emerald-500 to-teal-600'
+                                : 'bg-gradient-to-r from-slate-400 to-slate-500'
+                            }`}
+                            style={{ width: `${Math.max(4, entry.relativePercentage)}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}

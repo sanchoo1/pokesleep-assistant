@@ -347,3 +347,107 @@ function prodMon(name: string) {
   return GAME_DATA.pokemon.find((p) => p.name === name)!;
 }
 
+describe('Cross-Species Benchmarking: Energy & Skill Rankings', () => {
+  it('should flexibly benchmark Meganium (berry) vs Sceptile (skill) under Durin berry & Lapis Lakeside', async () => {
+    const { rankEnergyProducers } = await import('../ranking/energyRanking');
+
+    // 1. All specialties on Durin Berry: Meganium vs Sceptile compete directly
+    const allDurin = rankEnergyProducers({
+      scope: 'same_berry',
+      targetBerry: 'DURIN',
+      specialtyFilter: 'all',
+      level: 50,
+      metric: 'total_energy',
+      currentPokemon: {
+        pokemonName: 'MEGANIUM',
+        level: 50,
+        nature: 'Adamant',
+        subskills: ['Berry Finding S', 'Helping Speed M'],
+      },
+    });
+
+    expect(allDurin.entries.length).toBeGreaterThanOrEqual(4);
+    const monNames = allDurin.entries.map((e) => e.pokemon.name);
+    expect(monNames).toContain('MEGANIUM');
+    expect(monNames).toContain('SCEPTILE');
+
+    // The current analyzed Meganium should be present and marked
+    const currentEntry = allDurin.entries.find((e) => e.isCurrentPokemon);
+    expect(currentEntry).toBeDefined();
+    expect(currentEntry!.pokemon.name).toBe('MEGANIUM');
+
+    // 2. Berry only filter: Sceptile should be excluded, Meganium remains
+    const berryOnlyDurin = rankEnergyProducers({
+      scope: 'same_berry',
+      targetBerry: 'DURIN',
+      specialtyFilter: 'berry',
+      level: 50,
+    });
+    const berryMonNames = berryOnlyDurin.entries.map((e) => e.pokemon.name);
+    expect(berryMonNames).toContain('MEGANIUM');
+    expect(berryMonNames).not.toContain('SCEPTILE');
+
+    // 3. Same Island (Lapis Lakeside): includes Durin (Grass), Cheri (Fighting), Mago (Psychic)
+    const lapisRanking = rankEnergyProducers({
+      scope: 'same_island',
+      targetIslandName: 'Lapis Lakeside',
+      specialtyFilter: 'all',
+      level: 50,
+    });
+    expect(lapisRanking.targetIsland).toBeDefined();
+    expect(lapisRanking.targetIsland!.name).toBe('Lapis Lakeside');
+    const lapisMonNames = lapisRanking.entries.map((e) => e.pokemon.name);
+    expect(lapisMonNames).toContain('MEGANIUM');
+    expect(lapisMonNames).toContain('PRIMEAPE'); // Cheri
+  });
+
+  it('should rank skill specialists by role (healers, pot expansion, charge strength)', async () => {
+    const { rankSkillSpecialists, detectSkillCategory } = await import('../ranking/skillRanking');
+
+    // 1. Category auto-detection
+    const wiggly = GAME_DATA.pokemon.find((p) => p.name === 'WIGGLYTUFF')!;
+    const magnezone = GAME_DATA.pokemon.find((p) => p.name === 'MAGNEZONE')!;
+    const ampharos = GAME_DATA.pokemon.find((p) => p.name === 'AMPHAROS')!;
+
+    expect(detectSkillCategory(wiggly)).toBe('healer');
+    expect(detectSkillCategory(magnezone)).toBe('pot_expansion');
+    expect(detectSkillCategory(ampharos)).toBe('charge_strength');
+
+    // 2. Healers ranking: Wigglytuff, Sylveon, Gardevoir
+    const healerRanking = rankSkillSpecialists({
+      category: 'healer',
+      metric: 'skill_procs',
+      level: 50,
+      currentPokemon: {
+        pokemonName: 'WIGGLYTUFF',
+        level: 53,
+        nature: 'Sassy',
+        subskills: ['Helping Bonus', 'Skill Trigger M', 'Ingredient Finder S'],
+        mainSkillLevel: 6,
+      },
+    });
+
+    expect(healerRanking.entries.length).toBeGreaterThanOrEqual(3);
+    const healerNames = healerRanking.entries.map((e) => e.pokemon.name);
+    expect(healerNames).toContain('WIGGLYTUFF');
+    expect(healerNames).toContain('SYLVEON');
+    expect(healerNames).toContain('GARDEVOIR');
+
+    const currentWiggly = healerRanking.entries.find((e) => e.isCurrentPokemon);
+    expect(currentWiggly).toBeDefined();
+    expect(currentWiggly!.dailySkillProcs).toBeGreaterThan(5.0);
+    expect(currentWiggly!.quantifiedValue).toBeGreaterThan(400); // 5+ procs * 90+ team energy
+
+    // 3. Pot expansion ranking
+    const potRanking = rankSkillSpecialists({
+      category: 'pot_expansion',
+      metric: 'skill_value',
+      level: 50,
+    });
+    const potNames = potRanking.entries.map((e) => e.pokemon.name);
+    expect(potNames).toContain('MAGNEZONE');
+    expect(potNames).toContain('FLAREON');
+  });
+});
+
+
