@@ -171,8 +171,9 @@ export function rankEnergyProducers(filters: EnergyRankingFilters): EnergyRankin
       (p) => p.berry && islandBerries.has(p.berry.toUpperCase())
     );
   } else {
-    // all_berry_mon
-    candidateSpecies = GAME_DATA.pokemon.filter((p) => p.specialty === 'berry');
+    // all_berry_mon / global energy ladder:
+    // If specialtyFilter is 'all', allow all Pokemon across specialties to compete!
+    candidateSpecies = [...GAME_DATA.pokemon];
   }
 
   // Filter by specialty if requested
@@ -283,7 +284,14 @@ export function rankEnergyProducers(filters: EnergyRankingFilters): EnergyRankin
   if (scope === 'same_island' && targetIsland) {
     scopeDisplayName = `${targetIsland.translations['zh-CN'] || targetIsland.name} 喜好树果全员天梯`;
   } else if (scope === 'all_berry_mon') {
-    scopeDisplayName = '全游树果专长霸主榜';
+    scopeDisplayName =
+      specialtyFilter === 'berry'
+        ? '全游树果专长霸主榜'
+        : specialtyFilter === 'skill'
+        ? '全游技能专长能量榜'
+        : specialtyFilter === 'ingredient'
+        ? '全游食材专长能量榜'
+        : '全游跨专长能量霸主榜';
   } else if (targetBerryObj) {
     scopeDisplayName = `${targetBerryObj.translations['zh-CN'] || targetBerry} 同树果跨专长天梯`;
   }
@@ -301,3 +309,4 @@ export function rankEnergyProducers(filters: EnergyRankingFilters): EnergyRankin
     entries: rawEntries,
   };
 }
+

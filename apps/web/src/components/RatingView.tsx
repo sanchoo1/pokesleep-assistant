@@ -52,6 +52,7 @@ import {
   Info,
   Lock,
   BarChart3,
+  Compass,
 } from 'lucide-react';
 
 interface RatingViewProps {
@@ -199,6 +200,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
   const [energyRankingMetric, setEnergyRankingMetric] = useState<EnergyRankingMetric>('berry_energy');
   const [energyRankingLevel, setEnergyRankingLevel] = useState<number>(50);
   const [energyRankingOnlyFinalEvolution, setEnergyRankingOnlyFinalEvolution] = useState<boolean>(true);
+  const [energyRankingIsland, setEnergyRankingIsland] = useState<string | null>(null);
 
   // Cooking strength scenario configuration for realistic pot expansion and crit chance
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>('standard');
@@ -247,10 +249,12 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     setActiveDeepTab(sp.specialty === 'all' ? 'skill' : sp.specialty);
     setFocusedLevel(sp.specialty === 'ingredient' ? 60 : 50);
     setSkillRankingCategory(detectSkillCategory(sp));
+    setEnergyRankingIsland(null);
   }, [initialPokemon]);
 
   const handleSpeciesChange = (newSpeciesName: string) => {
     setSelectedSpecies(newSpeciesName);
+    setEnergyRankingIsland(null);
     const sp = GAME_DATA.pokemon.find(
       (p) => p.name.toUpperCase() === newSpeciesName.toUpperCase()
     );
@@ -653,6 +657,10 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     return rankEnergyProducers({
       scope: energyRankingScope,
       targetBerry: species.berry,
+      targetIslandName:
+        energyRankingScope === 'same_island' && energyRankingIsland
+          ? energyRankingIsland
+          : undefined,
       specialtyFilter: energyRankingSpecialtyFilter,
       metric: energyRankingMetric,
       level: energyRankingLevel,
@@ -671,6 +679,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
     });
   }, [
     energyRankingScope,
+    energyRankingIsland,
     species.berry,
     species.name,
     energyRankingSpecialtyFilter,
@@ -2154,13 +2163,15 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                       </span>
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      横向对比全游不同宝可梦在{' '}
-                      {energyRankingResult.targetIsland
-                        ? getEntityName(energyRankingResult.targetIsland, locale)
-                        : berryObj
-                        ? getEntityName(berryObj, locale)
-                        : '对应属性'}{' '}
-                      的能量产出实力排行（大竺葵与蜥蜴王等跨专长同台较量）
+                      {energyRankingScope === 'all_berry_mon'
+                        ? '横向对比全游不同专长宝可梦在各自最佳适性环境下的全天能量实力排行（大竺葵与蜥蜴王等跨专长同台较量）'
+                        : `横向对比全游不同宝可梦在 ${
+                            energyRankingResult.targetIsland
+                              ? getEntityName(energyRankingResult.targetIsland, locale)
+                              : berryObj
+                              ? getEntityName(berryObj, locale)
+                              : '对应环境'
+                          } 的能量产出实力排行（大竺葵与蜥蜴王等跨专长同台较量）`}
                     </p>
                   </div>
 
@@ -2248,7 +2259,7 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                       >
-                        全游树果霸主榜
+                        全游能量霸主榜
                       </button>
                     </div>
 
@@ -2278,6 +2289,41 @@ export const RatingView: React.FC<RatingViewProps> = ({ initialPokemon, locale }
                       </button>
                     </div>
                   </div>
+
+                  {/* Row 1.5: Island Selector (When scope === 'same_island') */}
+                  {energyRankingScope === 'same_island' && (
+                    <div className="flex flex-wrap items-center gap-1.5 bg-emerald-50/70 p-2 rounded-xl border border-emerald-100 text-xs">
+                      <span className="text-[11px] font-bold text-emerald-800 mr-1 flex items-center">
+                        <Compass className="w-3.5 h-3.5 mr-1 text-emerald-600" />
+                        切换岛屿:
+                      </span>
+                      {GAME_DATA.islands
+                        .filter((isl) => isl.berries && isl.berries.length > 0)
+                        .map((isl) => {
+                          const isCurrentActive =
+                            (energyRankingIsland &&
+                              energyRankingIsland.toLowerCase() === isl.name.toLowerCase()) ||
+                            (!energyRankingIsland &&
+                              energyRankingResult.targetIsland &&
+                              energyRankingResult.targetIsland.name.toLowerCase() ===
+                                isl.name.toLowerCase());
+                          return (
+                            <button
+                              key={isl.name}
+                              type="button"
+                              onClick={() => setEnergyRankingIsland(isl.name)}
+                              className={`px-2.5 py-0.5 rounded-md font-bold transition-all cursor-pointer ${
+                                isCurrentActive
+                                  ? 'bg-emerald-700 text-white shadow-2xs'
+                                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-emerald-50'
+                              }`}
+                            >
+                              {getEntityName(isl, locale)}
+                            </button>
+                          );
+                        })}
+                    </div>
+                  )}
 
                   {/* Row 2: Specialty Filter (Critical for Meganium vs Sceptile flexibility!) */}
                   <div className="flex flex-wrap items-center gap-1.5 bg-slate-50 p-2 rounded-xl border border-slate-100 text-xs">

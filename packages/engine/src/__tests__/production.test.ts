@@ -399,6 +399,23 @@ describe('Cross-Species Benchmarking: Energy & Skill Rankings', () => {
     const lapisMonNames = lapisRanking.entries.map((e) => e.pokemon.name);
     expect(lapisMonNames).toContain('MEGANIUM');
     expect(lapisMonNames).toContain('PRIMEAPE'); // Cheri
+    expect(lapisMonNames).toContain('SCEPTILE');
+
+    // 4. Global all-pokemon energy ladder (all_berry_mon with specialtyFilter: 'all')
+    const globalRanking = rankEnergyProducers({
+      scope: 'all_berry_mon',
+      specialtyFilter: 'all',
+      level: 70,
+      metric: 'total_energy',
+      onlyFinalEvolution: true,
+    });
+    const globalMonNames = globalRanking.entries.map((e) => e.pokemon.name);
+    expect(globalMonNames).toContain('SCEPTILE');
+    expect(globalMonNames).toContain('MEGANIUM');
+    console.log('Top 10 Global Total Energy (Lv.70):');
+    globalRanking.entries.slice(0, 10).forEach((e, idx) => {
+      console.log(`  ${idx + 1}. ${e.pokemon.displayName || e.pokemon.name} (${e.specialty}) [${e.berry}]: ${e.metricScore}`);
+    });
   });
 
   it('should rank skill specialists by role (healers, pot expansion, charge strength)', async () => {
